@@ -15,6 +15,7 @@ import {
   isGameComplete,
   calculateTotal,
   executeAiTurn,
+  pickAiCategory,
   getCategories,
   type GameState,
   type CategoryId,
@@ -87,6 +88,24 @@ export default function Index() {
 
     return () => clearTimeout(timeout);
   }, [game?.currentPlayerIndex, game?.currentRound, screen, advanceToNextPlayer]);
+
+  // Auto-roll dice when advancing to a human player's turn
+  useEffect(() => {
+    if (!game || screen !== "playing") return;
+    const current = game.players[game.currentPlayerIndex];
+    if (current.isAi) return;
+    if (game.rollsLeft !== game.maxRolls) return;
+    if (game.dice.some((d: number) => d !== 0)) return;
+
+    const timeout = setTimeout(() => {
+      setGame((prev) => {
+        if (!prev) return prev;
+        return { ...prev, dice: rollDice(prev.diceCount), rollsLeft: prev.rollsLeft - 1 };
+      });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [game?.currentPlayerIndex, game?.currentRound, screen]);
 
   const handleRoll = useCallback(() => {
     if (!game || game.rollsLeft <= 0) return;
@@ -220,6 +239,9 @@ export default function Index() {
 
   const available = isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex], game.diceCount) : [];
   const hasRolled = game.rollsLeft < game.maxRolls;
+  const suggestedCategory = game && isHumanTurn && hasRolled
+    ? pickAiCategory(game.dice, game.players[game.currentPlayerIndex], game.diceCount)
+    : undefined;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -281,14 +303,17 @@ export default function Index() {
       {getCategories(game.diceCount).map((cat) => {
         const scored = game.players[game.currentPlayerIndex].scores[cat.id];
         const isAvailable = available.includes(cat.id) && hasRolled;
+        const isSuggested = suggestedCategory === cat.id && isAvailable;
         return (
           <TouchableOpacity
             key={cat.id}
-            style={[styles.catRow, isAvailable && styles.catRowAvailable]}
+            style={[styles.catRow, isAvailable && styles.catRowAvailable, isSuggested && styles.catRowSuggested]}
             onPress={() => isAvailable && handleSelectCategory(cat.id)}
             disabled={!isAvailable}
           >
-            <Text>{cat.label}</Text>
+            <Text style={isSuggested ? { fontWeight: "bold" } : undefined}>
+              {isSuggested ? "⭐ " : ""}{cat.label}
+            </Text>
             <Text>
               {scored !== undefined
                 ? scored
@@ -328,5 +353,6 @@ const styles = StyleSheet.create({
   rollBtnText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   catRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: "#eee" },
   catRowAvailable: { backgroundColor: "#fffde7" },
+  catRowSuggested: { backgroundColor: "#c8e6c9" },
   finalScore: { fontSize: 28, fontWeight: "bold", marginVertical: 8 },
 });

@@ -7,6 +7,7 @@ import {
   isGameComplete,
   calculateTotal,
   executeAiTurn,
+  pickAiCategory,
   getCategories,
   type GameState,
   type CategoryId,
@@ -77,6 +78,24 @@ export function App() {
     return () => clearTimeout(timeout);
   }, [game?.currentPlayerIndex, game?.currentRound, screen, advanceToNextPlayer]);
 
+  // Auto-roll dice when advancing to a human player's turn
+  useEffect(() => {
+    if (!game || screen !== "playing") return;
+    const current = game.players[game.currentPlayerIndex];
+    if (current.isAi) return;
+    if (game.rollsLeft !== game.maxRolls) return;
+    if (game.dice.some((d) => d !== 0)) return;
+
+    const timeout = setTimeout(() => {
+      setGame((prev) => {
+        if (!prev) return prev;
+        return { ...prev, dice: rollDice(prev.diceCount), rollsLeft: prev.rollsLeft - 1 };
+      });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [game?.currentPlayerIndex, game?.currentRound, screen]);
+
   const handleRoll = useCallback(() => {
     if (!game || game.rollsLeft <= 0) return;
     setGame((prev) => {
@@ -136,6 +155,10 @@ export function App() {
 
   const currentPlayer = game?.players[game.currentPlayerIndex];
   const isHumanTurn = currentPlayer && !currentPlayer.isAi;
+  const hasRolled = game ? game.rollsLeft < game.maxRolls : false;
+  const suggestedCategory = game && isHumanTurn && hasRolled
+    ? pickAiCategory(game.dice, game.players[game.currentPlayerIndex], game.diceCount)
+    : undefined;
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem" }}>
@@ -240,6 +263,7 @@ export function App() {
             isCurrentPlayer={!!isHumanTurn}
             hasRolled={game.rollsLeft < game.maxRolls}
             diceCount={game.diceCount}
+            suggestedCategory={suggestedCategory}
           />
         </div>
       )}

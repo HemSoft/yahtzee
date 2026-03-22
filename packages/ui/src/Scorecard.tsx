@@ -16,6 +16,7 @@ interface ScorecardProps {
   isCurrentPlayer: boolean;
   hasRolled: boolean;
   diceCount?: number;
+  suggestedCategory?: CategoryId;
 }
 
 export function Scorecard({
@@ -26,6 +27,7 @@ export function Scorecard({
   isCurrentPlayer,
   hasRolled,
   diceCount = 5,
+  suggestedCategory,
 }: ScorecardProps) {
   const totals = calculateTotal(player, diceCount);
   const cats = getCategories(diceCount);
@@ -56,6 +58,7 @@ export function Scorecard({
               potential={canSelect && availableCategories.includes(cat.id) ? cat.score(currentDice) : undefined}
               onSelect={() => onSelectCategory(cat.id)}
               canSelect={canSelect && availableCategories.includes(cat.id)}
+              isSuggested={suggestedCategory === cat.id}
             />
           ))}
           <tr style={{ fontWeight: "bold", background: "#f0f0f0" }}>
@@ -76,6 +79,7 @@ export function Scorecard({
               potential={canSelect && availableCategories.includes(cat.id) ? cat.score(currentDice) : undefined}
               onSelect={() => onSelectCategory(cat.id)}
               canSelect={canSelect && availableCategories.includes(cat.id)}
+              isSuggested={suggestedCategory === cat.id}
             />
           ))}
 
@@ -97,12 +101,14 @@ function CategoryRow({
   potential,
   onSelect,
   canSelect,
+  isSuggested,
 }: {
   cat: { id: CategoryId; label: string };
   scored: number | undefined;
   potential: number | undefined;
   onSelect: () => void;
   canSelect: boolean;
+  isSuggested: boolean;
 }) {
   const isScored = scored !== undefined;
 
@@ -111,10 +117,13 @@ function CategoryRow({
       onClick={canSelect ? onSelect : undefined}
       style={{
         cursor: canSelect ? "pointer" : "default",
-        background: canSelect ? "#fffde7" : "transparent",
+        background: isSuggested && canSelect ? "#c8e6c9" : canSelect ? "#fffde7" : "transparent",
+        fontWeight: isSuggested && canSelect ? "bold" : "normal",
       }}
     >
-      <td style={tdStyle}>{cat.label}</td>
+      <td style={tdStyle}>
+        {isSuggested && canSelect ? "⭐ " : ""}{cat.label}
+      </td>
       <td style={tdStyle}>
         {isScored ? (
           scored
