@@ -147,7 +147,7 @@ export function getAvailableCategories(player: PlayerState, diceCount: number = 
 
 // ─── AI Logic ─────────────────────────────────────────────
 
-/** Pick the best available category for the AI (greedy: highest score). */
+/** Pick the best available category for the AI (greedy: highest score, Chance as last resort). */
 export function pickAiCategory(
   dice: number[],
   player: PlayerState,
@@ -160,7 +160,7 @@ export function pickAiCategory(
   for (const id of available) {
     const cat = cats.find((c) => c.id === id)!;
     const s = cat.score(dice);
-    if (s > bestScore) {
+    if (s > bestScore || (s === bestScore && bestId === "chance")) {
       bestScore = s;
       bestId = id;
     }
