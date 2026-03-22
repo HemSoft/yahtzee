@@ -83,6 +83,63 @@ export function isGameComplete(game: GameState): boolean {
   );
 }
 
+// ─── Max Possible Score ───────────────────────────────────
+
+function getMaxCategoryScore(catId: CategoryId, diceCount: number): number {
+  switch (catId) {
+    case "ones": return diceCount;
+    case "twos": return diceCount * 2;
+    case "threes": return diceCount * 3;
+    case "fours": return diceCount * 4;
+    case "fives": return diceCount * 5;
+    case "sixes": return diceCount * 6;
+    case "one-pair": return 12;
+    case "two-pairs": return 22;
+    case "three-of-a-kind": return 18;
+    case "four-of-a-kind": return 24;
+    case "full-house": return 25;
+    case "small-straight": return 30;
+    case "large-straight": return 40;
+    case "yahtzee": return 50;
+    case "chance": return diceCount * 6;
+    case "three-pairs": return diceCount * 6 - 6;
+    case "five-of-a-kind": return 30;
+    case "full-straight": return 21;
+    case "castle": return diceCount * 6 - 3;
+    case "tower": return diceCount * 6 - 2;
+    case "maxi-yahtzee": return 100;
+    default: return 0;
+  }
+}
+
+export function calculateMaxPossibleScore(player: PlayerState, diceCount: number): number {
+  const cats = getCategories(diceCount);
+  const threshold = getUpperBonusThreshold(diceCount);
+  const bonusValue = getUpperBonusValue(diceCount);
+
+  let upperScored = 0;
+  let lowerScored = 0;
+  let maxUpperRemaining = 0;
+  let maxLowerRemaining = 0;
+
+  for (const cat of cats) {
+    const scored = player.scores[cat.id];
+    if (scored !== undefined) {
+      if (cat.section === "upper") upperScored += scored;
+      else lowerScored += scored;
+    } else {
+      const maxVal = getMaxCategoryScore(cat.id, diceCount);
+      if (cat.section === "upper") maxUpperRemaining += maxVal;
+      else maxLowerRemaining += maxVal;
+    }
+  }
+
+  const maxUpper = upperScored + maxUpperRemaining;
+  const maxBonus = maxUpper >= threshold ? bonusValue : 0;
+
+  return maxUpper + maxBonus + lowerScored + maxLowerRemaining;
+}
+
 export function getAvailableCategories(player: PlayerState, diceCount: number = 5): CategoryId[] {
   const cats = getCategories(diceCount);
   return cats.filter((c) => player.scores[c.id] === undefined).map((c) => c.id);

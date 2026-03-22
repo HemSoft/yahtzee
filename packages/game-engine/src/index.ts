@@ -29,6 +29,7 @@ export {
 export {
   createGame,
   calculateTotal,
+  calculateMaxPossibleScore,
   isGameComplete,
   getAvailableCategories,
   pickAiCategory,

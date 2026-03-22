@@ -316,6 +316,7 @@ export function App() {
             hasRolled={game.rollsLeft < game.maxRolls}
             diceCount={game.diceCount}
             suggestedCategory={suggestedCategory}
+            leaderboardScores={getHighScoresForDiceCount(highScores, game.diceCount).map((e) => e.score)}
           />
         </div>
       )}

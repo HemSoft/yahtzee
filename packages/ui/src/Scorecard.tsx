@@ -6,7 +6,7 @@ import {
   type CategoryId,
   type PlayerState,
 } from "@yahtzee/game-engine";
-import { calculateTotal } from "@yahtzee/game-engine";
+import { calculateTotal, calculateMaxPossibleScore } from "@yahtzee/game-engine";
 import { useTheme } from "./theme";
 
 interface ScorecardProps {
@@ -19,6 +19,7 @@ interface ScorecardProps {
   hasRolled: boolean;
   diceCount?: number;
   suggestedCategory?: CategoryId;
+  leaderboardScores?: number[];
 }
 
 export function Scorecard({
@@ -31,6 +32,7 @@ export function Scorecard({
   hasRolled,
   diceCount = 5,
   suggestedCategory,
+  leaderboardScores = [],
 }: ScorecardProps) {
   const cats = getCategories(diceCount);
   const upperCats = cats.filter((c) => c.section === "upper");
@@ -41,6 +43,20 @@ export function Scorecard({
   const canSelect = canInteract && hasRolled;
 
   const playerTotals = players.map((p) => calculateTotal(p, diceCount));
+
+  // Current game ranks (handle ties)
+  const gameRanks = computeRanks(playerTotals.map((t) => t.grandTotal));
+
+  // Max possible score per player + best leaderboard rank
+  const maxScores = players.map((p) => calculateMaxPossibleScore(p, diceCount));
+  const bestLeaderboardRanks = maxScores.map((max) => {
+    let rank = 1;
+    for (const s of leaderboardScores) {
+      if (s > max) rank++;
+      else break;
+    }
+    return rank;
+  });
 
   const theme = useTheme();
   const thStyle: React.CSSProperties = {
@@ -75,9 +91,19 @@ export function Scorecard({
                   minWidth: "80px",
                   background: i === currentPlayerIndex ? theme.currentPlayerBg : undefined,
                   borderBottom: i === currentPlayerIndex ? `3px solid ${theme.currentPlayerBorder}` : `2px solid ${theme.borderStrong}`,
+                  lineHeight: "1.3",
                 }}
               >
-                {p.name}{p.isAi ? " 🤖" : ""}
+                <div style={{ fontSize: "1.1rem", fontWeight: "bold" }}>
+                  {playerTotals[i].grandTotal} pts
+                </div>
+                <div style={{ fontSize: "0.75rem", color: theme.textMuted, fontWeight: "normal" }}>
+                  #{gameRanks[i]} in game
+                  {leaderboardScores.length > 0 && (
+                    <> · best: #{bestLeaderboardRanks[i]}</>
+                  )}
+                </div>
+                <div>{p.name}{p.isAi ? " 🤖" : ""}</div>
               </th>
             ))}
           </tr>
@@ -192,4 +218,15 @@ function ScoreCell({ scored, potential, potentialColor }: { scored: number | und
   if (scored !== undefined) return <>{scored}</>;
   if (potential !== undefined) return <span style={{ color: potentialColor, fontStyle: "italic" }}>{potential}</span>;
   return <>—</>;
+}
+
+function computeRanks(scores: number[]): number[] {
+  const indexed = scores.map((s, i) => ({ i, s })).sort((a, b) => b.s - a.s);
+  const ranks = new Array<number>(scores.length);
+  let rank = 1;
+  for (let j = 0; j < indexed.length; j++) {
+    if (j > 0 && indexed[j].s < indexed[j - 1].s) rank = j + 1;
+    ranks[indexed[j].i] = rank;
+  }
+  return ranks;
 }

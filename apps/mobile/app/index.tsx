@@ -15,6 +15,7 @@ import {
   getAvailableCategories,
   isGameComplete,
   calculateTotal,
+  calculateMaxPossibleScore,
   executeAiTurn,
   pickAiCategory,
   getCategories,
@@ -383,14 +384,38 @@ export default function Index() {
       <ScrollView horizontal style={{ width: "100%" }}>
         <View>
           {/* Header row */}
-          <View style={[styles.sheetRow, { borderBottomColor: theme.border }]}>
-            <View style={styles.catCol}><Text style={{ fontWeight: "bold", color: theme.text }}>Category</Text></View>
-            {game.players.map((p, i) => (
-              <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && { backgroundColor: theme.currentPlayerBg }]}>
-                <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text }}>{p.name}{p.isAi ? " 🤖" : ""}</Text>
+          {(() => {
+            const totals = game.players.map((p) => calculateTotal(p, game.diceCount));
+            const scores = totals.map((t) => t.grandTotal);
+            const indexed = scores.map((s, i) => ({ i, s })).sort((a, b) => b.s - a.s);
+            const ranks = new Array<number>(scores.length);
+            let rank = 1;
+            for (let j = 0; j < indexed.length; j++) {
+              if (j > 0 && indexed[j].s < indexed[j - 1].s) rank = j + 1;
+              ranks[indexed[j].i] = rank;
+            }
+            const lbScores = getHighScoresForDiceCount(highScores, game.diceCount).map((e) => e.score);
+            const maxScores = game.players.map((p) => calculateMaxPossibleScore(p, game.diceCount));
+            const bestLbRanks = maxScores.map((max) => {
+              let r = 1;
+              for (const s of lbScores) { if (s > max) r++; else break; }
+              return r;
+            });
+            return (
+              <View style={[styles.sheetRow, { borderBottomColor: theme.border }]}>
+                <View style={styles.catCol}><Text style={{ fontWeight: "bold", color: theme.text }}>Category</Text></View>
+                {game.players.map((p, i) => (
+                  <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && { backgroundColor: theme.currentPlayerBg }]}>
+                    <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text, fontSize: 15 }}>{totals[i].grandTotal} pts</Text>
+                    <Text style={{ textAlign: "center", color: theme.textMuted, fontSize: 10 }}>
+                      #{ranks[i]} in game{lbScores.length > 0 ? ` · best: #${bestLbRanks[i]}` : ""}
+                    </Text>
+                    <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text }}>{p.name}{p.isAi ? " 🤖" : ""}</Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
+            );
+          })()}
 
           {getCategories(game.diceCount).map((cat) => {
             const isAvailable = available.includes(cat.id) && hasRolled;
