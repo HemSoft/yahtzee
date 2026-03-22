@@ -31,6 +31,26 @@ export function upperScore(dice: number[], face: number): number {
 
 // ─── Lower Section ────────────────────────────────────────
 
+/** Highest pair — sum of the two matching dice. */
+export function onePair(dice: number[]): number {
+  const c = counts(dice);
+  for (let face = 6; face >= 1; face--) {
+    if (c[face] >= 2) return face * 2;
+  }
+  return 0;
+}
+
+/** Two different pairs — sum of all four dice. */
+export function twoPairs(dice: number[]): number {
+  const c = counts(dice);
+  const pairs: number[] = [];
+  for (let face = 6; face >= 1; face--) {
+    if (c[face] >= 2) pairs.push(face);
+  }
+  if (pairs.length >= 2) return pairs[0] * 2 + pairs[1] * 2;
+  return 0;
+}
+
 export function threeOfAKind(dice: number[]): number {
   return hasNOfAKind(dice, 3) ? sum(dice) : 0;
 }
@@ -88,6 +108,8 @@ export type CategoryId =
   | "fours"
   | "fives"
   | "sixes"
+  | "one-pair"
+  | "two-pairs"
   | "three-of-a-kind"
   | "four-of-a-kind"
   | "full-house"
@@ -110,6 +132,8 @@ export const CATEGORIES: Category[] = [
   { id: "fours", label: "Fours", section: "upper", score: (d) => upperScore(d, 4) },
   { id: "fives", label: "Fives", section: "upper", score: (d) => upperScore(d, 5) },
   { id: "sixes", label: "Sixes", section: "upper", score: (d) => upperScore(d, 6) },
+  { id: "one-pair", label: "One Pair", section: "lower", score: onePair },
+  { id: "two-pairs", label: "Two Pairs", section: "lower", score: twoPairs },
   { id: "three-of-a-kind", label: "Three of a Kind", section: "lower", score: threeOfAKind },
   { id: "four-of-a-kind", label: "Four of a Kind", section: "lower", score: fourOfAKind },
   { id: "full-house", label: "Full House", section: "lower", score: fullHouse },

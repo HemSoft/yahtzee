@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   upperScore,
+  onePair,
+  twoPairs,
   threeOfAKind,
   fourOfAKind,
   fullHouse,
@@ -9,6 +11,42 @@ import {
   yahtzee,
   chance,
 } from "../src/scoring";
+
+describe("onePair", () => {
+  test("scores highest pair", () => {
+    expect(onePair([3, 3, 5, 5, 1])).toBe(10);
+  });
+
+  test("scores single pair", () => {
+    expect(onePair([2, 2, 4, 5, 6])).toBe(4);
+  });
+
+  test("returns 0 when no pair", () => {
+    expect(onePair([1, 2, 3, 4, 5])).toBe(0);
+  });
+
+  test("works with three of a kind", () => {
+    expect(onePair([4, 4, 4, 1, 2])).toBe(8);
+  });
+});
+
+describe("twoPairs", () => {
+  test("scores two pairs", () => {
+    expect(twoPairs([3, 3, 5, 5, 1])).toBe(16);
+  });
+
+  test("returns 0 with only one pair", () => {
+    expect(twoPairs([2, 2, 3, 4, 5])).toBe(0);
+  });
+
+  test("returns 0 with no pairs", () => {
+    expect(twoPairs([1, 2, 3, 4, 5])).toBe(0);
+  });
+
+  test("works with full house", () => {
+    expect(twoPairs([2, 2, 6, 6, 6])).toBe(16);
+  });
+});
 
 describe("upperScore", () => {
   test("counts ones", () => {

@@ -1,6 +1,8 @@
 export { rollDie, rollDice, reroll } from "./dice";
 export {
   upperScore,
+  onePair,
+  twoPairs,
   threeOfAKind,
   fourOfAKind,
   fullHouse,

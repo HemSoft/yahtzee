@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   disabledBtn: { opacity: 0.5 },
   diceRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 16 },
   die: { width: 56, height: 56, borderRadius: 10, borderWidth: 2, borderColor: "transparent", backgroundColor: "#f5f5f5", alignItems: "center", justifyContent: "center" },
-  dieHeld: { borderColor: "#e74c3c", backgroundColor: "#ffeaea" },
+  dieHeld: { borderColor: "#2e7d32", backgroundColor: "#e8f5e9" },
   dieText: { fontSize: 28 },
   rollBtn: { backgroundColor: "#2196f3", paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8, marginBottom: 20 },
   rollBtnText: { color: "#fff", fontSize: 16, fontWeight: "bold" },

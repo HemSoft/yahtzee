@@ -117,9 +117,9 @@ describe("isGameComplete", () => {
 });
 
 describe("getAvailableCategories", () => {
-  test("returns all 13 at start", () => {
+  test("returns all 15 at start", () => {
     const player = { id: "p1", name: "A", scores: {} };
-    expect(getAvailableCategories(player)).toHaveLength(13);
+    expect(getAvailableCategories(player)).toHaveLength(15);
   });
 
   test("excludes scored categories", () => {
@@ -127,6 +127,6 @@ describe("getAvailableCategories", () => {
     const available = getAvailableCategories(player);
     expect(available).not.toContain("ones");
     expect(available).not.toContain("yahtzee");
-    expect(available).toHaveLength(11);
+    expect(available).toHaveLength(13);
   });
 });

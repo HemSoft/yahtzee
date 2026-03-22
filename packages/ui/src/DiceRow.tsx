@@ -24,9 +24,9 @@ export function Die({ value, held, onToggleHold, disabled }: DieProps) {
       style={{
         fontSize: "3rem",
         padding: "0.5rem",
-        border: held ? "3px solid #e74c3c" : "3px solid transparent",
+        border: held ? "3px solid #2e7d32" : "3px solid transparent",
         borderRadius: "12px",
-        background: held ? "#ffeaea" : "#f5f5f5",
+        background: held ? "#e8f5e9" : "#f5f5f5",
         cursor: disabled ? "default" : "pointer",
         transition: "all 0.15s ease",
         minWidth: "4rem",
