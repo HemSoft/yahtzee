@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import { join } from "path";
 
 function createWindow() {
@@ -12,6 +12,43 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+
+  const menu = Menu.buildFromTemplate([
+    {
+      label: "View",
+      submenu: [
+        {
+          label: "Zoom In",
+          accelerator: "CmdOrCtrl+=",
+          click: () => {
+            const level = win.webContents.getZoomLevel();
+            win.webContents.setZoomLevel(level + 0.5);
+          },
+        },
+        {
+          label: "Zoom Out",
+          accelerator: "CmdOrCtrl+-",
+          click: () => {
+            const level = win.webContents.getZoomLevel();
+            win.webContents.setZoomLevel(level - 0.5);
+          },
+        },
+        {
+          label: "Reset Zoom",
+          accelerator: "CmdOrCtrl+0",
+          click: () => {
+            win.webContents.setZoomLevel(0);
+          },
+        },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+        ...(process.env.NODE_ENV === "development"
+          ? [{ role: "toggleDevTools" } as any]
+          : []),
+      ],
+    },
+  ]);
+  Menu.setApplicationMenu(menu);
 
   if (process.env.ELECTRON_RENDERER_URL) {
     win.loadURL(process.env.ELECTRON_RENDERER_URL);
