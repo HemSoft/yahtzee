@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   createGame,
   rollDice,
@@ -6,11 +6,14 @@ import {
   getAvailableCategories,
   isGameComplete,
   calculateTotal,
+  executeAiTurn,
   CATEGORIES,
   type GameState,
   type CategoryId,
 } from "@yahtzee/game-engine";
 import { DiceRow, Scorecard, GameSettings } from "@yahtzee/ui";
+
+const AI_NAMES = ["Bot Alpha", "Bot Beta", "Bot Gamma"];
 
 type Screen = "setup" | "playing" | "finished";
 
@@ -18,18 +21,61 @@ export function App() {
   const [screen, setScreen] = useState<Screen>("setup");
   const [playerName, setPlayerName] = useState("");
   const [diceCount, setDiceCount] = useState(5);
+  const [aiOpponents, setAiOpponents] = useState(0);
   const [game, setGame] = useState<GameState | null>(null);
 
   const handleStartGame = useCallback(() => {
-    const g = createGame({
-      id: crypto.randomUUID(),
-      diceCount,
-      players: [{ id: "local", name: playerName.trim() }],
-    });
+    const players: { id: string; name: string; isAi?: boolean }[] = [
+      { id: "local", name: playerName.trim() },
+    ];
+    for (let i = 0; i < aiOpponents; i++) {
+      players.push({ id: `ai-${i}`, name: AI_NAMES[i], isAi: true });
+    }
+    const g = createGame({ id: crypto.randomUUID(), diceCount, players });
     g.status = "playing";
     setGame(g);
     setScreen("playing");
-  }, [diceCount, playerName]);
+  }, [diceCount, playerName, aiOpponents]);
+
+  const handleCancelGame = useCallback(() => {
+    setScreen("setup");
+    setGame(null);
+  }, []);
+
+  const advanceToNextPlayer = useCallback((g: GameState): GameState => {
+    const nextIndex = (g.currentPlayerIndex + 1) % g.players.length;
+    const nextRound = nextIndex === 0 ? g.currentRound + 1 : g.currentRound;
+    return {
+      ...g,
+      currentPlayerIndex: nextIndex,
+      dice: new Array(g.diceCount).fill(0),
+      held: new Set(),
+      rollsLeft: g.maxRolls,
+      currentRound: nextRound,
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!game || screen !== "playing") return;
+    const current = game.players[game.currentPlayerIndex];
+    if (!current.isAi) return;
+
+    const timeout = setTimeout(() => {
+      setGame((prev) => {
+        if (!prev) return prev;
+        let g = executeAiTurn(prev);
+        if (isGameComplete(g)) {
+          g.status = "finished";
+          setScreen("finished");
+          return g;
+        }
+        g = advanceToNextPlayer(g);
+        return g;
+      });
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [game?.currentPlayerIndex, game?.currentRound, screen, advanceToNextPlayer]);
 
   const handleRoll = useCallback(() => {
     if (!game || game.rollsLeft <= 0) return;
@@ -65,33 +111,30 @@ export function App() {
 
       setGame((prev) => {
         if (!prev) return prev;
-        const player = { ...prev.players[0] };
+        const playerIdx = prev.currentPlayerIndex;
+        const player = { ...prev.players[playerIdx] };
         player.scores = { ...player.scores, [categoryId]: cat.score(prev.dice) };
 
-        const newGame: GameState = {
-          ...prev,
-          players: [player],
-          dice: new Array(prev.diceCount).fill(0),
-          held: new Set(),
-          rollsLeft: prev.maxRolls,
-          currentRound: prev.currentRound + 1,
-        };
+        const newPlayers = [...prev.players];
+        newPlayers[playerIdx] = player;
+
+        let newGame: GameState = { ...prev, players: newPlayers };
 
         if (isGameComplete(newGame)) {
           newGame.status = "finished";
           setScreen("finished");
+          return newGame;
         }
 
+        newGame = advanceToNextPlayer(newGame);
         return newGame;
       });
     },
-    [game]
+    [game, advanceToNextPlayer]
   );
 
-  const handlePlayAgain = useCallback(() => {
-    setScreen("setup");
-    setGame(null);
-  }, []);
+  const currentPlayer = game?.players[game.currentPlayerIndex];
+  const isHumanTurn = currentPlayer && !currentPlayer.isAi;
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem" }}>
@@ -104,6 +147,8 @@ export function App() {
             onDiceCountChange={setDiceCount}
             playerName={playerName}
             onPlayerNameChange={setPlayerName}
+            aiOpponents={aiOpponents}
+            onAiOpponentsChange={setAiOpponents}
             onStartGame={handleStartGame}
           />
         </div>
@@ -111,20 +156,65 @@ export function App() {
 
       {screen === "playing" && game && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              onClick={handleCancelGame}
+              style={{
+                padding: "0.4rem 1rem",
+                fontSize: "0.85rem",
+                borderRadius: "6px",
+                border: "1px solid #e57373",
+                background: "#fff",
+                color: "#c62828",
+                cursor: "pointer",
+              }}
+            >
+              ✕ Quit Game
+            </button>
+          </div>
+
+          {game.players.length > 1 && (
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", flexWrap: "wrap" }}>
+              {game.players.map((p, i) => (
+                <span
+                  key={p.id}
+                  style={{
+                    padding: "0.35rem 0.75rem",
+                    borderRadius: "6px",
+                    fontSize: "0.85rem",
+                    fontWeight: i === game.currentPlayerIndex ? "bold" : "normal",
+                    background: i === game.currentPlayerIndex ? "#e3f2fd" : "#f5f5f5",
+                    border: i === game.currentPlayerIndex ? "2px solid #2196f3" : "2px solid transparent",
+                  }}
+                >
+                  {p.name}{p.isAi ? " 🤖" : ""} — {calculateTotal(p).grandTotal}
+                </span>
+              ))}
+            </div>
+          )}
+
           <div style={{ textAlign: "center" }}>
             <p style={{ marginBottom: "0.5rem", color: "#666" }}>
+              {currentPlayer?.name}'s turn &nbsp;·&nbsp;
               Round {Math.min(game.currentRound, game.totalRounds)} / {game.totalRounds}
               &nbsp;·&nbsp;Rolls left: {game.rollsLeft}
             </p>
+
+            {!isHumanTurn && (
+              <p style={{ color: "#9c27b0", fontWeight: "bold", margin: "0.5rem 0" }}>
+                🤖 AI is thinking...
+              </p>
+            )}
+
             <DiceRow
               dice={game.dice}
               held={game.held}
               onToggleHold={handleToggleHold}
-              disabled={game.rollsLeft === 0}
+              disabled={!isHumanTurn || game.rollsLeft === 0}
             />
             <button
               onClick={handleRoll}
-              disabled={game.rollsLeft <= 0}
+              disabled={!isHumanTurn || game.rollsLeft <= 0}
               style={{
                 marginTop: "1rem",
                 padding: "0.75rem 2rem",
@@ -132,9 +222,9 @@ export function App() {
                 fontWeight: "bold",
                 borderRadius: "8px",
                 border: "none",
-                background: game.rollsLeft > 0 ? "#2196f3" : "#ccc",
+                background: isHumanTurn && game.rollsLeft > 0 ? "#2196f3" : "#ccc",
                 color: "#fff",
-                cursor: game.rollsLeft > 0 ? "pointer" : "default",
+                cursor: isHumanTurn && game.rollsLeft > 0 ? "pointer" : "default",
               }}
             >
               {game.rollsLeft === game.maxRolls ? "Roll Dice" : `Re-roll (${game.rollsLeft})`}
@@ -142,11 +232,11 @@ export function App() {
           </div>
 
           <Scorecard
-            player={game.players[0]}
+            player={game.players[game.currentPlayerIndex]}
             currentDice={game.dice}
-            availableCategories={getAvailableCategories(game.players[0])}
+            availableCategories={isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex]) : []}
             onSelectCategory={handleSelectCategory}
-            isCurrentPlayer={true}
+            isCurrentPlayer={!!isHumanTurn}
             hasRolled={game.rollsLeft < game.maxRolls}
           />
         </div>
@@ -155,11 +245,18 @@ export function App() {
       {screen === "finished" && game && (
         <div style={{ textAlign: "center" }}>
           <h2>Game Over!</h2>
-          <p style={{ fontSize: "1.5rem", margin: "1rem 0" }}>
-            Final Score: <strong>{calculateTotal(game.players[0]).grandTotal}</strong>
-          </p>
+          {game.players
+            .slice()
+            .sort((a, b) => calculateTotal(b).grandTotal - calculateTotal(a).grandTotal)
+            .map((p, i) => (
+              <p key={p.id} style={{ fontSize: i === 0 ? "1.5rem" : "1.1rem", margin: "0.5rem 0" }}>
+                {i === 0 ? "🏆 " : `${i + 1}. `}
+                <strong>{p.name}</strong>{p.isAi ? " 🤖" : ""}:{" "}
+                {calculateTotal(p).grandTotal} pts
+              </p>
+            ))}
           <button
-            onClick={handlePlayAgain}
+            onClick={handleCancelGame}
             style={{
               marginTop: "1.5rem",
               padding: "0.75rem 2rem",

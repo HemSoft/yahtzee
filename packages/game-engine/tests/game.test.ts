@@ -4,6 +4,8 @@ import {
   calculateTotal,
   isGameComplete,
   getAvailableCategories,
+  pickAiCategory,
+  executeAiTurn,
 } from "../src/game";
 import { CATEGORIES } from "../src/scoring";
 
@@ -128,5 +130,60 @@ describe("getAvailableCategories", () => {
     expect(available).not.toContain("ones");
     expect(available).not.toContain("yahtzee");
     expect(available).toHaveLength(13);
+  });
+});
+
+describe("pickAiCategory", () => {
+  test("picks highest-scoring available category", () => {
+    const player = { id: "ai", name: "Bot", scores: {} as Record<string, number>, isAi: true };
+    const dice = [6, 6, 6, 6, 6]; // All sixes → sixes=30 should be strong
+    const choice = pickAiCategory(dice, player);
+    // Yahtzee is 50, should beat sixes=30
+    expect(choice).toBe("yahtzee");
+  });
+
+  test("skips already-scored categories", () => {
+    const player = {
+      id: "ai",
+      name: "Bot",
+      scores: { yahtzee: 50 } as Record<string, number>,
+      isAi: true,
+    };
+    const dice = [6, 6, 6, 6, 6];
+    const choice = pickAiCategory(dice, player);
+    expect(choice).not.toBe("yahtzee");
+  });
+});
+
+describe("executeAiTurn", () => {
+  test("scores a category for the AI player", () => {
+    const game = createGame({
+      id: "ai-test",
+      diceCount: 5,
+      players: [
+        { id: "human", name: "Alice" },
+        { id: "ai-0", name: "Bot", isAi: true },
+      ],
+    });
+    game.status = "playing";
+    game.currentPlayerIndex = 1; // AI's turn
+    const result = executeAiTurn(game);
+    const aiScores = Object.keys(result.players[1].scores);
+    expect(aiScores.length).toBe(1); // exactly one category scored
+  });
+
+  test("does not modify human player scores", () => {
+    const game = createGame({
+      id: "ai-test-2",
+      diceCount: 5,
+      players: [
+        { id: "human", name: "Alice" },
+        { id: "ai-0", name: "Bot", isAi: true },
+      ],
+    });
+    game.status = "playing";
+    game.currentPlayerIndex = 1;
+    const result = executeAiTurn(game);
+    expect(Object.keys(result.players[0].scores).length).toBe(0);
   });
 });

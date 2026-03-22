@@ -1,11 +1,13 @@
 import type { CategoryId } from "./scoring";
 import { CATEGORIES, UPPER_BONUS_THRESHOLD, UPPER_BONUS_VALUE } from "./scoring";
+import { rollDice, reroll } from "./dice";
 
 // ─── Types ────────────────────────────────────────────────
 
 export interface PlayerState {
   id: string;
   name: string;
+  isAi?: boolean;
   /** Scores keyed by category id. `undefined` = not yet scored. */
   scores: Partial<Record<CategoryId, number>>;
 }
@@ -29,9 +31,9 @@ export interface GameState {
 export function createGame(opts: {
   id: string;
   diceCount: number;
-  players: { id: string; name: string }[];
+  players: { id: string; name: string; isAi?: boolean }[];
 }): GameState {
-  const totalRounds = CATEGORIES.length; // 13 rounds
+  const totalRounds = CATEGORIES.length;
   return {
     id: opts.id,
     diceCount: opts.diceCount,
@@ -79,4 +81,54 @@ export function isGameComplete(game: GameState): boolean {
 
 export function getAvailableCategories(player: PlayerState): CategoryId[] {
   return CATEGORIES.filter((c) => player.scores[c.id] === undefined).map((c) => c.id);
+}
+
+// ─── AI Logic ─────────────────────────────────────────────
+
+/** Pick the best available category for the AI (greedy: highest score). */
+export function pickAiCategory(
+  dice: number[],
+  player: PlayerState
+): CategoryId {
+  const available = getAvailableCategories(player);
+  let bestId = available[0];
+  let bestScore = -1;
+  for (const id of available) {
+    const cat = CATEGORIES.find((c) => c.id === id)!;
+    const s = cat.score(dice);
+    if (s > bestScore) {
+      bestScore = s;
+      bestId = id;
+    }
+  }
+  return bestId;
+}
+
+/** Execute a full AI turn: roll 3 times (no holding strategy), pick best category. */
+export function executeAiTurn(game: GameState): GameState {
+  const player = game.players[game.currentPlayerIndex];
+  let dice = rollDice(game.diceCount);
+
+  // Simple AI: re-roll twice (no hold strategy — keeps it fair-ish)
+  dice = rollDice(game.diceCount);
+  dice = rollDice(game.diceCount);
+
+  const categoryId = pickAiCategory(dice, player);
+  const cat = CATEGORIES.find((c) => c.id === categoryId)!;
+
+  const updatedPlayer = {
+    ...player,
+    scores: { ...player.scores, [categoryId]: cat.score(dice) },
+  };
+
+  const newPlayers = [...game.players];
+  newPlayers[game.currentPlayerIndex] = updatedPlayer;
+
+  return {
+    ...game,
+    players: newPlayers,
+    dice,
+    held: new Set(),
+    rollsLeft: game.maxRolls,
+  };
 }

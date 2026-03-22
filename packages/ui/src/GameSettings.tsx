@@ -5,6 +5,8 @@ interface GameSettingsProps {
   onDiceCountChange: (count: number) => void;
   playerName: string;
   onPlayerNameChange: (name: string) => void;
+  aiOpponents: number;
+  onAiOpponentsChange: (count: number) => void;
   onStartGame: () => void;
   disabled?: boolean;
 }
@@ -16,11 +18,20 @@ const DICE_PRESETS = [
   { label: "Ultra (10)", value: 10 },
 ];
 
+const AI_PRESETS = [
+  { label: "Solo", value: 0 },
+  { label: "1 AI", value: 1 },
+  { label: "2 AI", value: 2 },
+  { label: "3 AI", value: 3 },
+];
+
 export function GameSettings({
   diceCount,
   onDiceCountChange,
   playerName,
   onPlayerNameChange,
+  aiOpponents,
+  onAiOpponentsChange,
   onStartGame,
   disabled,
 }: GameSettingsProps) {
@@ -44,6 +55,30 @@ export function GameSettings({
             width: "100%",
           }}
         />
+      </div>
+
+      <div>
+        <label style={{ display: "block", fontWeight: "bold", marginBottom: "0.25rem" }}>
+          AI Opponents
+        </label>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          {AI_PRESETS.map((preset) => (
+            <button
+              key={preset.value}
+              onClick={() => onAiOpponentsChange(preset.value)}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "6px",
+                border: aiOpponents === preset.value ? "2px solid #9c27b0" : "2px solid #ddd",
+                background: aiOpponents === preset.value ? "#f3e5f5" : "#fff",
+                cursor: "pointer",
+                fontWeight: aiOpponents === preset.value ? "bold" : "normal",
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>

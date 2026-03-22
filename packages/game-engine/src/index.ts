@@ -21,6 +21,8 @@ export {
   calculateTotal,
   isGameComplete,
   getAvailableCategories,
+  pickAiCategory,
+  executeAiTurn,
   type GameState,
   type PlayerState,
 } from "./game";
