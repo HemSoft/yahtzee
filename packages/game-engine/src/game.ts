@@ -1,5 +1,5 @@
 import type { CategoryId } from "./scoring";
-import { CATEGORIES, UPPER_BONUS_THRESHOLD, UPPER_BONUS_VALUE } from "./scoring";
+import { CATEGORIES, getCategories, getUpperBonusThreshold, getUpperBonusValue } from "./scoring";
 import { rollDice, reroll } from "./dice";
 
 // ─── Types ────────────────────────────────────────────────
@@ -33,7 +33,7 @@ export function createGame(opts: {
   diceCount: number;
   players: { id: string; name: string; isAi?: boolean }[];
 }): GameState {
-  const totalRounds = CATEGORIES.length;
+  const totalRounds = getCategories(opts.diceCount).length;
   return {
     id: opts.id,
     diceCount: opts.diceCount,
@@ -51,7 +51,7 @@ export function createGame(opts: {
 
 // ─── Score Calculation ────────────────────────────────────
 
-export function calculateTotal(player: PlayerState): {
+export function calculateTotal(player: PlayerState, diceCount: number = 5): {
   upperSubtotal: number;
   upperBonus: number;
   lowerSubtotal: number;
@@ -60,27 +60,32 @@ export function calculateTotal(player: PlayerState): {
   let upperSubtotal = 0;
   let lowerSubtotal = 0;
 
-  for (const cat of CATEGORIES) {
+  const cats = getCategories(diceCount);
+  for (const cat of cats) {
     const val = player.scores[cat.id];
     if (val === undefined) continue;
     if (cat.section === "upper") upperSubtotal += val;
     else lowerSubtotal += val;
   }
 
-  const upperBonus = upperSubtotal >= UPPER_BONUS_THRESHOLD ? UPPER_BONUS_VALUE : 0;
+  const threshold = getUpperBonusThreshold(diceCount);
+  const bonusValue = getUpperBonusValue(diceCount);
+  const upperBonus = upperSubtotal >= threshold ? bonusValue : 0;
   const grandTotal = upperSubtotal + upperBonus + lowerSubtotal;
 
   return { upperSubtotal, upperBonus, lowerSubtotal, grandTotal };
 }
 
 export function isGameComplete(game: GameState): boolean {
+  const cats = getCategories(game.diceCount);
   return game.players.every(
-    (p) => Object.keys(p.scores).length === CATEGORIES.length
+    (p) => Object.keys(p.scores).length === cats.length
   );
 }
 
-export function getAvailableCategories(player: PlayerState): CategoryId[] {
-  return CATEGORIES.filter((c) => player.scores[c.id] === undefined).map((c) => c.id);
+export function getAvailableCategories(player: PlayerState, diceCount: number = 5): CategoryId[] {
+  const cats = getCategories(diceCount);
+  return cats.filter((c) => player.scores[c.id] === undefined).map((c) => c.id);
 }
 
 // ─── AI Logic ─────────────────────────────────────────────
@@ -88,13 +93,15 @@ export function getAvailableCategories(player: PlayerState): CategoryId[] {
 /** Pick the best available category for the AI (greedy: highest score). */
 export function pickAiCategory(
   dice: number[],
-  player: PlayerState
+  player: PlayerState,
+  diceCount: number = 5
 ): CategoryId {
-  const available = getAvailableCategories(player);
+  const available = getAvailableCategories(player, diceCount);
+  const cats = getCategories(diceCount);
   let bestId = available[0];
   let bestScore = -1;
   for (const id of available) {
-    const cat = CATEGORIES.find((c) => c.id === id)!;
+    const cat = cats.find((c) => c.id === id)!;
     const s = cat.score(dice);
     if (s > bestScore) {
       bestScore = s;
@@ -107,14 +114,15 @@ export function pickAiCategory(
 /** Execute a full AI turn: roll 3 times (no holding strategy), pick best category. */
 export function executeAiTurn(game: GameState): GameState {
   const player = game.players[game.currentPlayerIndex];
+  const cats = getCategories(game.diceCount);
   let dice = rollDice(game.diceCount);
 
   // Simple AI: re-roll twice (no hold strategy — keeps it fair-ish)
   dice = rollDice(game.diceCount);
   dice = rollDice(game.diceCount);
 
-  const categoryId = pickAiCategory(dice, player);
-  const cat = CATEGORIES.find((c) => c.id === categoryId)!;
+  const categoryId = pickAiCategory(dice, player, game.diceCount);
+  const cat = cats.find((c) => c.id === categoryId)!;
 
   const updatedPlayer = {
     ...player,

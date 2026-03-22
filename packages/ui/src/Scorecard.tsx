@@ -1,8 +1,8 @@
 import React from "react";
 import {
-  CATEGORIES,
-  UPPER_BONUS_THRESHOLD,
-  UPPER_BONUS_VALUE,
+  getCategories,
+  getUpperBonusThreshold,
+  getUpperBonusValue,
   type CategoryId,
   type PlayerState,
 } from "@yahtzee/game-engine";
@@ -15,6 +15,7 @@ interface ScorecardProps {
   onSelectCategory: (categoryId: CategoryId) => void;
   isCurrentPlayer: boolean;
   hasRolled: boolean;
+  diceCount?: number;
 }
 
 export function Scorecard({
@@ -24,10 +25,14 @@ export function Scorecard({
   onSelectCategory,
   isCurrentPlayer,
   hasRolled,
+  diceCount = 5,
 }: ScorecardProps) {
-  const totals = calculateTotal(player);
-  const upperCats = CATEGORIES.filter((c) => c.section === "upper");
-  const lowerCats = CATEGORIES.filter((c) => c.section === "lower");
+  const totals = calculateTotal(player, diceCount);
+  const cats = getCategories(diceCount);
+  const upperCats = cats.filter((c) => c.section === "upper");
+  const lowerCats = cats.filter((c) => c.section === "lower");
+  const bonusThreshold = getUpperBonusThreshold(diceCount);
+  const bonusValue = getUpperBonusValue(diceCount);
 
   const canSelect = isCurrentPlayer && hasRolled;
 
@@ -55,11 +60,11 @@ export function Scorecard({
           ))}
           <tr style={{ fontWeight: "bold", background: "#f0f0f0" }}>
             <td style={tdStyle}>Upper Subtotal</td>
-            <td style={tdStyle}>{totals.upperSubtotal} / {UPPER_BONUS_THRESHOLD}</td>
+            <td style={tdStyle}>{totals.upperSubtotal} / {bonusThreshold}</td>
           </tr>
           <tr style={{ fontWeight: "bold", background: "#f0f0f0" }}>
             <td style={tdStyle}>Upper Bonus</td>
-            <td style={tdStyle}>{totals.upperBonus > 0 ? `+${UPPER_BONUS_VALUE}` : "—"}</td>
+            <td style={tdStyle}>{totals.upperBonus > 0 ? `+${bonusValue}` : "—"}</td>
           </tr>
 
           {/* Lower section */}

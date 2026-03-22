@@ -7,7 +7,7 @@ import {
   isGameComplete,
   calculateTotal,
   executeAiTurn,
-  CATEGORIES,
+  getCategories,
   type GameState,
   type CategoryId,
 } from "@yahtzee/game-engine";
@@ -106,7 +106,8 @@ export function App() {
   const handleSelectCategory = useCallback(
     (categoryId: CategoryId) => {
       if (!game) return;
-      const cat = CATEGORIES.find((c) => c.id === categoryId);
+      const cats = getCategories(game.diceCount);
+      const cat = cats.find((c) => c.id === categoryId);
       if (!cat) return;
 
       setGame((prev) => {
@@ -187,7 +188,7 @@ export function App() {
                     border: i === game.currentPlayerIndex ? "2px solid #2196f3" : "2px solid transparent",
                   }}
                 >
-                  {p.name}{p.isAi ? " 🤖" : ""} — {calculateTotal(p).grandTotal}
+                  {p.name}{p.isAi ? " 🤖" : ""} — {calculateTotal(p, game.diceCount).grandTotal}
                 </span>
               ))}
             </div>
@@ -234,10 +235,11 @@ export function App() {
           <Scorecard
             player={game.players[game.currentPlayerIndex]}
             currentDice={game.dice}
-            availableCategories={isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex]) : []}
+            availableCategories={isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex], game.diceCount) : []}
             onSelectCategory={handleSelectCategory}
             isCurrentPlayer={!!isHumanTurn}
             hasRolled={game.rollsLeft < game.maxRolls}
+            diceCount={game.diceCount}
           />
         </div>
       )}
@@ -247,12 +249,12 @@ export function App() {
           <h2>Game Over!</h2>
           {game.players
             .slice()
-            .sort((a, b) => calculateTotal(b).grandTotal - calculateTotal(a).grandTotal)
+            .sort((a, b) => calculateTotal(b, game.diceCount).grandTotal - calculateTotal(a, game.diceCount).grandTotal)
             .map((p, i) => (
               <p key={p.id} style={{ fontSize: i === 0 ? "1.5rem" : "1.1rem", margin: "0.5rem 0" }}>
                 {i === 0 ? "🏆 " : `${i + 1}. `}
                 <strong>{p.name}</strong>{p.isAi ? " 🤖" : ""}:{" "}
-                {calculateTotal(p).grandTotal} pts
+                {calculateTotal(p, game.diceCount).grandTotal} pts
               </p>
             ))}
           <button

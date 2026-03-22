@@ -7,7 +7,7 @@ import {
   pickAiCategory,
   executeAiTurn,
 } from "../src/game";
-import { CATEGORIES } from "../src/scoring";
+import { CATEGORIES, getCategories } from "../src/scoring";
 
 describe("createGame", () => {
   test("initializes with correct dice count", () => {
@@ -34,6 +34,7 @@ describe("createGame", () => {
     expect(game.diceCount).toBe(6);
     expect(game.dice).toHaveLength(6);
     expect(game.players).toHaveLength(2);
+    expect(game.totalRounds).toBe(20); // 15 base - yahtzee + 6 maxi categories
   });
 
   test("supports N-dice variant", () => {
@@ -112,6 +113,18 @@ describe("isGameComplete", () => {
       players: [{ id: "p1", name: "A" }],
     });
     for (const cat of CATEGORIES) {
+      game.players[0].scores[cat.id] = 10;
+    }
+    expect(isGameComplete(game)).toBe(true);
+  });
+
+  test("returns true for 6-dice when all scored", () => {
+    const game = createGame({
+      id: "t6",
+      diceCount: 6,
+      players: [{ id: "p1", name: "A" }],
+    });
+    for (const cat of getCategories(6)) {
       game.players[0].scores[cat.id] = 10;
     }
     expect(isGameComplete(game)).toBe(true);

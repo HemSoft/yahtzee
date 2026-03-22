@@ -10,6 +10,15 @@ import {
   largeStraight,
   yahtzee,
   chance,
+  threePairs,
+  fiveOfAKind,
+  fullStraight,
+  castle,
+  tower,
+  maxiYahtzee,
+  getCategories,
+  getUpperBonusThreshold,
+  getUpperBonusValue,
 } from "../src/scoring";
 
 describe("onePair", () => {
@@ -157,5 +166,119 @@ describe("chance", () => {
 
   test("sums 6 dice", () => {
     expect(chance([6, 6, 6, 6, 6, 6])).toBe(36);
+  });
+});
+
+// ─── Maxi Yatzy (6+ dice) ─────────────────────────────────
+
+describe("threePairs", () => {
+  test("scores three different pairs", () => {
+    expect(threePairs([1, 1, 3, 3, 5, 5])).toBe(18);
+  });
+
+  test("returns 0 with only two pairs", () => {
+    expect(threePairs([1, 1, 3, 3, 5, 6])).toBe(0);
+  });
+
+  test("counts triples as pairs", () => {
+    expect(threePairs([2, 2, 2, 4, 4, 6, 6])).toBe(26);
+  });
+});
+
+describe("fiveOfAKind", () => {
+  test("scores five matching dice", () => {
+    expect(fiveOfAKind([3, 3, 3, 3, 3, 1])).toBe(15);
+  });
+
+  test("returns 0 with only four of a kind", () => {
+    expect(fiveOfAKind([3, 3, 3, 3, 1, 2])).toBe(0);
+  });
+
+  test("scores highest group when six match", () => {
+    expect(fiveOfAKind([5, 5, 5, 5, 5, 5])).toBe(25);
+  });
+});
+
+describe("fullStraight", () => {
+  test("scores 1-2-3-4-5-6", () => {
+    expect(fullStraight([1, 2, 3, 4, 5, 6])).toBe(21);
+  });
+
+  test("returns 0 when missing a number", () => {
+    expect(fullStraight([1, 2, 3, 4, 5, 5])).toBe(0);
+  });
+
+  test("scores when extra dice present", () => {
+    expect(fullStraight([1, 2, 3, 4, 5, 6, 6])).toBe(21);
+  });
+});
+
+describe("castle", () => {
+  test("scores two sets of three", () => {
+    expect(castle([2, 2, 2, 5, 5, 5])).toBe(21);
+  });
+
+  test("returns 0 with only one triple", () => {
+    expect(castle([2, 2, 2, 5, 5, 1])).toBe(0);
+  });
+
+  test("scores with more than three of one kind", () => {
+    expect(castle([4, 4, 4, 4, 6, 6, 6])).toBe(34);
+  });
+});
+
+describe("tower", () => {
+  test("scores four + two", () => {
+    expect(tower([3, 3, 3, 3, 6, 6])).toBe(24);
+  });
+
+  test("returns 0 without the pair", () => {
+    expect(tower([3, 3, 3, 3, 5, 6])).toBe(0);
+  });
+
+  test("returns 0 with three + three (castle, not tower)", () => {
+    expect(tower([3, 3, 3, 5, 5, 5])).toBe(0);
+  });
+});
+
+describe("maxiYahtzee", () => {
+  test("scores all 6 dice the same", () => {
+    expect(maxiYahtzee([4, 4, 4, 4, 4, 4])).toBe(100);
+  });
+
+  test("returns 0 when one differs", () => {
+    expect(maxiYahtzee([4, 4, 4, 4, 4, 3])).toBe(0);
+  });
+});
+
+describe("getCategories", () => {
+  test("returns 15 categories for 5 dice", () => {
+    expect(getCategories(5).length).toBe(15);
+  });
+
+  test("returns 20 categories for 6 dice (yahtzee replaced by maxi)", () => {
+    expect(getCategories(6).length).toBe(20);
+  });
+
+  test("returns 20 categories for 8 dice", () => {
+    expect(getCategories(8).length).toBe(20);
+  });
+});
+
+describe("dynamic bonus", () => {
+  test("5-dice threshold is 63", () => {
+    expect(getUpperBonusThreshold(5)).toBe(63);
+  });
+
+  test("6-dice threshold is 84", () => {
+    expect(getUpperBonusThreshold(6)).toBe(84);
+  });
+
+  test("5-dice bonus value is 35", () => {
+    expect(getUpperBonusValue(5)).toBe(35);
+  });
+
+  test("6-dice bonus value is 100", () => {
+    expect(getUpperBonusValue(6)).toBe(100);
   });
 });

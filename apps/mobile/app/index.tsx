@@ -15,7 +15,7 @@ import {
   isGameComplete,
   calculateTotal,
   executeAiTurn,
-  CATEGORIES,
+  getCategories,
   type GameState,
   type CategoryId,
 } from "@yahtzee/game-engine";
@@ -117,7 +117,8 @@ export default function Index() {
   const handleSelectCategory = useCallback(
     (categoryId: CategoryId) => {
       if (!game) return;
-      const cat = CATEGORIES.find((c) => c.id === categoryId);
+      const cats = getCategories(game.diceCount);
+      const cat = cats.find((c) => c.id === categoryId);
       if (!cat) return;
 
       setGame((prev) => {
@@ -196,13 +197,13 @@ export default function Index() {
   }
 
   if (screen === "finished" && game) {
-    const sorted = game.players.slice().sort((a, b) => calculateTotal(b).grandTotal - calculateTotal(a).grandTotal);
+    const sorted = game.players.slice().sort((a, b) => calculateTotal(b, game.diceCount).grandTotal - calculateTotal(a, game.diceCount).grandTotal);
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Game Over!</Text>
         {sorted.map((p, i) => (
           <Text key={p.id} style={i === 0 ? styles.finalScore : styles.subtitle}>
-            {i === 0 ? "🏆 " : `${i + 1}. `}{p.name}{p.isAi ? " 🤖" : ""}: {calculateTotal(p).grandTotal} pts
+            {i === 0 ? "🏆 " : `${i + 1}. `}{p.name}{p.isAi ? " 🤖" : ""}: {calculateTotal(p, game.diceCount).grandTotal} pts
           </Text>
         ))}
         <TouchableOpacity
@@ -217,7 +218,7 @@ export default function Index() {
 
   if (!game) return null;
 
-  const available = isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex]) : [];
+  const available = isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex], game.diceCount) : [];
   const hasRolled = game.rollsLeft < game.maxRolls;
 
   return (
@@ -239,7 +240,7 @@ export default function Index() {
               ]}
             >
               <Text style={i === game.currentPlayerIndex ? styles.presetTextActive : undefined}>
-                {p.name}{p.isAi ? " 🤖" : ""} — {calculateTotal(p).grandTotal}
+                {p.name}{p.isAi ? " 🤖" : ""} — {calculateTotal(p, game.diceCount).grandTotal}
               </Text>
             </View>
           ))}
@@ -277,7 +278,7 @@ export default function Index() {
         </Text>
       </TouchableOpacity>
 
-      {CATEGORIES.map((cat) => {
+      {getCategories(game.diceCount).map((cat) => {
         const scored = game.players[game.currentPlayerIndex].scores[cat.id];
         const isAvailable = available.includes(cat.id) && hasRolled;
         return (
