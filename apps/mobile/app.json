@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Yahtzee",
+    "slug": "yahtzee",
+    "version": "0.1.0",
+    "scheme": "yahtzee",
+    "platforms": ["ios", "android"],
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#fafafa"
+    },
+    "ios": {
+      "bundleIdentifier": "com.hemsoft.yahtzee"
+    },
+    "android": {
+      "package": "com.hemsoft.yahtzee",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#fafafa"
+      }
+    }
+  }
+}

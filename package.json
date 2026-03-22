@@ -1,0 +1,28 @@
+{
+  "name": "yahtzee",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Classic Yahtzee dice game with 5/6/N dice, multiplayer, and leaderboards — Electron desktop + Expo mobile + web",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "bun run --filter @yahtzee/web dev",
+    "dev:desktop": "bun run --filter @yahtzee/desktop dev",
+    "dev:mobile": "bun run --filter @yahtzee/mobile start",
+    "dev:convex": "npx convex dev",
+    "build:web": "bun run --filter @yahtzee/web build",
+    "build:desktop": "bun run --filter @yahtzee/desktop build",
+    "test": "bun run --filter @yahtzee/game-engine test",
+    "test:watch": "bun run --filter @yahtzee/game-engine test --watch",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --build"
+  },
+  "author": "Franz Hemmer <franz_hemmer@hotmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HemSoft/yahtzee.git"
+  }
+}
