@@ -76,22 +76,22 @@ describe("upperScore", () => {
 });
 
 describe("threeOfAKind", () => {
-  test("scores sum when valid", () => {
-    expect(threeOfAKind([3, 3, 3, 1, 2])).toBe(12);
+  test("scores sum of matching dice only", () => {
+    expect(threeOfAKind([3, 3, 3, 1, 2])).toBe(9);
   });
 
   test("scores 0 when no three of a kind", () => {
     expect(threeOfAKind([1, 2, 3, 4, 5])).toBe(0);
   });
 
-  test("works with four of a kind too", () => {
-    expect(threeOfAKind([6, 6, 6, 6, 1])).toBe(25);
+  test("picks highest triple with four of a kind", () => {
+    expect(threeOfAKind([6, 6, 6, 6, 1])).toBe(18);
   });
 });
 
 describe("fourOfAKind", () => {
-  test("scores sum when valid", () => {
-    expect(fourOfAKind([4, 4, 4, 4, 2])).toBe(18);
+  test("scores sum of matching dice only", () => {
+    expect(fourOfAKind([4, 4, 4, 4, 2])).toBe(16);
   });
 
   test("scores 0 when only three", () => {

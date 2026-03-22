@@ -52,11 +52,19 @@ export function twoPairs(dice: number[]): number {
 }
 
 export function threeOfAKind(dice: number[]): number {
-  return hasNOfAKind(dice, 3) ? sum(dice) : 0;
+  const c = counts(dice);
+  for (let face = 6; face >= 1; face--) {
+    if (c[face] >= 3) return face * 3;
+  }
+  return 0;
 }
 
 export function fourOfAKind(dice: number[]): number {
-  return hasNOfAKind(dice, 4) ? sum(dice) : 0;
+  const c = counts(dice);
+  for (let face = 6; face >= 1; face--) {
+    if (c[face] >= 4) return face * 4;
+  }
+  return 0;
 }
 
 export function fullHouse(dice: number[]): number {
