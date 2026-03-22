@@ -7,6 +7,7 @@ import {
   type PlayerState,
 } from "@yahtzee/game-engine";
 import { calculateTotal } from "@yahtzee/game-engine";
+import { useTheme } from "./theme";
 
 interface ScorecardProps {
   players: PlayerState[];
@@ -41,10 +42,23 @@ export function Scorecard({
 
   const playerTotals = players.map((p) => calculateTotal(p, diceCount));
 
+  const theme = useTheme();
+  const thStyle: React.CSSProperties = {
+    textAlign: "left",
+    padding: "4px 8px",
+    borderBottom: `2px solid ${theme.borderStrong}`,
+    color: theme.text,
+  };
+  const tdStyle: React.CSSProperties = {
+    padding: "4px 8px",
+    borderBottom: `1px solid ${theme.border}`,
+    color: theme.text,
+  };
+
   return (
     <div style={{ overflowX: "auto" }}>
       {canSelect && (
-        <p style={{ textAlign: "center", color: "#666", fontSize: "0.85rem", margin: "0 0 0.5rem" }}>
+        <p style={{ textAlign: "center", color: theme.textMuted, fontSize: "0.85rem", margin: "0 0 0.5rem" }}>
           Click any highlighted row to place your score
         </p>
       )}
@@ -59,8 +73,8 @@ export function Scorecard({
                   ...thStyle,
                   textAlign: "center",
                   minWidth: "80px",
-                  background: i === currentPlayerIndex ? "#e3f2fd" : undefined,
-                  borderBottom: i === currentPlayerIndex ? "3px solid #2196f3" : "2px solid #333",
+                  background: i === currentPlayerIndex ? theme.currentPlayerBg : undefined,
+                  borderBottom: i === currentPlayerIndex ? `3px solid ${theme.currentPlayerBorder}` : `2px solid ${theme.borderStrong}`,
                 }}
               >
                 {p.name}{p.isAi ? " 🤖" : ""}
@@ -79,9 +93,9 @@ export function Scorecard({
                 onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
-                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fff9c4" : "transparent",
+                  background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
                   fontWeight: isSuggested && isAvailable ? "bold" : "normal",
-                  borderLeft: isAvailable ? "3px solid #fbc02d" : "3px solid transparent",
+                  borderLeft: isAvailable ? `3px solid ${theme.availableBorder}` : "3px solid transparent",
                 }}
               >
                 <td style={tdStyle}>
@@ -93,12 +107,13 @@ export function Scorecard({
                     style={{
                       ...tdStyle,
                       textAlign: "center",
-                      background: i === currentPlayerIndex ? "rgba(33,150,243,0.04)" : undefined,
+                      background: i === currentPlayerIndex ? `${theme.currentPlayerBorder}0a` : undefined,
                     }}
                   >
                     <ScoreCell
                       scored={p.scores[cat.id]}
                       potential={i === currentPlayerIndex && isAvailable ? cat.score(currentDice) : undefined}
+                      potentialColor={theme.scorePotential}
                     />
                   </td>
                 ))}
@@ -107,13 +122,13 @@ export function Scorecard({
           })}
 
           {/* Upper subtotal + bonus */}
-          <tr style={{ fontWeight: "bold", background: "#f0f0f0" }}>
+          <tr style={{ fontWeight: "bold", background: theme.subtotalBg, color: theme.text }}>
             <td style={tdStyle}>Upper Subtotal</td>
             {playerTotals.map((t, i) => (
               <td key={i} style={{ ...tdStyle, textAlign: "center" }}>{t.upperSubtotal} / {bonusThreshold}</td>
             ))}
           </tr>
-          <tr style={{ fontWeight: "bold", background: "#f0f0f0" }}>
+          <tr style={{ fontWeight: "bold", background: theme.subtotalBg, color: theme.text }}>
             <td style={tdStyle}>Upper Bonus</td>
             {playerTotals.map((t, i) => (
               <td key={i} style={{ ...tdStyle, textAlign: "center" }}>{t.upperBonus > 0 ? `+${bonusValue}` : "—"}</td>
@@ -130,9 +145,9 @@ export function Scorecard({
                 onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
-                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fff9c4" : "transparent",
+                  background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
                   fontWeight: isSuggested && isAvailable ? "bold" : "normal",
-                  borderLeft: isAvailable ? "3px solid #fbc02d" : "3px solid transparent",
+                  borderLeft: isAvailable ? `3px solid ${theme.availableBorder}` : "3px solid transparent",
                 }}
               >
                 <td style={tdStyle}>
@@ -144,12 +159,13 @@ export function Scorecard({
                     style={{
                       ...tdStyle,
                       textAlign: "center",
-                      background: i === currentPlayerIndex ? "rgba(33,150,243,0.04)" : undefined,
+                      background: i === currentPlayerIndex ? `${theme.currentPlayerBorder}0a` : undefined,
                     }}
                   >
                     <ScoreCell
                       scored={p.scores[cat.id]}
                       potential={i === currentPlayerIndex && isAvailable ? cat.score(currentDice) : undefined}
+                      potentialColor={theme.scorePotential}
                     />
                   </td>
                 ))}
@@ -158,7 +174,7 @@ export function Scorecard({
           })}
 
           {/* Grand total */}
-          <tr style={{ fontWeight: "bold", background: "#e8e8e8" }}>
+          <tr style={{ fontWeight: "bold", background: theme.grandTotalBg, color: theme.text }}>
             <td style={tdStyle}>Grand Total</td>
             {playerTotals.map((t, i) => (
               <td key={i} style={{ ...tdStyle, textAlign: "center", fontSize: "1rem" }}>{t.grandTotal}</td>
@@ -172,19 +188,8 @@ export function Scorecard({
 
 // ─── Sub-components ───────────────────────────────────────
 
-function ScoreCell({ scored, potential }: { scored: number | undefined; potential: number | undefined }) {
+function ScoreCell({ scored, potential, potentialColor }: { scored: number | undefined; potential: number | undefined; potentialColor: string }) {
   if (scored !== undefined) return <>{scored}</>;
-  if (potential !== undefined) return <span style={{ color: "#888", fontStyle: "italic" }}>{potential}</span>;
+  if (potential !== undefined) return <span style={{ color: potentialColor, fontStyle: "italic" }}>{potential}</span>;
   return <>—</>;
 }
-
-const thStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "4px 8px",
-  borderBottom: "2px solid #333",
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "4px 8px",
-  borderBottom: "1px solid #ddd",
-};

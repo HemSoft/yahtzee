@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTheme } from "./theme";
 
 interface DieProps {
   value: number;
@@ -17,6 +18,7 @@ const DIE_FACES: Record<number, string> = {
 };
 
 export function Die({ value, held, onToggleHold, disabled }: DieProps) {
+  const theme = useTheme();
   return (
     <button
       onClick={onToggleHold}
@@ -24,9 +26,10 @@ export function Die({ value, held, onToggleHold, disabled }: DieProps) {
       style={{
         fontSize: "3rem",
         padding: "0.5rem",
-        border: held ? "3px solid #2e7d32" : "3px solid transparent",
+        border: held ? `3px solid ${theme.heldBorder}` : "3px solid transparent",
         borderRadius: "12px",
-        background: held ? "#e8f5e9" : "#f5f5f5",
+        background: held ? theme.heldBg : theme.dieBg,
+        color: theme.text,
         cursor: disabled ? "default" : "pointer",
         transition: "all 0.15s ease",
         minWidth: "4rem",

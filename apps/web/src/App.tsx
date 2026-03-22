@@ -20,7 +20,7 @@ import {
   type GameLog,
   type HighScores,
 } from "@yahtzee/game-engine";
-import { DiceRow, Scorecard, GameSettings } from "@yahtzee/ui";
+import { DiceRow, Scorecard, GameSettings, ThemeToggle, ThemeProvider, lightTheme, darkTheme, useTheme, type Theme } from "@yahtzee/ui";
 
 function loadGameLog(): GameLog {
   try {
@@ -41,6 +41,13 @@ function saveHighScores(hs: HighScores) {
   localStorage.setItem("yahtzee-high-scores", JSON.stringify(hs));
 }
 
+function loadThemeMode(): "light" | "dark" {
+  try {
+    const saved = localStorage.getItem("yahtzee-theme");
+    return saved === "dark" ? "dark" : "light";
+  } catch { return "light"; }
+}
+
 const AI_NAMES = ["Bot Alpha", "Bot Beta", "Bot Gamma"];
 
 type Screen = "setup" | "playing" | "finished";
@@ -54,6 +61,16 @@ export function App() {
   const [highScores, setHighScores] = useState<HighScores>(loadHighScores);
   const [gameLog, setGameLog] = useState<GameLog>(loadGameLog);
   const gameStartedAt = useRef<string>("");
+  const [themeMode, setThemeMode] = useState<"light" | "dark">(loadThemeMode);
+  const theme = themeMode === "dark" ? darkTheme : lightTheme;
+
+  const toggleTheme = useCallback(() => {
+    setThemeMode((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+      localStorage.setItem("yahtzee-theme", next);
+      return next;
+    });
+  }, []);
 
   const lastLoggedGameRef = useRef<string>("");
 
@@ -213,8 +230,10 @@ export function App() {
     : undefined;
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "1.5rem" }}>🎲 Yahtzee</h1>
+    <ThemeProvider value={theme}>
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem", background: theme.bg, color: theme.text, minHeight: "100vh" }}>
+      <ThemeToggle onToggle={toggleTheme} />
+      <h1 style={{ textAlign: "center", marginBottom: "1.5rem", color: theme.text }}>🎲 Yahtzee</h1>
 
       {screen === "setup" && (
         <div style={{ display: "flex", justifyContent: "center" }}>
@@ -240,7 +259,7 @@ export function App() {
                 fontSize: "0.85rem",
                 borderRadius: "6px",
                 border: "1px solid #e57373",
-                background: "#fff",
+                background: theme.surface,
                 color: "#c62828",
                 cursor: "pointer",
               }}
@@ -250,14 +269,14 @@ export function App() {
           </div>
 
           <div style={{ textAlign: "center" }}>
-            <p style={{ marginBottom: "0.5rem", color: "#666" }}>
+            <p style={{ marginBottom: "0.5rem", color: theme.textMuted }}>
               {currentPlayer?.name}'s turn &nbsp;·&nbsp;
               Round {Math.min(game.currentRound, game.totalRounds)} / {game.totalRounds}
               &nbsp;·&nbsp;Rolls left: {game.rollsLeft}
             </p>
 
             {!isHumanTurn && (
-              <p style={{ color: "#9c27b0", fontWeight: "bold", margin: "0.5rem 0" }}>
+              <p style={{ color: theme.accent, fontWeight: "bold", margin: "0.5rem 0" }}>
                 🤖 AI is thinking...
               </p>
             )}
@@ -278,7 +297,7 @@ export function App() {
                 fontWeight: "bold",
                 borderRadius: "8px",
                 border: "none",
-                background: isHumanTurn && game.rollsLeft > 0 ? "#2196f3" : "#ccc",
+                background: isHumanTurn && game.rollsLeft > 0 ? theme.primary : theme.disabledBg,
                 color: "#fff",
                 cursor: isHumanTurn && game.rollsLeft > 0 ? "pointer" : "default",
               }}
@@ -305,16 +324,16 @@ export function App() {
         const topScores = getHighScoresForDiceCount(highScores, game.diceCount);
         return (
         <div style={{ textAlign: "center" }}>
-          <h2>Game Over!</h2>
+          <h2 style={{ color: theme.text }}>Game Over!</h2>
           {game.players
             .slice()
             .sort((a, b) => calculateTotal(b, game.diceCount).grandTotal - calculateTotal(a, game.diceCount).grandTotal)
             .map((p, i) => (
-              <p key={p.id} style={{ fontSize: i === 0 ? "1.5rem" : "1.1rem", margin: "0.5rem 0" }}>
+              <p key={p.id} style={{ fontSize: i === 0 ? "1.5rem" : "1.1rem", margin: "0.5rem 0", color: theme.text }}>
                 {i === 0 ? "🏆 " : `${i + 1}. `}
                 <strong>{p.name}</strong>{p.isAi ? " 🤖" : ""}:{" "}
                 {calculateTotal(p, game.diceCount).grandTotal} pts
-                <span style={{ fontSize: "0.8rem", color: "#888", marginLeft: "0.5rem" }}>
+                <span style={{ fontSize: "0.8rem", color: theme.textMuted, marginLeft: "0.5rem" }}>
                   (avg: {getPlayerAverageScore(gameLog, p.name, game.diceCount)})
                 </span>
               </p>
@@ -328,7 +347,7 @@ export function App() {
               fontWeight: "bold",
               borderRadius: "8px",
               border: "none",
-              background: "#4caf50",
+              background: theme.success,
               color: "#fff",
               cursor: "pointer",
             }}
@@ -338,30 +357,30 @@ export function App() {
 
           {topScores.length > 0 && (
             <div style={{ marginTop: "2rem" }}>
-              <h3>🏅 High Scores ({game.diceCount} dice)</h3>
+              <h3 style={{ color: theme.text }}>🏅 High Scores ({game.diceCount} dice)</h3>
               <table style={{ margin: "0 auto", borderCollapse: "collapse", minWidth: "350px" }}>
                 <thead>
-                  <tr style={{ borderBottom: "2px solid #333" }}>
-                    <th style={{ padding: "0.4rem 1rem", textAlign: "center" }}>#</th>
-                    <th style={{ padding: "0.4rem 1rem", textAlign: "left" }}>Player</th>
-                    <th style={{ padding: "0.4rem 1rem", textAlign: "right" }}>Score</th>
-                    <th style={{ padding: "0.4rem 1rem", textAlign: "right" }}>Date</th>
+                  <tr style={{ borderBottom: `2px solid ${theme.borderStrong}` }}>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "center", color: theme.text }}>#</th>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "left", color: theme.text }}>Player</th>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "right", color: theme.text }}>Score</th>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "right", color: theme.text }}>Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topScores.map((hs, i) => (
-                    <tr key={`${hs.gameId}-${hs.playerName}`} style={{ borderBottom: "1px solid #ddd" }}>
-                      <td style={{ padding: "0.3rem 1rem", textAlign: "center" }}>{hs.rankCurrent}</td>
-                      <td style={{ padding: "0.3rem 1rem" }}>
+                    <tr key={`${hs.gameId}-${hs.playerName}`} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                      <td style={{ padding: "0.3rem 1rem", textAlign: "center", color: theme.text }}>{hs.rankCurrent}</td>
+                      <td style={{ padding: "0.3rem 1rem", color: theme.text }}>
                         {hs.playerName}{hs.isAi ? " 🤖" : ""}
                         {hs.rankOriginal !== hs.rankCurrent && (
-                          <span style={{ fontSize: "0.75rem", color: "#999", marginLeft: "0.3rem" }}>
+                          <span style={{ fontSize: "0.75rem", color: theme.textMuted, marginLeft: "0.3rem" }}>
                             (was #{hs.rankOriginal})
                           </span>
                         )}
                       </td>
-                      <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontWeight: "bold" }}>{hs.score}</td>
-                      <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontSize: "0.85rem", color: "#666" }}>
+                      <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontWeight: "bold", color: theme.text }}>{hs.score}</td>
+                      <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontSize: "0.85rem", color: theme.textMuted }}>
                         {new Date(hs.dateRecorded).toLocaleDateString()}
                       </td>
                     </tr>
@@ -374,5 +393,6 @@ export function App() {
         );
       })()}
     </div>
+    </ThemeProvider>
   );
 }

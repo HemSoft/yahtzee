@@ -1,4 +1,5 @@
 import React from "react";
+import { useTheme } from "./theme";
 
 interface GameSettingsProps {
   diceCount: number;
@@ -35,10 +36,11 @@ export function GameSettings({
   onStartGame,
   disabled,
 }: GameSettingsProps) {
+  const theme = useTheme();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "400px" }}>
       <div>
-        <label style={{ display: "block", fontWeight: "bold", marginBottom: "0.25rem" }}>
+        <label style={{ display: "block", fontWeight: "bold", marginBottom: "0.25rem", color: theme.text }}>
           Player Name
         </label>
         <input
@@ -51,14 +53,16 @@ export function GameSettings({
             padding: "0.5rem",
             fontSize: "1rem",
             borderRadius: "6px",
-            border: "1px solid #ccc",
+            border: `1px solid ${theme.border}`,
+            background: theme.surface,
+            color: theme.text,
             width: "100%",
           }}
         />
       </div>
 
       <div>
-        <label style={{ display: "block", fontWeight: "bold", marginBottom: "0.25rem" }}>
+        <label style={{ display: "block", fontWeight: "bold", marginBottom: "0.25rem", color: theme.text }}>
           AI Opponents
         </label>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -69,8 +73,9 @@ export function GameSettings({
               style={{
                 padding: "0.5rem 1rem",
                 borderRadius: "6px",
-                border: aiOpponents === preset.value ? "2px solid #9c27b0" : "2px solid #ddd",
-                background: aiOpponents === preset.value ? "#f3e5f5" : "#fff",
+                border: aiOpponents === preset.value ? `2px solid ${theme.accent}` : `2px solid ${theme.border}`,
+                background: aiOpponents === preset.value ? theme.accentBg : theme.surface,
+                color: theme.text,
                 cursor: "pointer",
                 fontWeight: aiOpponents === preset.value ? "bold" : "normal",
               }}
@@ -82,7 +87,7 @@ export function GameSettings({
       </div>
 
       <div>
-        <label style={{ display: "block", fontWeight: "bold", marginBottom: "0.25rem" }}>
+        <label style={{ display: "block", fontWeight: "bold", marginBottom: "0.25rem", color: theme.text }}>
           Dice Count
         </label>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -93,8 +98,9 @@ export function GameSettings({
               style={{
                 padding: "0.5rem 1rem",
                 borderRadius: "6px",
-                border: diceCount === preset.value ? "2px solid #2196f3" : "2px solid #ddd",
-                background: diceCount === preset.value ? "#e3f2fd" : "#fff",
+                border: diceCount === preset.value ? `2px solid ${theme.primary}` : `2px solid ${theme.border}`,
+                background: diceCount === preset.value ? theme.primaryBg : theme.surface,
+                color: theme.text,
                 cursor: "pointer",
                 fontWeight: diceCount === preset.value ? "bold" : "normal",
               }}
@@ -104,7 +110,7 @@ export function GameSettings({
           ))}
         </div>
         <div style={{ marginTop: "0.5rem" }}>
-          <label style={{ fontSize: "0.8rem", color: "#666" }}>
+          <label style={{ fontSize: "0.8rem", color: theme.textMuted }}>
             Custom:{" "}
             <input
               type="number"
@@ -115,7 +121,7 @@ export function GameSettings({
                 const val = parseInt(e.target.value, 10);
                 if (val >= 2 && val <= 20) onDiceCountChange(val);
               }}
-              style={{ width: "60px", padding: "0.25rem" }}
+              style={{ width: "60px", padding: "0.25rem", background: theme.surface, color: theme.text, border: `1px solid ${theme.border}` }}
             />
           </label>
         </div>
@@ -130,7 +136,7 @@ export function GameSettings({
           fontWeight: "bold",
           borderRadius: "8px",
           border: "none",
-          background: disabled || !playerName.trim() ? "#ccc" : "#4caf50",
+          background: disabled || !playerName.trim() ? theme.disabledBg : theme.success,
           color: "#fff",
           cursor: disabled || !playerName.trim() ? "default" : "pointer",
         }}

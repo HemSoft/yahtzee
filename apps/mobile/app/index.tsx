@@ -29,6 +29,7 @@ import {
   type GameLog,
   type HighScores,
 } from "@yahtzee/game-engine";
+import { lightTheme, darkTheme, type Theme } from "@yahtzee/ui";
 
 const DIE_FACES: Record<number, string> = {
   1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅",
@@ -48,17 +49,29 @@ export default function Index() {
   const [gameLog, setGameLog] = useState<GameLog>(createEmptyGameLog);
   const gameStartedAt = useRef<string>("");
   const lastLoggedGameRef = useRef<string>("");
+  const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
+  const theme = themeMode === "dark" ? darkTheme : lightTheme;
+
+  const toggleTheme = useCallback(() => {
+    setThemeMode((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+      AsyncStorage.setItem("yahtzee-theme", next).catch(() => {});
+      return next;
+    });
+  }, []);
 
   // Load persisted data on mount
   useEffect(() => {
     (async () => {
       try {
-        const [logRaw, hsRaw] = await Promise.all([
+        const [logRaw, hsRaw, themeRaw] = await Promise.all([
           AsyncStorage.getItem("yahtzee-game-log"),
           AsyncStorage.getItem("yahtzee-high-scores"),
+          AsyncStorage.getItem("yahtzee-theme"),
         ]);
         if (logRaw) setGameLog(JSON.parse(logRaw));
         if (hsRaw) setHighScores(JSON.parse(hsRaw));
+        if (themeRaw === "dark") setThemeMode("dark");
       } catch {}
     })();
   }, []);
@@ -214,43 +227,47 @@ export default function Index() {
 
   if (screen === "setup") {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>🎲 Yahtzee</Text>
+      <View style={[styles.container, { backgroundColor: theme.bg }]}>
+        <TouchableOpacity onPress={toggleTheme} style={{ alignSelf: "flex-end", padding: 8, borderRadius: 8, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }}>
+          <Text style={{ fontSize: 20 }}>{theme.mode === "light" ? "🌙" : "☀️"}</Text>
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: theme.text }]}>🎲 Yahtzee</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
           placeholder="Your name"
+          placeholderTextColor={theme.textMuted}
           value={playerName}
           onChangeText={setPlayerName}
           maxLength={20}
         />
-        <Text style={styles.label}>AI Opponents</Text>
+        <Text style={[styles.label, { color: theme.text }]}>AI Opponents</Text>
         <View style={styles.presetRow}>
           {[0, 1, 2, 3].map((n) => (
             <TouchableOpacity
               key={n}
-              style={[styles.presetBtn, aiOpponents === n && styles.aiPresetActive]}
+              style={[styles.presetBtn, { borderColor: theme.border, backgroundColor: theme.surface }, aiOpponents === n && { borderColor: theme.accent, backgroundColor: theme.accentBg }]}
               onPress={() => setAiOpponents(n)}
             >
-              <Text style={aiOpponents === n ? styles.presetTextActive : undefined}>
+              <Text style={{ color: aiOpponents === n ? theme.accent : theme.text, fontWeight: aiOpponents === n ? "bold" : "normal" }}>
                 {n === 0 ? "Solo" : `${n} AI`}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
-        <Text style={styles.label}>Dice Count</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Dice Count</Text>
         <View style={styles.presetRow}>
           {[5, 6, 8, 10].map((n) => (
             <TouchableOpacity
               key={n}
-              style={[styles.presetBtn, diceCount === n && styles.presetBtnActive]}
+              style={[styles.presetBtn, { borderColor: theme.border, backgroundColor: theme.surface }, diceCount === n && { borderColor: theme.primary, backgroundColor: theme.primaryBg }]}
               onPress={() => setDiceCount(n)}
             >
-              <Text style={diceCount === n ? styles.presetTextActive : undefined}>{n}</Text>
+              <Text style={{ color: diceCount === n ? theme.primary : theme.text, fontWeight: diceCount === n ? "bold" : "normal" }}>{n}</Text>
             </TouchableOpacity>
           ))}
         </View>
         <TouchableOpacity
-          style={[styles.startBtn, !playerName.trim() && styles.disabledBtn]}
+          style={[styles.startBtn, { backgroundColor: theme.success }, !playerName.trim() && styles.disabledBtn]}
           onPress={handleStartGame}
           disabled={!playerName.trim()}
         >
@@ -264,20 +281,20 @@ export default function Index() {
     const sorted = game.players.slice().sort((a, b) => calculateTotal(b, game.diceCount).grandTotal - calculateTotal(a, game.diceCount).grandTotal);
     const topScores = getHighScoresForDiceCount(highScores, game.diceCount);
     return (
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Game Over!</Text>
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.bg }]}>
+        <Text style={[styles.title, { color: theme.text }]}>Game Over!</Text>
         {sorted.map((p, i) => (
           <View key={p.id} style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "center", marginBottom: 4 }}>
-            <Text style={i === 0 ? styles.finalScore : styles.subtitle}>
+            <Text style={[i === 0 ? styles.finalScore : styles.subtitle, { color: theme.text }]}>
               {i === 0 ? "🏆 " : `${i + 1}. `}{p.name}{p.isAi ? " 🤖" : ""}: {calculateTotal(p, game.diceCount).grandTotal} pts
             </Text>
-            <Text style={{ fontSize: 12, color: "#888", marginLeft: 6 }}>
+            <Text style={{ fontSize: 12, color: theme.textMuted, marginLeft: 6 }}>
               (avg: {getPlayerAverageScore(gameLog, p.name, game.diceCount)})
             </Text>
           </View>
         ))}
         <TouchableOpacity
-          style={styles.startBtn}
+          style={[styles.startBtn, { backgroundColor: theme.success }]}
           onPress={handleCancelGame}
         >
           <Text style={styles.startBtnText}>Play Again</Text>
@@ -285,23 +302,23 @@ export default function Index() {
 
         {topScores.length > 0 && (
           <View style={{ marginTop: 24, width: "100%" }}>
-            <Text style={[styles.subtitle, { textAlign: "center", marginBottom: 8 }]}>🏅 High Scores ({game.diceCount} dice)</Text>
-            <View style={{ borderTopWidth: 2, borderTopColor: "#333" }}>
-              <View style={{ flexDirection: "row", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#ddd" }}>
-                <Text style={{ flex: 0.5, fontWeight: "bold", textAlign: "center" }}>#</Text>
-                <Text style={{ flex: 2, fontWeight: "bold" }}>Player</Text>
-                <Text style={{ flex: 1, fontWeight: "bold", textAlign: "right" }}>Score</Text>
-                <Text style={{ flex: 1.5, fontWeight: "bold", textAlign: "right" }}>Date</Text>
+            <Text style={[styles.subtitle, { textAlign: "center", marginBottom: 8, color: theme.text }]}>🏅 High Scores ({game.diceCount} dice)</Text>
+            <View style={{ borderTopWidth: 2, borderTopColor: theme.borderStrong }}>
+              <View style={{ flexDirection: "row", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: theme.border }}>
+                <Text style={{ flex: 0.5, fontWeight: "bold", textAlign: "center", color: theme.text }}>#</Text>
+                <Text style={{ flex: 2, fontWeight: "bold", color: theme.text }}>Player</Text>
+                <Text style={{ flex: 1, fontWeight: "bold", textAlign: "right", color: theme.text }}>Score</Text>
+                <Text style={{ flex: 1.5, fontWeight: "bold", textAlign: "right", color: theme.text }}>Date</Text>
               </View>
               {topScores.map((hs) => (
-                <View key={`${hs.gameId}-${hs.playerName}`} style={{ flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: "#eee" }}>
-                  <Text style={{ flex: 0.5, textAlign: "center" }}>{hs.rankCurrent}</Text>
-                  <Text style={{ flex: 2 }}>
+                <View key={`${hs.gameId}-${hs.playerName}`} style={{ flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: theme.border }}>
+                  <Text style={{ flex: 0.5, textAlign: "center", color: theme.text }}>{hs.rankCurrent}</Text>
+                  <Text style={{ flex: 2, color: theme.text }}>
                     {hs.playerName}{hs.isAi ? " 🤖" : ""}
                     {hs.rankOriginal !== hs.rankCurrent ? ` (was #${hs.rankOriginal})` : ""}
                   </Text>
-                  <Text style={{ flex: 1, textAlign: "right", fontWeight: "bold" }}>{hs.score}</Text>
-                  <Text style={{ flex: 1.5, textAlign: "right", fontSize: 12, color: "#666" }}>
+                  <Text style={{ flex: 1, textAlign: "right", fontWeight: "bold", color: theme.text }}>{hs.score}</Text>
+                  <Text style={{ flex: 1.5, textAlign: "right", fontSize: 12, color: theme.textMuted }}>
                     {new Date(hs.dateRecorded).toLocaleDateString()}
                   </Text>
                 </View>
@@ -322,35 +339,35 @@ export default function Index() {
     : undefined;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Quit button */}
-      <TouchableOpacity style={styles.quitBtn} onPress={handleCancelGame}>
+      <TouchableOpacity style={[styles.quitBtn, { borderColor: "#e57373" }]} onPress={handleCancelGame}>
         <Text style={styles.quitBtnText}>✕ Quit Game</Text>
       </TouchableOpacity>
 
-      <Text style={styles.subtitle}>
+      <Text style={[styles.subtitle, { color: theme.textMuted }]}>
         {currentPlayer?.name}'s turn · Round {Math.min(game.currentRound, game.totalRounds)}/{game.totalRounds} · Rolls: {game.rollsLeft}
       </Text>
 
       {!isHumanTurn && (
-        <Text style={styles.aiThinking}>🤖 AI is thinking...</Text>
+        <Text style={[styles.aiThinking, { color: theme.accent }]}>🤖 AI is thinking...</Text>
       )}
 
       <View style={styles.diceRow}>
         {game.dice.map((val, i) => (
           <TouchableOpacity
             key={i}
-            style={[styles.die, game.held.has(i) && styles.dieHeld]}
+            style={[styles.die, { backgroundColor: theme.dieBg, borderColor: "transparent" }, game.held.has(i) && { borderColor: theme.heldBorder, backgroundColor: theme.heldBg }]}
             onPress={() => isHumanTurn && handleToggleHold(i)}
             disabled={!isHumanTurn}
           >
-            <Text style={styles.dieText}>{val > 0 ? DIE_FACES[val] ?? val : "?"}</Text>
+            <Text style={[styles.dieText, { color: theme.text }]}>{val > 0 ? DIE_FACES[val] ?? val : "?"}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       <TouchableOpacity
-        style={[styles.rollBtn, (!isHumanTurn || game.rollsLeft <= 0) && styles.disabledBtn]}
+        style={[styles.rollBtn, { backgroundColor: isHumanTurn && game.rollsLeft > 0 ? theme.primary : theme.disabledBg }, (!isHumanTurn || game.rollsLeft <= 0) && styles.disabledBtn]}
         onPress={handleRoll}
         disabled={!isHumanTurn || game.rollsLeft <= 0}
       >
@@ -361,16 +378,16 @@ export default function Index() {
 
       {/* Multi-player scorecard */}
       {available.length > 0 && hasRolled && (
-        <Text style={{ color: "#666", fontSize: 13, marginBottom: 6 }}>Click any highlighted row to place your score</Text>
+        <Text style={{ color: theme.textMuted, fontSize: 13, marginBottom: 6 }}>Click any highlighted row to place your score</Text>
       )}
       <ScrollView horizontal style={{ width: "100%" }}>
         <View>
           {/* Header row */}
-          <View style={styles.sheetRow}>
-            <View style={styles.catCol}><Text style={{ fontWeight: "bold" }}>Category</Text></View>
+          <View style={[styles.sheetRow, { borderBottomColor: theme.border }]}>
+            <View style={styles.catCol}><Text style={{ fontWeight: "bold", color: theme.text }}>Category</Text></View>
             {game.players.map((p, i) => (
-              <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && styles.activePlayerCol]}>
-                <Text style={{ fontWeight: "bold", textAlign: "center" }}>{p.name}{p.isAi ? " 🤖" : ""}</Text>
+              <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && { backgroundColor: theme.currentPlayerBg }]}>
+                <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text }}>{p.name}{p.isAi ? " 🤖" : ""}</Text>
               </View>
             ))}
           </View>
@@ -381,12 +398,12 @@ export default function Index() {
             return (
               <TouchableOpacity
                 key={cat.id}
-                style={[styles.sheetRow, isAvailable && styles.catRowAvailable, isSuggested && styles.catRowSuggested]}
+                style={[styles.sheetRow, { borderBottomColor: theme.border }, isAvailable && { backgroundColor: theme.availableBg }, isSuggested && { backgroundColor: theme.suggestionBg }]}
                 onPress={() => isAvailable && handleSelectCategory(cat.id)}
                 disabled={!isAvailable}
               >
-                <View style={[styles.catCol, isAvailable && styles.catColAvailable]}>
-                  <Text style={isSuggested ? { fontWeight: "bold" } : undefined}>
+                <View style={[styles.catCol, isAvailable && { borderLeftWidth: 3, borderLeftColor: theme.availableBorder }]}>
+                  <Text style={{ fontWeight: isSuggested ? "bold" : "normal", color: theme.text }}>
                     {isSuggested ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
                   </Text>
                 </View>
@@ -394,8 +411,8 @@ export default function Index() {
                   const scored = p.scores[cat.id];
                   const showPotential = i === game.currentPlayerIndex && isAvailable;
                   return (
-                    <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && styles.activePlayerCol]}>
-                      <Text style={[{ textAlign: "center" }, showPotential && scored === undefined ? { color: "#888", fontStyle: "italic" } : undefined]}>
+                    <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && { backgroundColor: theme.currentPlayerBg }]}>
+                      <Text style={[{ textAlign: "center", color: theme.text }, showPotential && scored === undefined ? { color: theme.scorePotential, fontStyle: "italic" } : undefined]}>
                         {scored !== undefined ? scored : showPotential ? cat.score(game.dice) : "—"}
                       </Text>
                     </View>
@@ -406,11 +423,11 @@ export default function Index() {
           })}
 
           {/* Grand total row */}
-          <View style={[styles.sheetRow, { backgroundColor: "#e8e8e8" }]}>
-            <View style={styles.catCol}><Text style={{ fontWeight: "bold" }}>Grand Total</Text></View>
+          <View style={[styles.sheetRow, { backgroundColor: theme.grandTotalBg }]}>
+            <View style={styles.catCol}><Text style={{ fontWeight: "bold", color: theme.text }}>Grand Total</Text></View>
             {game.players.map((p, i) => (
               <View key={p.id} style={styles.playerCol}>
-                <Text style={{ fontWeight: "bold", textAlign: "center" }}>{calculateTotal(p, game.diceCount).grandTotal}</Text>
+                <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text }}>{calculateTotal(p, game.diceCount).grandTotal}</Text>
               </View>
             ))}
           </View>
@@ -423,33 +440,24 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: { padding: 20, alignItems: "center", paddingTop: 60 },
   title: { fontSize: 32, fontWeight: "bold", marginBottom: 20 },
-  subtitle: { fontSize: 16, color: "#666", marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, width: "100%", fontSize: 16, marginBottom: 16 },
+  subtitle: { fontSize: 16, marginBottom: 10 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, width: "100%", fontSize: 16, marginBottom: 16 },
   label: { fontWeight: "bold", marginBottom: 8 },
   presetRow: { flexDirection: "row", gap: 8, marginBottom: 20, flexWrap: "wrap", justifyContent: "center" },
-  presetBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, borderWidth: 2, borderColor: "#ddd" },
-  presetBtnActive: { borderColor: "#2196f3", backgroundColor: "#e3f2fd" },
-  aiPresetActive: { borderColor: "#9c27b0", backgroundColor: "#f3e5f5" },
-  presetTextActive: { fontWeight: "bold" },
-  startBtn: { backgroundColor: "#4caf50", paddingHorizontal: 32, paddingVertical: 14, borderRadius: 8 },
+  presetBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, borderWidth: 2 },
+  startBtn: { paddingHorizontal: 32, paddingVertical: 14, borderRadius: 8 },
   startBtnText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   disabledBtn: { opacity: 0.5 },
-  quitBtn: { alignSelf: "flex-end", borderWidth: 1, borderColor: "#e57373", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6, marginBottom: 10 },
+  quitBtn: { alignSelf: "flex-end", borderWidth: 1, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6, marginBottom: 10 },
   quitBtnText: { color: "#c62828", fontSize: 14 },
-  aiThinking: { color: "#9c27b0", fontWeight: "bold", marginBottom: 8 },
+  aiThinking: { fontWeight: "bold", marginBottom: 8 },
   diceRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 16 },
-  die: { width: 56, height: 56, borderRadius: 10, borderWidth: 2, borderColor: "transparent", backgroundColor: "#f5f5f5", alignItems: "center", justifyContent: "center" },
-  dieHeld: { borderColor: "#2e7d32", backgroundColor: "#e8f5e9" },
+  die: { width: 56, height: 56, borderRadius: 10, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   dieText: { fontSize: 28 },
-  rollBtn: { backgroundColor: "#2196f3", paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8, marginBottom: 20 },
+  rollBtn: { paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8, marginBottom: 20 },
   rollBtnText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  catRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  catRowAvailable: { backgroundColor: "#fff9c4" },
-  catRowSuggested: { backgroundColor: "#c8e6c9" },
-  catColAvailable: { borderLeftWidth: 3, borderLeftColor: "#fbc02d" },
-  sheetRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#ddd" },
+  sheetRow: { flexDirection: "row", borderBottomWidth: 1 },
   catCol: { width: 140, paddingVertical: 8, paddingHorizontal: 8 },
   playerCol: { width: 80, paddingVertical: 8, paddingHorizontal: 4 },
-  activePlayerCol: { backgroundColor: "rgba(33,150,243,0.06)" },
   finalScore: { fontSize: 28, fontWeight: "bold", marginVertical: 8 },
 });

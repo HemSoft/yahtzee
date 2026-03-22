@@ -1,4 +1,5 @@
 import React from "react";
+import { useTheme } from "./theme";
 
 interface LeaderboardEntry {
   rank: number;
@@ -14,11 +15,24 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ entries, title = "Leaderboard" }: LeaderboardProps) {
+  const theme = useTheme();
+  const thStyle: React.CSSProperties = {
+    textAlign: "left",
+    padding: "6px 10px",
+    borderBottom: `2px solid ${theme.borderStrong}`,
+    color: theme.text,
+  };
+  const tdStyle: React.CSSProperties = {
+    padding: "6px 10px",
+    borderBottom: `1px solid ${theme.border}`,
+    color: theme.text,
+  };
+
   return (
     <div>
-      <h2>{title}</h2>
+      <h2 style={{ color: theme.text }}>{title}</h2>
       {entries.length === 0 ? (
-        <p style={{ color: "#888" }}>No scores yet. Play a game!</p>
+        <p style={{ color: theme.textMuted }}>No scores yet. Play a game!</p>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -32,7 +46,7 @@ export function Leaderboard({ entries, title = "Leaderboard" }: LeaderboardProps
           </thead>
           <tbody>
             {entries.map((entry, i) => (
-              <tr key={i} style={{ background: i < 3 ? "#fffde7" : "transparent" }}>
+              <tr key={i} style={{ background: i < 3 ? theme.topThreeBg : "transparent" }}>
                 <td style={tdStyle}>
                   {entry.rank <= 3 ? ["🥇", "🥈", "🥉"][entry.rank - 1] : entry.rank}
                 </td>
@@ -48,14 +62,3 @@ export function Leaderboard({ entries, title = "Leaderboard" }: LeaderboardProps
     </div>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "6px 10px",
-  borderBottom: "2px solid #333",
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "6px 10px",
-  borderBottom: "1px solid #ddd",
-};
