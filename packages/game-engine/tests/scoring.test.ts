@@ -111,6 +111,10 @@ describe("fullHouse", () => {
   test("scores 0 for four-of-a-kind", () => {
     expect(fullHouse([3, 3, 3, 3, 1])).toBe(0);
   });
+
+  test("scores 25 with 6 dice when triple + pair exist among extras", () => {
+    expect(fullHouse([2, 5, 5, 5, 6, 6])).toBe(25);
+  });
 });
 
 describe("smallStraight", () => {

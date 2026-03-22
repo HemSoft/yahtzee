@@ -69,13 +69,15 @@ export function fourOfAKind(dice: number[]): number {
 
 export function fullHouse(dice: number[]): number {
   const c = counts(dice);
-  const vals = c.filter((v) => v > 0);
-  // Classic: exactly a pair + a triple (works for 5 dice)
-  if (vals.length === 2 && vals.includes(2) && vals.includes(3)) return 25;
-  // Extended: for 6+ dice, also accept 2+4 etc. (but not 3+3, that's castle)
-  if (dice.length > 5) {
-    const sorted = vals.sort((a, b) => a - b);
-    if (sorted.length === 2 && sorted[0] === 2 && sorted[1] >= 3) return 25;
+  // Need at least one face with 3+ and a different face with 2+
+  let hasTriple = false;
+  let tripleFace = -1;
+  for (let face = 6; face >= 1; face--) {
+    if (c[face] >= 3) { hasTriple = true; tripleFace = face; break; }
+  }
+  if (!hasTriple) return 0;
+  for (let face = 6; face >= 1; face--) {
+    if (face !== tripleFace && c[face] >= 2) return 25;
   }
   return 0;
 }
