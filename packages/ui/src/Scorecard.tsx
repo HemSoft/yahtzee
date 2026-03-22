@@ -43,6 +43,11 @@ export function Scorecard({
 
   return (
     <div style={{ overflowX: "auto" }}>
+      {canSelect && (
+        <p style={{ textAlign: "center", color: "#666", fontSize: "0.85rem", margin: "0 0 0.5rem" }}>
+          Click any highlighted row to place your score
+        </p>
+      )}
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
         <thead>
           <tr>
@@ -74,11 +79,14 @@ export function Scorecard({
                 onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
-                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fffde7" : "transparent",
+                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fff9c4" : "transparent",
                   fontWeight: isSuggested && isAvailable ? "bold" : "normal",
+                  borderLeft: isAvailable ? "3px solid #fbc02d" : "3px solid transparent",
                 }}
               >
-                <td style={tdStyle}>{isSuggested && isAvailable ? "⭐ " : ""}{cat.label}</td>
+                <td style={tdStyle}>
+                  {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                </td>
                 {players.map((p, i) => (
                   <td
                     key={p.id}
@@ -122,11 +130,14 @@ export function Scorecard({
                 onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
-                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fffde7" : "transparent",
+                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fff9c4" : "transparent",
                   fontWeight: isSuggested && isAvailable ? "bold" : "normal",
+                  borderLeft: isAvailable ? "3px solid #fbc02d" : "3px solid transparent",
                 }}
               >
-                <td style={tdStyle}>{isSuggested && isAvailable ? "⭐ " : ""}{cat.label}</td>
+                <td style={tdStyle}>
+                  {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                </td>
                 {players.map((p, i) => (
                   <td
                     key={p.id}

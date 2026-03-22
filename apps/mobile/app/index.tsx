@@ -282,6 +282,9 @@ export default function Index() {
       </TouchableOpacity>
 
       {/* Multi-player scorecard */}
+      {available.length > 0 && hasRolled && (
+        <Text style={{ color: "#666", fontSize: 13, marginBottom: 6 }}>Click any highlighted row to place your score</Text>
+      )}
       <ScrollView horizontal style={{ width: "100%" }}>
         <View>
           {/* Header row */}
@@ -304,9 +307,9 @@ export default function Index() {
                 onPress={() => isAvailable && handleSelectCategory(cat.id)}
                 disabled={!isAvailable}
               >
-                <View style={styles.catCol}>
+                <View style={[styles.catCol, isAvailable && styles.catColAvailable]}>
                   <Text style={isSuggested ? { fontWeight: "bold" } : undefined}>
-                    {isSuggested ? "⭐ " : ""}{cat.label}
+                    {isSuggested ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
                   </Text>
                 </View>
                 {game.players.map((p, i) => {
@@ -363,8 +366,9 @@ const styles = StyleSheet.create({
   rollBtn: { backgroundColor: "#2196f3", paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8, marginBottom: 20 },
   rollBtnText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   catRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  catRowAvailable: { backgroundColor: "#fffde7" },
+  catRowAvailable: { backgroundColor: "#fff9c4" },
   catRowSuggested: { backgroundColor: "#c8e6c9" },
+  catColAvailable: { borderLeftWidth: 3, borderLeftColor: "#fbc02d" },
   sheetRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#ddd" },
   catCol: { width: 140, paddingVertical: 8, paddingHorizontal: 8 },
   playerCol: { width: 80, paddingVertical: 8, paddingHorizontal: 4 },
