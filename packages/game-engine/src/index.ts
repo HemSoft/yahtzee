@@ -36,3 +36,17 @@ export {
   type GameState,
   type PlayerState,
 } from "./game";
+export {
+  createEmptyGameLog,
+  addGameLogEntry,
+  getPlayerAverageScore,
+  getPlayerGameCount,
+  createEmptyHighScores,
+  updateHighScores,
+  getHighScoresForDiceCount,
+  type GameLog,
+  type GameLogEntry,
+  type GameLogPlayer,
+  type HighScores,
+  type HighScoreEntry,
+} from "./storage";

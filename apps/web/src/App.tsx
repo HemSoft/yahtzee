@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   createGame,
   rollDice,
@@ -9,10 +9,37 @@ import {
   executeAiTurn,
   pickAiCategory,
   getCategories,
+  createEmptyGameLog,
+  addGameLogEntry,
+  getPlayerAverageScore,
+  createEmptyHighScores,
+  updateHighScores,
+  getHighScoresForDiceCount,
   type GameState,
   type CategoryId,
+  type GameLog,
+  type HighScores,
 } from "@yahtzee/game-engine";
 import { DiceRow, Scorecard, GameSettings } from "@yahtzee/ui";
+
+function loadGameLog(): GameLog {
+  try {
+    const raw = localStorage.getItem("yahtzee-game-log");
+    return raw ? JSON.parse(raw) : createEmptyGameLog();
+  } catch { return createEmptyGameLog(); }
+}
+function saveGameLog(log: GameLog) {
+  localStorage.setItem("yahtzee-game-log", JSON.stringify(log));
+}
+function loadHighScores(): HighScores {
+  try {
+    const raw = localStorage.getItem("yahtzee-high-scores");
+    return raw ? JSON.parse(raw) : createEmptyHighScores();
+  } catch { return createEmptyHighScores(); }
+}
+function saveHighScores(hs: HighScores) {
+  localStorage.setItem("yahtzee-high-scores", JSON.stringify(hs));
+}
 
 const AI_NAMES = ["Bot Alpha", "Bot Beta", "Bot Gamma"];
 
@@ -24,6 +51,26 @@ export function App() {
   const [diceCount, setDiceCount] = useState(5);
   const [aiOpponents, setAiOpponents] = useState(0);
   const [game, setGame] = useState<GameState | null>(null);
+  const [highScores, setHighScores] = useState<HighScores>(loadHighScores);
+  const [gameLog, setGameLog] = useState<GameLog>(loadGameLog);
+  const gameStartedAt = useRef<string>("");
+
+  const lastLoggedGameRef = useRef<string>("");
+
+  const handleGameFinished = useCallback((finishedGame: GameState) => {
+    if (lastLoggedGameRef.current === finishedGame.id) return;
+    lastLoggedGameRef.current = finishedGame.id;
+    setGameLog((prev) => {
+      const newLog = addGameLogEntry(prev, finishedGame, gameStartedAt.current);
+      saveGameLog(newLog);
+      return newLog;
+    });
+    setHighScores((prev) => {
+      const newHs = updateHighScores(prev, finishedGame);
+      saveHighScores(newHs);
+      return newHs;
+    });
+  }, []);
 
   const handleStartGame = useCallback(() => {
     const players: { id: string; name: string; isAi?: boolean }[] = [
@@ -34,6 +81,7 @@ export function App() {
     }
     const g = createGame({ id: crypto.randomUUID(), diceCount, players });
     g.status = "playing";
+    gameStartedAt.current = new Date().toISOString();
     setGame(g);
     setScreen("playing");
   }, [diceCount, playerName, aiOpponents]);
@@ -70,6 +118,7 @@ export function App() {
         if (isGameComplete(g)) {
           g.status = "finished";
           setScreen("finished");
+          handleGameFinished(g);
           return g;
         }
         g = advanceToNextPlayer(g);
@@ -78,7 +127,7 @@ export function App() {
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [game?.currentPlayerIndex, game?.currentRound, screen, advanceToNextPlayer]);
+  }, [game?.currentPlayerIndex, game?.currentRound, screen, advanceToNextPlayer, handleGameFinished]);
 
   // Auto-roll dice when advancing to a human player's turn
   useEffect(() => {
@@ -145,6 +194,7 @@ export function App() {
         if (isGameComplete(newGame)) {
           newGame.status = "finished";
           setScreen("finished");
+          handleGameFinished(newGame);
           return newGame;
         }
 
@@ -152,7 +202,7 @@ export function App() {
         return newGame;
       });
     },
-    [game, advanceToNextPlayer]
+    [game, advanceToNextPlayer, handleGameFinished]
   );
 
   const currentPlayer = game?.players[game.currentPlayerIndex];
@@ -251,7 +301,9 @@ export function App() {
         </div>
       )}
 
-      {screen === "finished" && game && (
+      {screen === "finished" && game && (() => {
+        const topScores = getHighScoresForDiceCount(highScores, game.diceCount);
+        return (
         <div style={{ textAlign: "center" }}>
           <h2>Game Over!</h2>
           {game.players
@@ -262,6 +314,9 @@ export function App() {
                 {i === 0 ? "🏆 " : `${i + 1}. `}
                 <strong>{p.name}</strong>{p.isAi ? " 🤖" : ""}:{" "}
                 {calculateTotal(p, game.diceCount).grandTotal} pts
+                <span style={{ fontSize: "0.8rem", color: "#888", marginLeft: "0.5rem" }}>
+                  (avg: {getPlayerAverageScore(gameLog, p.name, game.diceCount)})
+                </span>
               </p>
             ))}
           <button
@@ -280,8 +335,44 @@ export function App() {
           >
             Play Again
           </button>
+
+          {topScores.length > 0 && (
+            <div style={{ marginTop: "2rem" }}>
+              <h3>🏅 High Scores ({game.diceCount} dice)</h3>
+              <table style={{ margin: "0 auto", borderCollapse: "collapse", minWidth: "350px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #333" }}>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "center" }}>#</th>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "left" }}>Player</th>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "right" }}>Score</th>
+                    <th style={{ padding: "0.4rem 1rem", textAlign: "right" }}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topScores.map((hs, i) => (
+                    <tr key={`${hs.gameId}-${hs.playerName}`} style={{ borderBottom: "1px solid #ddd" }}>
+                      <td style={{ padding: "0.3rem 1rem", textAlign: "center" }}>{hs.rankCurrent}</td>
+                      <td style={{ padding: "0.3rem 1rem" }}>
+                        {hs.playerName}{hs.isAi ? " 🤖" : ""}
+                        {hs.rankOriginal !== hs.rankCurrent && (
+                          <span style={{ fontSize: "0.75rem", color: "#999", marginLeft: "0.3rem" }}>
+                            (was #{hs.rankOriginal})
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontWeight: "bold" }}>{hs.score}</td>
+                      <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontSize: "0.85rem", color: "#666" }}>
+                        {new Date(hs.dateRecorded).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
