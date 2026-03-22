@@ -197,26 +197,6 @@ export function App() {
             </button>
           </div>
 
-          {game.players.length > 1 && (
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", flexWrap: "wrap" }}>
-              {game.players.map((p, i) => (
-                <span
-                  key={p.id}
-                  style={{
-                    padding: "0.35rem 0.75rem",
-                    borderRadius: "6px",
-                    fontSize: "0.85rem",
-                    fontWeight: i === game.currentPlayerIndex ? "bold" : "normal",
-                    background: i === game.currentPlayerIndex ? "#e3f2fd" : "#f5f5f5",
-                    border: i === game.currentPlayerIndex ? "2px solid #2196f3" : "2px solid transparent",
-                  }}
-                >
-                  {p.name}{p.isAi ? " 🤖" : ""} — {calculateTotal(p, game.diceCount).grandTotal}
-                </span>
-              ))}
-            </div>
-          )}
-
           <div style={{ textAlign: "center" }}>
             <p style={{ marginBottom: "0.5rem", color: "#666" }}>
               {currentPlayer?.name}'s turn &nbsp;·&nbsp;
@@ -256,11 +236,12 @@ export function App() {
           </div>
 
           <Scorecard
-            player={game.players[game.currentPlayerIndex]}
+            players={game.players}
+            currentPlayerIndex={game.currentPlayerIndex}
             currentDice={game.dice}
             availableCategories={isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex], game.diceCount) : []}
             onSelectCategory={handleSelectCategory}
-            isCurrentPlayer={!!isHumanTurn}
+            canInteract={!!isHumanTurn}
             hasRolled={game.rollsLeft < game.maxRolls}
             diceCount={game.diceCount}
             suggestedCategory={suggestedCategory}

@@ -250,25 +250,6 @@ export default function Index() {
         <Text style={styles.quitBtnText}>✕ Quit Game</Text>
       </TouchableOpacity>
 
-      {/* Player tabs */}
-      {game.players.length > 1 && (
-        <View style={[styles.presetRow, { marginBottom: 12 }]}>
-          {game.players.map((p, i) => (
-            <View
-              key={p.id}
-              style={[
-                styles.presetBtn,
-                i === game.currentPlayerIndex && styles.presetBtnActive,
-              ]}
-            >
-              <Text style={i === game.currentPlayerIndex ? styles.presetTextActive : undefined}>
-                {p.name}{p.isAi ? " 🤖" : ""} — {calculateTotal(p, game.diceCount).grandTotal}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
       <Text style={styles.subtitle}>
         {currentPlayer?.name}'s turn · Round {Math.min(game.currentRound, game.totalRounds)}/{game.totalRounds} · Rolls: {game.rollsLeft}
       </Text>
@@ -300,30 +281,60 @@ export default function Index() {
         </Text>
       </TouchableOpacity>
 
-      {getCategories(game.diceCount).map((cat) => {
-        const scored = game.players[game.currentPlayerIndex].scores[cat.id];
-        const isAvailable = available.includes(cat.id) && hasRolled;
-        const isSuggested = suggestedCategory === cat.id && isAvailable;
-        return (
-          <TouchableOpacity
-            key={cat.id}
-            style={[styles.catRow, isAvailable && styles.catRowAvailable, isSuggested && styles.catRowSuggested]}
-            onPress={() => isAvailable && handleSelectCategory(cat.id)}
-            disabled={!isAvailable}
-          >
-            <Text style={isSuggested ? { fontWeight: "bold" } : undefined}>
-              {isSuggested ? "⭐ " : ""}{cat.label}
-            </Text>
-            <Text>
-              {scored !== undefined
-                ? scored
-                : isAvailable
-                  ? cat.score(game.dice)
-                  : "—"}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      {/* Multi-player scorecard */}
+      <ScrollView horizontal style={{ width: "100%" }}>
+        <View>
+          {/* Header row */}
+          <View style={styles.sheetRow}>
+            <View style={styles.catCol}><Text style={{ fontWeight: "bold" }}>Category</Text></View>
+            {game.players.map((p, i) => (
+              <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && styles.activePlayerCol]}>
+                <Text style={{ fontWeight: "bold", textAlign: "center" }}>{p.name}{p.isAi ? " 🤖" : ""}</Text>
+              </View>
+            ))}
+          </View>
+
+          {getCategories(game.diceCount).map((cat) => {
+            const isAvailable = available.includes(cat.id) && hasRolled;
+            const isSuggested = suggestedCategory === cat.id && isAvailable;
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                style={[styles.sheetRow, isAvailable && styles.catRowAvailable, isSuggested && styles.catRowSuggested]}
+                onPress={() => isAvailable && handleSelectCategory(cat.id)}
+                disabled={!isAvailable}
+              >
+                <View style={styles.catCol}>
+                  <Text style={isSuggested ? { fontWeight: "bold" } : undefined}>
+                    {isSuggested ? "⭐ " : ""}{cat.label}
+                  </Text>
+                </View>
+                {game.players.map((p, i) => {
+                  const scored = p.scores[cat.id];
+                  const showPotential = i === game.currentPlayerIndex && isAvailable;
+                  return (
+                    <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && styles.activePlayerCol]}>
+                      <Text style={[{ textAlign: "center" }, showPotential && scored === undefined ? { color: "#888", fontStyle: "italic" } : undefined]}>
+                        {scored !== undefined ? scored : showPotential ? cat.score(game.dice) : "—"}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </TouchableOpacity>
+            );
+          })}
+
+          {/* Grand total row */}
+          <View style={[styles.sheetRow, { backgroundColor: "#e8e8e8" }]}>
+            <View style={styles.catCol}><Text style={{ fontWeight: "bold" }}>Grand Total</Text></View>
+            {game.players.map((p, i) => (
+              <View key={p.id} style={styles.playerCol}>
+                <Text style={{ fontWeight: "bold", textAlign: "center" }}>{calculateTotal(p, game.diceCount).grandTotal}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
     </ScrollView>
   );
 }
@@ -354,5 +365,9 @@ const styles = StyleSheet.create({
   catRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: "#eee" },
   catRowAvailable: { backgroundColor: "#fffde7" },
   catRowSuggested: { backgroundColor: "#c8e6c9" },
+  sheetRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#ddd" },
+  catCol: { width: 140, paddingVertical: 8, paddingHorizontal: 8 },
+  playerCol: { width: 80, paddingVertical: 8, paddingHorizontal: 4 },
+  activePlayerCol: { backgroundColor: "rgba(33,150,243,0.06)" },
   finalScore: { fontSize: 28, fontWeight: "bold", marginVertical: 8 },
 });

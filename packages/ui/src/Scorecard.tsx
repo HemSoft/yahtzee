@@ -9,83 +9,149 @@ import {
 import { calculateTotal } from "@yahtzee/game-engine";
 
 interface ScorecardProps {
-  player: PlayerState;
+  players: PlayerState[];
+  currentPlayerIndex: number;
   currentDice: number[];
   availableCategories: CategoryId[];
   onSelectCategory: (categoryId: CategoryId) => void;
-  isCurrentPlayer: boolean;
+  canInteract: boolean;
   hasRolled: boolean;
   diceCount?: number;
   suggestedCategory?: CategoryId;
 }
 
 export function Scorecard({
-  player,
+  players,
+  currentPlayerIndex,
   currentDice,
   availableCategories,
   onSelectCategory,
-  isCurrentPlayer,
+  canInteract,
   hasRolled,
   diceCount = 5,
   suggestedCategory,
 }: ScorecardProps) {
-  const totals = calculateTotal(player, diceCount);
   const cats = getCategories(diceCount);
   const upperCats = cats.filter((c) => c.section === "upper");
   const lowerCats = cats.filter((c) => c.section === "lower");
   const bonusThreshold = getUpperBonusThreshold(diceCount);
   const bonusValue = getUpperBonusValue(diceCount);
 
-  const canSelect = isCurrentPlayer && hasRolled;
+  const canSelect = canInteract && hasRolled;
+
+  const playerTotals = players.map((p) => calculateTotal(p, diceCount));
 
   return (
-    <div style={{ minWidth: "280px" }}>
-      <h3 style={{ margin: "0 0 0.5rem" }}>{player.name}</h3>
+    <div style={{ overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
         <thead>
           <tr>
             <th style={thStyle}>Category</th>
-            <th style={thStyle}>Score</th>
+            {players.map((p, i) => (
+              <th
+                key={p.id}
+                style={{
+                  ...thStyle,
+                  textAlign: "center",
+                  minWidth: "80px",
+                  background: i === currentPlayerIndex ? "#e3f2fd" : undefined,
+                  borderBottom: i === currentPlayerIndex ? "3px solid #2196f3" : "2px solid #333",
+                }}
+              >
+                {p.name}{p.isAi ? " 🤖" : ""}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {/* Upper section */}
-          {upperCats.map((cat) => (
-            <CategoryRow
-              key={cat.id}
-              cat={cat}
-              scored={player.scores[cat.id]}
-              potential={canSelect && availableCategories.includes(cat.id) ? cat.score(currentDice) : undefined}
-              onSelect={() => onSelectCategory(cat.id)}
-              canSelect={canSelect && availableCategories.includes(cat.id)}
-              isSuggested={suggestedCategory === cat.id}
-            />
-          ))}
+          {upperCats.map((cat) => {
+            const isSuggested = suggestedCategory === cat.id;
+            const isAvailable = canSelect && availableCategories.includes(cat.id);
+            return (
+              <tr
+                key={cat.id}
+                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
+                style={{
+                  cursor: isAvailable ? "pointer" : "default",
+                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fffde7" : "transparent",
+                  fontWeight: isSuggested && isAvailable ? "bold" : "normal",
+                }}
+              >
+                <td style={tdStyle}>{isSuggested && isAvailable ? "⭐ " : ""}{cat.label}</td>
+                {players.map((p, i) => (
+                  <td
+                    key={p.id}
+                    style={{
+                      ...tdStyle,
+                      textAlign: "center",
+                      background: i === currentPlayerIndex ? "rgba(33,150,243,0.04)" : undefined,
+                    }}
+                  >
+                    <ScoreCell
+                      scored={p.scores[cat.id]}
+                      potential={i === currentPlayerIndex && isAvailable ? cat.score(currentDice) : undefined}
+                    />
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+
+          {/* Upper subtotal + bonus */}
           <tr style={{ fontWeight: "bold", background: "#f0f0f0" }}>
             <td style={tdStyle}>Upper Subtotal</td>
-            <td style={tdStyle}>{totals.upperSubtotal} / {bonusThreshold}</td>
+            {playerTotals.map((t, i) => (
+              <td key={i} style={{ ...tdStyle, textAlign: "center" }}>{t.upperSubtotal} / {bonusThreshold}</td>
+            ))}
           </tr>
           <tr style={{ fontWeight: "bold", background: "#f0f0f0" }}>
             <td style={tdStyle}>Upper Bonus</td>
-            <td style={tdStyle}>{totals.upperBonus > 0 ? `+${bonusValue}` : "—"}</td>
+            {playerTotals.map((t, i) => (
+              <td key={i} style={{ ...tdStyle, textAlign: "center" }}>{t.upperBonus > 0 ? `+${bonusValue}` : "—"}</td>
+            ))}
           </tr>
 
           {/* Lower section */}
-          {lowerCats.map((cat) => (
-            <CategoryRow
-              key={cat.id}
-              cat={cat}
-              scored={player.scores[cat.id]}
-              potential={canSelect && availableCategories.includes(cat.id) ? cat.score(currentDice) : undefined}
-              onSelect={() => onSelectCategory(cat.id)}
-              canSelect={canSelect && availableCategories.includes(cat.id)}
-              isSuggested={suggestedCategory === cat.id}
-            />
-          ))}
+          {lowerCats.map((cat) => {
+            const isSuggested = suggestedCategory === cat.id;
+            const isAvailable = canSelect && availableCategories.includes(cat.id);
+            return (
+              <tr
+                key={cat.id}
+                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
+                style={{
+                  cursor: isAvailable ? "pointer" : "default",
+                  background: isSuggested && isAvailable ? "#c8e6c9" : isAvailable ? "#fffde7" : "transparent",
+                  fontWeight: isSuggested && isAvailable ? "bold" : "normal",
+                }}
+              >
+                <td style={tdStyle}>{isSuggested && isAvailable ? "⭐ " : ""}{cat.label}</td>
+                {players.map((p, i) => (
+                  <td
+                    key={p.id}
+                    style={{
+                      ...tdStyle,
+                      textAlign: "center",
+                      background: i === currentPlayerIndex ? "rgba(33,150,243,0.04)" : undefined,
+                    }}
+                  >
+                    <ScoreCell
+                      scored={p.scores[cat.id]}
+                      potential={i === currentPlayerIndex && isAvailable ? cat.score(currentDice) : undefined}
+                    />
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
 
+          {/* Grand total */}
           <tr style={{ fontWeight: "bold", background: "#e8e8e8" }}>
             <td style={tdStyle}>Grand Total</td>
-            <td style={tdStyle}>{totals.grandTotal}</td>
+            {playerTotals.map((t, i) => (
+              <td key={i} style={{ ...tdStyle, textAlign: "center", fontSize: "1rem" }}>{t.grandTotal}</td>
+            ))}
           </tr>
         </tbody>
       </table>
@@ -95,46 +161,10 @@ export function Scorecard({
 
 // ─── Sub-components ───────────────────────────────────────
 
-function CategoryRow({
-  cat,
-  scored,
-  potential,
-  onSelect,
-  canSelect,
-  isSuggested,
-}: {
-  cat: { id: CategoryId; label: string };
-  scored: number | undefined;
-  potential: number | undefined;
-  onSelect: () => void;
-  canSelect: boolean;
-  isSuggested: boolean;
-}) {
-  const isScored = scored !== undefined;
-
-  return (
-    <tr
-      onClick={canSelect ? onSelect : undefined}
-      style={{
-        cursor: canSelect ? "pointer" : "default",
-        background: isSuggested && canSelect ? "#c8e6c9" : canSelect ? "#fffde7" : "transparent",
-        fontWeight: isSuggested && canSelect ? "bold" : "normal",
-      }}
-    >
-      <td style={tdStyle}>
-        {isSuggested && canSelect ? "⭐ " : ""}{cat.label}
-      </td>
-      <td style={tdStyle}>
-        {isScored ? (
-          scored
-        ) : potential !== undefined ? (
-          <span style={{ color: "#888", fontStyle: "italic" }}>{potential}</span>
-        ) : (
-          "—"
-        )}
-      </td>
-    </tr>
-  );
+function ScoreCell({ scored, potential }: { scored: number | undefined; potential: number | undefined }) {
+  if (scored !== undefined) return <>{scored}</>;
+  if (potential !== undefined) return <span style={{ color: "#888", fontStyle: "italic" }}>{potential}</span>;
+  return <>—</>;
 }
 
 const thStyle: React.CSSProperties = {
