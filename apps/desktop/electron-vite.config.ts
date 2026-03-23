@@ -18,7 +18,7 @@ export default defineConfig({
   renderer: {
     plugins: [react()],
     root: "src/renderer",
-    envDir: "../../",
+    envDir: resolve(__dirname, "../.."),
     build: {
       outDir: "out/renderer",
       rollupOptions: {
