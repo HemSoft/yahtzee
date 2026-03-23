@@ -45,3 +45,11 @@ coverage/
 
 # Misc
 *.tsbuildinfo
+
+# Agent tool configs (not project-specific)
+.agent/
+.claude/
+.goose/
+.kiro/
+/skills/
+skills-lock.json

@@ -24,5 +24,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HemSoft/yahtzee.git"
+  },
+  "dependencies": {
+    "convex": "^1.17.0"
   }
 }
