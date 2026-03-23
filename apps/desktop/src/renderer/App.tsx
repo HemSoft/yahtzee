@@ -1,4 +1,6 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import {
   createGame,
   rollDice,
@@ -10,36 +12,12 @@ import {
   pickAiCategory,
   getCategories,
   createEmptyGameLog,
-  addGameLogEntry,
-  getPlayerAverageScore,
-  createEmptyHighScores,
-  updateHighScores,
-  getHighScoresForDiceCount,
   type GameState,
   type CategoryId,
   type GameLog,
-  type HighScores,
+  type GameLogEntry,
 } from "@yahtzee/game-engine";
 import { DiceRow, Scorecard, GameSettings, ThemeToggle, ThemeProvider, lightTheme, darkTheme, type Theme } from "@yahtzee/ui";
-
-function loadGameLog(): GameLog {
-  try {
-    const raw = localStorage.getItem("yahtzee-game-log");
-    return raw ? JSON.parse(raw) : createEmptyGameLog();
-  } catch { return createEmptyGameLog(); }
-}
-function saveGameLog(log: GameLog) {
-  localStorage.setItem("yahtzee-game-log", JSON.stringify(log));
-}
-function loadHighScores(): HighScores {
-  try {
-    const raw = localStorage.getItem("yahtzee-high-scores");
-    return raw ? JSON.parse(raw) : createEmptyHighScores();
-  } catch { return createEmptyHighScores(); }
-}
-function saveHighScores(hs: HighScores) {
-  localStorage.setItem("yahtzee-high-scores", JSON.stringify(hs));
-}
 
 function loadThemeMode(): "light" | "dark" {
   try {
@@ -58,12 +36,39 @@ export function App() {
   const [diceCount, setDiceCount] = useState(5);
   const [aiOpponents, setAiOpponents] = useState(0);
   const [game, setGame] = useState<GameState | null>(null);
-  const [highScores, setHighScores] = useState<HighScores>(loadHighScores);
-  const [gameLog, setGameLog] = useState<GameLog>(loadGameLog);
   const gameStartedAt = useRef<string>("");
   const lastLoggedGameRef = useRef<string>("");
   const [themeMode, setThemeMode] = useState<"light" | "dark">(loadThemeMode);
   const theme = themeMode === "dark" ? darkTheme : lightTheme;
+
+  // Convex queries
+  const allGameLogs = useQuery(api.gameLogs.list, {});
+  const activeDiceCount = game?.diceCount ?? diceCount;
+  const topScoresRaw = useQuery(api.highScores.top, { diceCount: activeDiceCount });
+
+  const gameLog: GameLog = useMemo(() => {
+    if (!allGameLogs) return createEmptyGameLog();
+    return {
+      entries: allGameLogs.map((e): GameLogEntry => ({
+        id: e.gameId,
+        diceCount: e.diceCount,
+        startedAt: e.startedAt,
+        completedAt: e.completedAt,
+        durationSeconds: e.durationSeconds,
+        players: e.players,
+        winnerName: e.winnerName,
+      })),
+    };
+  }, [allGameLogs]);
+
+  const leaderboardScores = useMemo(
+    () => (topScoresRaw ?? []).map((e) => e.score),
+    [topScoresRaw]
+  );
+
+  // Convex mutations
+  const addGameLog = useMutation(api.gameLogs.add);
+  const submitHighScore = useMutation(api.highScores.submit);
 
   const toggleTheme = useCallback(() => {
     setThemeMode((prev) => {
@@ -76,17 +81,43 @@ export function App() {
   const handleGameFinished = useCallback((finishedGame: GameState) => {
     if (lastLoggedGameRef.current === finishedGame.id) return;
     lastLoggedGameRef.current = finishedGame.id;
-    setGameLog((prev) => {
-      const newLog = addGameLogEntry(prev, finishedGame, gameStartedAt.current);
-      saveGameLog(newLog);
-      return newLog;
+
+    const completedAt = new Date().toISOString();
+    const startDate = new Date(gameStartedAt.current);
+    const endDate = new Date(completedAt);
+    const durationSeconds = Math.round((endDate.getTime() - startDate.getTime()) / 1000);
+
+    const players = finishedGame.players.map((p) => ({
+      name: p.name,
+      isAi: !!p.isAi,
+      score: calculateTotal(p, finishedGame.diceCount).grandTotal,
+      scores: { ...p.scores },
+    }));
+
+    const winner = players.reduce((best, p) => (p.score > best.score ? p : best), players[0]);
+
+    addGameLog({
+      gameId: finishedGame.id,
+      diceCount: finishedGame.diceCount,
+      startedAt: gameStartedAt.current,
+      completedAt,
+      durationSeconds,
+      players,
+      winnerName: winner.name,
     });
-    setHighScores((prev) => {
-      const newHs = updateHighScores(prev, finishedGame);
-      saveHighScores(newHs);
-      return newHs;
-    });
-  }, []);
+
+    const now = new Date().toISOString();
+    for (const p of players) {
+      submitHighScore({
+        diceCount: finishedGame.diceCount,
+        dateRecorded: now,
+        score: p.score,
+        playerName: p.name,
+        isAi: p.isAi,
+        gameId: finishedGame.id,
+      });
+    }
+  }, [addGameLog, submitHighScore]);
 
   const handleStartGame = useCallback(() => {
     const players: { id: string; name: string; isAi?: boolean }[] = [
@@ -313,29 +344,36 @@ export function App() {
             hasRolled={game.rollsLeft < game.maxRolls}
             diceCount={game.diceCount}
             suggestedCategory={suggestedCategory}
-            leaderboardScores={getHighScoresForDiceCount(highScores, game.diceCount).map((e) => e.score)}
+            leaderboardScores={leaderboardScores}
           />
         </div>
       )}
 
       {screen === "finished" && game && (() => {
-        const topScores = getHighScoresForDiceCount(highScores, game.diceCount);
+        const topScores = topScoresRaw ?? [];
         return (
         <div style={{ textAlign: "center" }}>
           <h2 style={{ color: theme.text }}>Game Over!</h2>
           {game.players
             .slice()
             .sort((a, b) => calculateTotal(b, game.diceCount).grandTotal - calculateTotal(a, game.diceCount).grandTotal)
-            .map((p, i) => (
+            .map((p, i) => {
+              const matching = gameLog.entries
+                .filter((e) => e.diceCount === game.diceCount)
+                .flatMap((e) => e.players)
+                .filter((pl) => pl.name === p.name);
+              const avg = matching.length === 0 ? 0 : Math.round(matching.reduce((sum, pl) => sum + pl.score, 0) / matching.length);
+              return (
               <p key={p.id} style={{ fontSize: i === 0 ? "1.5rem" : "1.1rem", margin: "0.5rem 0", color: theme.text }}>
                 {i === 0 ? "🏆 " : `${i + 1}. `}
                 <strong>{p.name}</strong>{p.isAi ? " 🤖" : ""}:{" "}
                 {calculateTotal(p, game.diceCount).grandTotal} pts
                 <span style={{ fontSize: "0.8rem", color: theme.textMuted, marginLeft: "0.5rem" }}>
-                  (avg: {getPlayerAverageScore(gameLog, p.name, game.diceCount)})
+                  (avg: {avg})
                 </span>
               </p>
-            ))}
+              );
+            })}
           <button
             onClick={handleCancelGame}
             style={{
@@ -366,16 +404,11 @@ export function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {topScores.map((hs, i) => (
-                    <tr key={`${hs.gameId}-${hs.playerName}`} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                  {topScores.map((hs) => (
+                    <tr key={`${hs.gameId}-${hs.playerName}-${hs._id}`} style={{ borderBottom: `1px solid ${theme.border}` }}>
                       <td style={{ padding: "0.3rem 1rem", textAlign: "center", color: theme.text }}>{hs.rankCurrent}</td>
                       <td style={{ padding: "0.3rem 1rem", color: theme.text }}>
                         {hs.playerName}{hs.isAi ? " 🤖" : ""}
-                        {hs.rankOriginal !== hs.rankCurrent && (
-                          <span style={{ fontSize: "0.75rem", color: theme.textMuted, marginLeft: "0.3rem" }}>
-                            (was #{hs.rankOriginal})
-                          </span>
-                        )}
                       </td>
                       <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontWeight: "bold", color: theme.text }}>{hs.score}</td>
                       <td style={{ padding: "0.3rem 1rem", textAlign: "right", fontSize: "0.85rem", color: theme.textMuted }}>

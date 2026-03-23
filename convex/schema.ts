@@ -2,43 +2,31 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  games: defineTable({
-    hostPlayerId: v.string(),
+  gameLogs: defineTable({
+    gameId: v.string(),
     diceCount: v.number(),
-    maxRolls: v.number(),
-    status: v.union(
-      v.literal("lobby"),
-      v.literal("playing"),
-      v.literal("finished")
+    startedAt: v.string(),
+    completedAt: v.string(),
+    durationSeconds: v.number(),
+    players: v.array(
+      v.object({
+        name: v.string(),
+        isAi: v.boolean(),
+        score: v.number(),
+        scores: v.record(v.string(), v.number()),
+      })
     ),
-    playerIds: v.array(v.string()),
-    currentPlayerIndex: v.number(),
-    currentRound: v.number(),
-    totalRounds: v.number(),
-    dice: v.array(v.number()),
-    held: v.array(v.number()),
-    rollsLeft: v.number(),
+    winnerName: v.string(),
   })
-    .index("by_status", ["status"]),
+    .index("by_diceCount", ["diceCount"])
+    .index("by_gameId", ["gameId"]),
 
-  players: defineTable({
-    name: v.string(),
-    gameId: v.id("games"),
-  })
-    .index("by_game", ["gameId"]),
-
-  scores: defineTable({
-    gameId: v.id("games"),
-    playerId: v.id("players"),
-    category: v.string(),
-    value: v.number(),
-  })
-    .index("by_game_player", ["gameId", "playerId"]),
-
-  leaderboard: defineTable({
-    playerName: v.string(),
-    score: v.number(),
+  highScores: defineTable({
     diceCount: v.number(),
-  })
-    .index("by_dice_score", ["diceCount", "score"]),
+    dateRecorded: v.string(),
+    score: v.number(),
+    playerName: v.string(),
+    isAi: v.boolean(),
+    gameId: v.string(),
+  }).index("by_diceCount_score", ["diceCount", "score"]),
 });

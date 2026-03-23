@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   StyleSheet,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import {
   createGame,
   rollDice,
@@ -20,15 +22,10 @@ import {
   pickAiCategory,
   getCategories,
   createEmptyGameLog,
-  addGameLogEntry,
-  getPlayerAverageScore,
-  createEmptyHighScores,
-  updateHighScores,
-  getHighScoresForDiceCount,
   type GameState,
   type CategoryId,
   type GameLog,
-  type HighScores,
+  type GameLogEntry,
 } from "@yahtzee/game-engine";
 import { lightTheme, darkTheme, type Theme } from "@yahtzee/ui";
 
@@ -46,12 +43,39 @@ export default function Index() {
   const [diceCount, setDiceCount] = useState(5);
   const [aiOpponents, setAiOpponents] = useState(0);
   const [game, setGame] = useState<GameState | null>(null);
-  const [highScores, setHighScores] = useState<HighScores>(createEmptyHighScores);
-  const [gameLog, setGameLog] = useState<GameLog>(createEmptyGameLog);
   const gameStartedAt = useRef<string>("");
   const lastLoggedGameRef = useRef<string>("");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const theme = themeMode === "dark" ? darkTheme : lightTheme;
+
+  // Convex queries
+  const allGameLogs = useQuery(api.gameLogs.list, {});
+  const activeDiceCount = game?.diceCount ?? diceCount;
+  const topScoresRaw = useQuery(api.highScores.top, { diceCount: activeDiceCount });
+
+  const gameLog: GameLog = useMemo(() => {
+    if (!allGameLogs) return createEmptyGameLog();
+    return {
+      entries: allGameLogs.map((e): GameLogEntry => ({
+        id: e.gameId,
+        diceCount: e.diceCount,
+        startedAt: e.startedAt,
+        completedAt: e.completedAt,
+        durationSeconds: e.durationSeconds,
+        players: e.players,
+        winnerName: e.winnerName,
+      })),
+    };
+  }, [allGameLogs]);
+
+  const highScoresForDice = useMemo(
+    () => (topScoresRaw ?? []),
+    [topScoresRaw]
+  );
+
+  // Convex mutations
+  const addGameLog = useMutation(api.gameLogs.add);
+  const submitHighScore = useMutation(api.highScores.submit);
 
   const toggleTheme = useCallback(() => {
     setThemeMode((prev) => {
@@ -61,17 +85,11 @@ export default function Index() {
     });
   }, []);
 
-  // Load persisted data on mount
+  // Load theme preference on mount (theme stays local)
   useEffect(() => {
     (async () => {
       try {
-        const [logRaw, hsRaw, themeRaw] = await Promise.all([
-          AsyncStorage.getItem("yahtzee-game-log"),
-          AsyncStorage.getItem("yahtzee-high-scores"),
-          AsyncStorage.getItem("yahtzee-theme"),
-        ]);
-        if (logRaw) setGameLog(JSON.parse(logRaw));
-        if (hsRaw) setHighScores(JSON.parse(hsRaw));
+        const themeRaw = await AsyncStorage.getItem("yahtzee-theme");
         if (themeRaw === "dark") setThemeMode("dark");
       } catch {}
     })();
@@ -80,17 +98,43 @@ export default function Index() {
   const handleGameFinished = useCallback((finishedGame: GameState) => {
     if (lastLoggedGameRef.current === finishedGame.id) return;
     lastLoggedGameRef.current = finishedGame.id;
-    setGameLog((prev) => {
-      const newLog = addGameLogEntry(prev, finishedGame, gameStartedAt.current);
-      AsyncStorage.setItem("yahtzee-game-log", JSON.stringify(newLog)).catch(() => {});
-      return newLog;
+
+    const completedAt = new Date().toISOString();
+    const startDate = new Date(gameStartedAt.current);
+    const endDate = new Date(completedAt);
+    const durationSeconds = Math.round((endDate.getTime() - startDate.getTime()) / 1000);
+
+    const players = finishedGame.players.map((p) => ({
+      name: p.name,
+      isAi: !!p.isAi,
+      score: calculateTotal(p, finishedGame.diceCount).grandTotal,
+      scores: { ...p.scores },
+    }));
+
+    const winner = players.reduce((best, p) => (p.score > best.score ? p : best), players[0]);
+
+    addGameLog({
+      gameId: finishedGame.id,
+      diceCount: finishedGame.diceCount,
+      startedAt: gameStartedAt.current,
+      completedAt,
+      durationSeconds,
+      players,
+      winnerName: winner.name,
     });
-    setHighScores((prev) => {
-      const newHs = updateHighScores(prev, finishedGame);
-      AsyncStorage.setItem("yahtzee-high-scores", JSON.stringify(newHs)).catch(() => {});
-      return newHs;
-    });
-  }, []);
+
+    const now = new Date().toISOString();
+    for (const p of players) {
+      submitHighScore({
+        diceCount: finishedGame.diceCount,
+        dateRecorded: now,
+        score: p.score,
+        playerName: p.name,
+        isAi: p.isAi,
+        gameId: finishedGame.id,
+      });
+    }
+  }, [addGameLog, submitHighScore]);
 
   const handleStartGame = useCallback(() => {
     const players: { id: string; name: string; isAi?: boolean }[] = [
@@ -280,20 +324,27 @@ export default function Index() {
 
   if (screen === "finished" && game) {
     const sorted = game.players.slice().sort((a, b) => calculateTotal(b, game.diceCount).grandTotal - calculateTotal(a, game.diceCount).grandTotal);
-    const topScores = getHighScoresForDiceCount(highScores, game.diceCount);
+    const topScores = highScoresForDice;
     return (
       <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.bg }]}>
         <Text style={[styles.title, { color: theme.text }]}>Game Over!</Text>
-        {sorted.map((p, i) => (
+        {sorted.map((p, i) => {
+          const matching = gameLog.entries
+            .filter((e) => e.diceCount === game.diceCount)
+            .flatMap((e) => e.players)
+            .filter((pl) => pl.name === p.name);
+          const avg = matching.length === 0 ? 0 : Math.round(matching.reduce((sum, pl) => sum + pl.score, 0) / matching.length);
+          return (
           <View key={p.id} style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "center", marginBottom: 4 }}>
             <Text style={[i === 0 ? styles.finalScore : styles.subtitle, { color: theme.text }]}>
               {i === 0 ? "🏆 " : `${i + 1}. `}{p.name}{p.isAi ? " 🤖" : ""}: {calculateTotal(p, game.diceCount).grandTotal} pts
             </Text>
             <Text style={{ fontSize: 12, color: theme.textMuted, marginLeft: 6 }}>
-              (avg: {getPlayerAverageScore(gameLog, p.name, game.diceCount)})
+              (avg: {avg})
             </Text>
           </View>
-        ))}
+          );
+        })}
         <TouchableOpacity
           style={[styles.startBtn, { backgroundColor: theme.success }]}
           onPress={handleCancelGame}
@@ -312,11 +363,10 @@ export default function Index() {
                 <Text style={{ flex: 1.5, fontWeight: "bold", textAlign: "right", color: theme.text }}>Date</Text>
               </View>
               {topScores.map((hs) => (
-                <View key={`${hs.gameId}-${hs.playerName}`} style={{ flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: theme.border }}>
+                <View key={`${hs.gameId}-${hs.playerName}-${hs._id}`} style={{ flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: theme.border }}>
                   <Text style={{ flex: 0.5, textAlign: "center", color: theme.text }}>{hs.rankCurrent}</Text>
                   <Text style={{ flex: 2, color: theme.text }}>
                     {hs.playerName}{hs.isAi ? " 🤖" : ""}
-                    {hs.rankOriginal !== hs.rankCurrent ? ` (was #${hs.rankOriginal})` : ""}
                   </Text>
                   <Text style={{ flex: 1, textAlign: "right", fontWeight: "bold", color: theme.text }}>{hs.score}</Text>
                   <Text style={{ flex: 1.5, textAlign: "right", fontSize: 12, color: theme.textMuted }}>
@@ -394,7 +444,7 @@ export default function Index() {
               if (j > 0 && indexed[j].s < indexed[j - 1].s) rank = j + 1;
               ranks[indexed[j].i] = rank;
             }
-            const lbScores = getHighScoresForDiceCount(highScores, game.diceCount).map((e) => e.score);
+            const lbScores = highScoresForDice.map((e) => e.score);
             const maxScores = game.players.map((p) => calculateMaxPossibleScore(p, game.diceCount));
             const bestLbRanks = maxScores.map((max) => {
               let r = 1;
