@@ -26,13 +26,29 @@ function loadThemeMode(): "light" | "dark" {
   } catch { return "light"; }
 }
 
+function loadRecentNames(): string[] {
+  try {
+    const raw = localStorage.getItem("yahtzee-recent-names");
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+function saveRecentName(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const prev = loadRecentNames().filter((n) => n !== trimmed);
+  const updated = [trimmed, ...prev].slice(0, 5);
+  localStorage.setItem("yahtzee-recent-names", JSON.stringify(updated));
+  return updated;
+}
+
 const AI_NAMES = ["Bot Alpha", "Bot Beta", "Bot Gamma"];
 
 type Screen = "setup" | "playing" | "finished";
 
 export function App() {
   const [screen, setScreen] = useState<Screen>("setup");
-  const [playerName, setPlayerName] = useState("");
+  const [playerName, setPlayerName] = useState(() => loadRecentNames()[0] ?? "");
+  const [recentNames, setRecentNames] = useState(loadRecentNames);
   const [diceCount, setDiceCount] = useState(5);
   const [aiOpponents, setAiOpponents] = useState(0);
   const [game, setGame] = useState<GameState | null>(null);
@@ -123,8 +139,11 @@ export function App() {
   }, [addGameLog, submitHighScore]);
 
   const handleStartGame = useCallback(() => {
+    const trimmedName = playerName.trim();
+    const updated = saveRecentName(trimmedName);
+    if (updated) setRecentNames(updated);
     const players: { id: string; name: string; isAi?: boolean }[] = [
-      { id: "local", name: playerName.trim() },
+      { id: "local", name: trimmedName },
     ];
     for (let i = 0; i < aiOpponents; i++) {
       players.push({ id: `ai-${i}`, name: AI_NAMES[i], isAi: true });
@@ -278,6 +297,7 @@ export function App() {
             aiOpponents={aiOpponents}
             onAiOpponentsChange={setAiOpponents}
             onStartGame={handleStartGame}
+            recentNames={recentNames}
           />
         </div>
       )}

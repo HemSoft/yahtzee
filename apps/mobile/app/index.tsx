@@ -40,6 +40,7 @@ type Screen = "setup" | "playing" | "finished";
 export default function Index() {
   const [screen, setScreen] = useState<Screen>("setup");
   const [playerName, setPlayerName] = useState("");
+  const [recentNames, setRecentNames] = useState<string[]>([]);
   const [diceCount, setDiceCount] = useState(5);
   const [aiOpponents, setAiOpponents] = useState(0);
   const [game, setGame] = useState<GameState | null>(null);
@@ -47,6 +48,16 @@ export default function Index() {
   const lastLoggedGameRef = useRef<string>("");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const theme = themeMode === "dark" ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    AsyncStorage.getItem("yahtzee-recent-names").then((raw) => {
+      if (raw) {
+        const names = JSON.parse(raw) as string[];
+        setRecentNames(names);
+        if (names.length > 0) setPlayerName(names[0]);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Convex queries
   const allGameLogs = useQuery(api.gameLogs.list, {});
@@ -137,8 +148,12 @@ export default function Index() {
   }, [addGameLog, submitHighScore]);
 
   const handleStartGame = useCallback(() => {
+    const trimmedName = playerName.trim();
+    const updated = [trimmedName, ...recentNames.filter((n) => n !== trimmedName)].slice(0, 5);
+    setRecentNames(updated);
+    AsyncStorage.setItem("yahtzee-recent-names", JSON.stringify(updated)).catch(() => {});
     const players: { id: string; name: string; isAi?: boolean }[] = [
-      { id: "local", name: playerName.trim() },
+      { id: "local", name: trimmedName },
     ];
     for (let i = 0; i < aiOpponents; i++) {
       players.push({ id: `ai-${i}`, name: AI_NAMES[i], isAi: true });
@@ -285,6 +300,19 @@ export default function Index() {
           onChangeText={setPlayerName}
           maxLength={20}
         />
+        {recentNames.length > 0 && (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+            {recentNames.map((name) => (
+              <TouchableOpacity
+                key={name}
+                onPress={() => setPlayerName(name)}
+                style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: playerName === name ? theme.accent : theme.border, backgroundColor: playerName === name ? theme.accentBg : theme.surface }}
+              >
+                <Text style={{ color: playerName === name ? theme.accent : theme.textMuted, fontSize: 13 }}>{name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
         <Text style={[styles.label, { color: theme.text }]}>AI Opponents</Text>
         <View style={styles.presetRow}>
           {[0, 1, 2, 3].map((n) => (
@@ -458,7 +486,7 @@ export default function Index() {
                   <View key={p.id} style={[styles.playerCol, i === game.currentPlayerIndex && { backgroundColor: theme.currentPlayerBg }]}>
                     <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text, fontSize: 15 }}>{totals[i].grandTotal} pts</Text>
                     <Text style={{ textAlign: "center", color: theme.textMuted, fontSize: 10 }}>
-                      #{ranks[i]} in game{lbScores.length > 0 ? ` · best: #${bestLbRanks[i]}` : ""}
+                      #{ranks[i]} in game · best: #{bestLbRanks[i]}
                     </Text>
                     <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text }}>{p.name}{p.isAi ? " 🤖" : ""}</Text>
                   </View>

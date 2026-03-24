@@ -98,10 +98,7 @@ export function Scorecard({
                   {playerTotals[i].grandTotal} pts
                 </div>
                 <div style={{ fontSize: "0.75rem", color: theme.textMuted, fontWeight: "normal" }}>
-                  #{gameRanks[i]} in game
-                  {leaderboardScores.length > 0 && (
-                    <> · best: #{bestLeaderboardRanks[i]}</>
-                  )}
+                  #{gameRanks[i]} in game · best: #{bestLeaderboardRanks[i]}
                 </div>
                 <div>{p.name}{p.isAi ? " 🤖" : ""}</div>
               </th>

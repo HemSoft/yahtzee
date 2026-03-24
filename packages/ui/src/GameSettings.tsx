@@ -10,6 +10,7 @@ interface GameSettingsProps {
   onAiOpponentsChange: (count: number) => void;
   onStartGame: () => void;
   disabled?: boolean;
+  recentNames?: string[];
 }
 
 const DICE_PRESETS = [
@@ -35,6 +36,7 @@ export function GameSettings({
   onAiOpponentsChange,
   onStartGame,
   disabled,
+  recentNames = [],
 }: GameSettingsProps) {
   const theme = useTheme();
   return (
@@ -59,6 +61,27 @@ export function GameSettings({
             width: "100%",
           }}
         />
+        {recentNames.length > 0 && (
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
+            {recentNames.map((name) => (
+              <button
+                key={name}
+                onClick={() => onPlayerNameChange(name)}
+                style={{
+                  padding: "0.2rem 0.6rem",
+                  borderRadius: "12px",
+                  border: `1px solid ${theme.border}`,
+                  background: playerName === name ? theme.accentBg : theme.surface,
+                  color: playerName === name ? theme.accent : theme.textMuted,
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
