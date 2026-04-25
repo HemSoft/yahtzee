@@ -85,31 +85,35 @@ export function isGameComplete(game: GameState): boolean {
 
 // ─── Max Possible Score ───────────────────────────────────
 
+type MaxScoreEntry = number | ((diceCount: number) => number);
+
+const MAX_SCORE_TABLE: Record<CategoryId, MaxScoreEntry> = {
+  "ones": (d) => d,
+  "twos": (d) => d * 2,
+  "threes": (d) => d * 3,
+  "fours": (d) => d * 4,
+  "fives": (d) => d * 5,
+  "sixes": (d) => d * 6,
+  "one-pair": 12,
+  "two-pairs": 22,
+  "three-of-a-kind": 18,
+  "four-of-a-kind": 24,
+  "full-house": 25,
+  "small-straight": 30,
+  "large-straight": 40,
+  "yahtzee": 50,
+  "chance": (d) => d * 6,
+  "three-pairs": (d) => d * 6 - 6,
+  "five-of-a-kind": 30,
+  "full-straight": 21,
+  "castle": (d) => d * 6 - 3,
+  "tower": (d) => d * 6 - 2,
+  "maxi-yahtzee": 100,
+};
+
 function getMaxCategoryScore(catId: CategoryId, diceCount: number): number {
-  switch (catId) {
-    case "ones": return diceCount;
-    case "twos": return diceCount * 2;
-    case "threes": return diceCount * 3;
-    case "fours": return diceCount * 4;
-    case "fives": return diceCount * 5;
-    case "sixes": return diceCount * 6;
-    case "one-pair": return 12;
-    case "two-pairs": return 22;
-    case "three-of-a-kind": return 18;
-    case "four-of-a-kind": return 24;
-    case "full-house": return 25;
-    case "small-straight": return 30;
-    case "large-straight": return 40;
-    case "yahtzee": return 50;
-    case "chance": return diceCount * 6;
-    case "three-pairs": return diceCount * 6 - 6;
-    case "five-of-a-kind": return 30;
-    case "full-straight": return 21;
-    case "castle": return diceCount * 6 - 3;
-    case "tower": return diceCount * 6 - 2;
-    case "maxi-yahtzee": return 100;
-    default: return 0;
-  }
+  const entry = MAX_SCORE_TABLE[catId];
+  return typeof entry === "function" ? entry(diceCount) : entry;
 }
 
 export function calculateMaxPossibleScore(player: PlayerState, diceCount: number): number {

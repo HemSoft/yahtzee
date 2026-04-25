@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   createGame,
   calculateTotal,
+  calculateMaxPossibleScore,
   isGameComplete,
   getAvailableCategories,
   pickAiCategory,
@@ -198,5 +199,57 @@ describe("executeAiTurn", () => {
     game.currentPlayerIndex = 1;
     const result = executeAiTurn(game);
     expect(Object.keys(result.players[0].scores).length).toBe(0);
+  });
+});
+
+describe("calculateMaxPossibleScore", () => {
+  test("returns maximum possible score for empty scorecard (5 dice)", () => {
+    const player = { id: "p1", name: "A", scores: {} };
+    // Upper: 5+10+15+20+25+30=105, bonus=35
+    // Lower: 12+22+18+24+25+30+40+50+30=251
+    expect(calculateMaxPossibleScore(player, 5)).toBe(391);
+  });
+
+  test("accounts for already-scored categories", () => {
+    const player = { id: "p1", name: "A", scores: { ones: 3, twos: 4, chance: 20 } as Record<string, number> };
+    // Upper scored: 7, remaining: 15+20+25+30=90, total upper=97 ≥ 63 → bonus=35
+    // Lower scored: 20, remaining: 12+22+18+24+25+30+40+50=221
+    expect(calculateMaxPossibleScore(player, 5)).toBe(373);
+  });
+
+  test("no bonus when upper max is below threshold", () => {
+    const player = { id: "p1", name: "A", scores: {
+      ones: 0, twos: 0, threes: 0, fours: 0, fives: 0, sixes: 0,
+    } as Record<string, number> };
+    // Upper: 0, no remaining → 0 < 63 → no bonus
+    // Lower remaining: 251
+    expect(calculateMaxPossibleScore(player, 5)).toBe(251);
+  });
+
+  test("bonus reachable with partial upper scores", () => {
+    const player = { id: "p1", name: "A", scores: { ones: 3, twos: 6 } as Record<string, number> };
+    // Upper scored: 9, remaining: 15+20+25+30=90, total=99 ≥ 63 → bonus=35
+    // Lower remaining: 251
+    expect(calculateMaxPossibleScore(player, 5)).toBe(385);
+  });
+
+  test("works with 6-dice maxi variant", () => {
+    const player = { id: "p1", name: "A", scores: {} };
+    // Upper: 6+12+18+24+30+36=126, bonus=100 (threshold=84)
+    // Lower (14 cats): 12+22+18+24+25+30+40+36+30+30+21+33+34+100=455
+    expect(calculateMaxPossibleScore(player, 6)).toBe(681);
+  });
+
+  test("fully scored player returns actual total", () => {
+    const player = { id: "p1", name: "A", scores: {
+      ones: 3, twos: 6, threes: 9, fours: 12, fives: 15, sixes: 18,
+      "one-pair": 10, "two-pairs": 16, "three-of-a-kind": 15,
+      "four-of-a-kind": 20, "full-house": 25, "small-straight": 30,
+      "large-straight": 40, yahtzee: 50, chance: 22,
+    } as Record<string, number> };
+    // Upper: 63 → bonus=35, Lower: 228
+    // grandTotal via calculateTotal = 63+35+228 = 326
+    // calculateMaxPossibleScore: no remaining categories, so max = actual
+    expect(calculateMaxPossibleScore(player, 5)).toBe(326);
   });
 });
