@@ -51,6 +51,13 @@ export function createGame(opts: {
 
 // ─── Score Calculation ────────────────────────────────────
 
+/** Return the upper bonus if `upperTotal` meets the threshold for `diceCount`, else 0. */
+export function getUpperBonus(upperTotal: number, diceCount: number): number {
+  return upperTotal >= getUpperBonusThreshold(diceCount)
+    ? getUpperBonusValue(diceCount)
+    : 0;
+}
+
 export function calculateTotal(player: PlayerState, diceCount: number = 5): {
   upperSubtotal: number;
   upperBonus: number;
@@ -68,9 +75,7 @@ export function calculateTotal(player: PlayerState, diceCount: number = 5): {
     else lowerSubtotal += val;
   }
 
-  const threshold = getUpperBonusThreshold(diceCount);
-  const bonusValue = getUpperBonusValue(diceCount);
-  const upperBonus = upperSubtotal >= threshold ? bonusValue : 0;
+  const upperBonus = getUpperBonus(upperSubtotal, diceCount);
   const grandTotal = upperSubtotal + upperBonus + lowerSubtotal;
 
   return { upperSubtotal, upperBonus, lowerSubtotal, grandTotal };
@@ -118,8 +123,6 @@ function getMaxCategoryScore(catId: CategoryId, diceCount: number): number {
 
 export function calculateMaxPossibleScore(player: PlayerState, diceCount: number): number {
   const cats = getCategories(diceCount);
-  const threshold = getUpperBonusThreshold(diceCount);
-  const bonusValue = getUpperBonusValue(diceCount);
 
   let upperScored = 0;
   let lowerScored = 0;
@@ -139,7 +142,7 @@ export function calculateMaxPossibleScore(player: PlayerState, diceCount: number
   }
 
   const maxUpper = upperScored + maxUpperRemaining;
-  const maxBonus = maxUpper >= threshold ? bonusValue : 0;
+  const maxBonus = getUpperBonus(maxUpper, diceCount);
 
   return maxUpper + maxBonus + lowerScored + maxLowerRemaining;
 }
@@ -158,12 +161,12 @@ export function pickAiCategory(
   diceCount: number = 5
 ): CategoryId {
   const available = getAvailableCategories(player, diceCount);
-  const cats = getCategories(diceCount);
+  const catMap = new Map(getCategories(diceCount).map((c) => [c.id, c]));
   let bestId = available[0];
   let bestScore = -1;
+
   for (const id of available) {
-    const cat = cats.find((c) => c.id === id)!;
-    const s = cat.score(dice);
+    const s = catMap.get(id)!.score(dice);
     if (s > bestScore || (s === bestScore && bestId === "chance")) {
       bestScore = s;
       bestId = id;
@@ -175,11 +178,11 @@ export function pickAiCategory(
 /** Execute a full AI turn: roll dice once (no holding strategy), pick best category. */
 export function executeAiTurn(game: GameState): GameState {
   const player = game.players[game.currentPlayerIndex];
-  const cats = getCategories(game.diceCount);
+  const catMap = new Map(getCategories(game.diceCount).map((c) => [c.id, c]));
   const dice = rollDice(game.diceCount);
 
   const categoryId = pickAiCategory(dice, player, game.diceCount);
-  const cat = cats.find((c) => c.id === categoryId)!;
+  const cat = catMap.get(categoryId)!;
 
   const updatedPlayer = {
     ...player,

@@ -283,6 +283,36 @@ describe("getCategories", () => {
   test("returns 20 categories for 8 dice", () => {
     expect(getCategories(8).length).toBe(20);
   });
+
+  test("5 dice includes yahtzee but not maxi-yahtzee", () => {
+    const ids = getCategories(5).map((c) => c.id);
+    expect(ids).toContain("yahtzee");
+    expect(ids).not.toContain("maxi-yahtzee");
+  });
+
+  test("6 dice includes maxi-yahtzee but not yahtzee", () => {
+    const ids = getCategories(6).map((c) => c.id);
+    expect(ids).toContain("maxi-yahtzee");
+    expect(ids).not.toContain("yahtzee");
+  });
+
+  test("6 dice includes all maxi categories", () => {
+    const ids = getCategories(6).map((c) => c.id);
+    expect(ids).toContain("three-pairs");
+    expect(ids).toContain("five-of-a-kind");
+    expect(ids).toContain("full-straight");
+    expect(ids).toContain("castle");
+    expect(ids).toContain("tower");
+  });
+
+  test("5 dice excludes all maxi categories", () => {
+    const ids = getCategories(5).map((c) => c.id);
+    expect(ids).not.toContain("three-pairs");
+    expect(ids).not.toContain("five-of-a-kind");
+    expect(ids).not.toContain("full-straight");
+    expect(ids).not.toContain("castle");
+    expect(ids).not.toContain("tower");
+  });
 });
 
 describe("dynamic bonus", () => {
