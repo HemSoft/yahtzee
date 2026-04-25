@@ -22,13 +22,27 @@ function hasNOfAKind(dice: number[], n: number): boolean {
   return counts(dice).some((c) => c >= n);
 }
 
-/** Return the highest face with at least `n` matching dice, scored as face × n. */
-function highestNOfAKind(dice: number[], n: number): number {
-  const c = counts(dice);
+/** Find highest face with at least `n` matching dice. Returns 0 if none found. */
+function findFace(c: number[], n: number, exclude = 0): number {
   for (let face = 6; face >= 1; face--) {
-    if (c[face] >= n) return face * n;
+    if (face !== exclude && c[face] >= n) return face;
   }
   return 0;
+}
+
+/** Count how many distinct faces have at least `n` occurrences. */
+function countFacesWithAtLeast(c: number[], n: number): number {
+  let total = 0;
+  for (let face = 1; face <= 6; face++) {
+    if (c[face] >= n) total++;
+  }
+  return total;
+}
+
+/** Return the highest face with at least `n` matching dice, scored as face × n. */
+function highestNOfAKind(dice: number[], n: number): number {
+  const face = findFace(counts(dice), n);
+  return face * n;
 }
 
 // ─── Upper Section ────────────────────────────────────────
@@ -48,12 +62,10 @@ export function onePair(dice: number[]): number {
 /** Two different pairs — sum of all four dice. */
 export function twoPairs(dice: number[]): number {
   const c = counts(dice);
-  const pairs: number[] = [];
-  for (let face = 6; face >= 1; face--) {
-    if (c[face] >= 2) pairs.push(face);
-  }
-  if (pairs.length >= 2) return pairs[0] * 2 + pairs[1] * 2;
-  return 0;
+  const first = findFace(c, 2);
+  if (first === 0) return 0;
+  const second = findFace(c, 2, first);
+  return second > 0 ? first * 2 + second * 2 : 0;
 }
 
 export function threeOfAKind(dice: number[]): number {
@@ -66,17 +78,9 @@ export function fourOfAKind(dice: number[]): number {
 
 export function fullHouse(dice: number[]): number {
   const c = counts(dice);
-  // Need at least one face with 3+ and a different face with 2+
-  let hasTriple = false;
-  let tripleFace = -1;
-  for (let face = 6; face >= 1; face--) {
-    if (c[face] >= 3) { hasTriple = true; tripleFace = face; break; }
-  }
-  if (!hasTriple) return 0;
-  for (let face = 6; face >= 1; face--) {
-    if (face !== tripleFace && c[face] >= 2) return 25;
-  }
-  return 0;
+  const tripleFace = findFace(c, 3);
+  if (tripleFace === 0) return 0;
+  return findFace(c, 2, tripleFace) > 0 ? 25 : 0;
 }
 
 export function smallStraight(dice: number[]): number {
@@ -110,12 +114,7 @@ export function chance(dice: number[]): number {
 
 /** Three different pairs — sum of all dice. */
 export function threePairs(dice: number[]): number {
-  const c = counts(dice);
-  let pairCount = 0;
-  for (let face = 1; face <= 6; face++) {
-    if (c[face] >= 2) pairCount++;
-  }
-  return pairCount >= 3 ? sum(dice) : 0;
+  return countFacesWithAtLeast(counts(dice), 2) >= 3 ? sum(dice) : 0;
 }
 
 /** Five of a kind — sum of those five dice. */
@@ -131,24 +130,15 @@ export function fullStraight(dice: number[]): number {
 
 /** Castle/Villa: two sets of three same dice — sum of all dice. */
 export function castle(dice: number[]): number {
-  const c = counts(dice);
-  let tripleCount = 0;
-  for (let face = 1; face <= 6; face++) {
-    if (c[face] >= 3) tripleCount++;
-  }
-  return tripleCount >= 2 ? sum(dice) : 0;
+  return countFacesWithAtLeast(counts(dice), 3) >= 2 ? sum(dice) : 0;
 }
 
 /** Tower: four of one number + two of another — sum of all dice. */
 export function tower(dice: number[]): number {
   const c = counts(dice);
-  let hasFour = false;
-  let hasTwo = false;
-  for (let face = 1; face <= 6; face++) {
-    if (c[face] >= 4) hasFour = true;
-    else if (c[face] >= 2) hasTwo = true;
-  }
-  return hasFour && hasTwo ? sum(dice) : 0;
+  const quadFace = findFace(c, 4);
+  if (quadFace === 0) return 0;
+  return findFace(c, 2, quadFace) > 0 ? sum(dice) : 0;
 }
 
 /** Maxi Yahtzee: all dice the same — 100 points. */

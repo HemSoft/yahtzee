@@ -181,4 +181,49 @@ describe("High Scores", () => {
     });
     expect(getHighScoresForDiceCount(updated, 5)[0].gameId).toBe("my-game-123");
   });
+
+  it("handles tied scores correctly", () => {
+    let hs = createEmptyHighScores();
+    hs = updateHighScores(hs, {
+      id: "g1", diceCount: 5,
+      players: [makePlayer("Alice", { chance: 25 })],
+    });
+    hs = updateHighScores(hs, {
+      id: "g2", diceCount: 5,
+      players: [makePlayer("Bob", { chance: 25 })],
+    });
+    const scores = getHighScoresForDiceCount(hs, 5);
+    expect(scores).toHaveLength(2);
+    // Both have same score
+    expect(scores[0].score).toBe(25);
+    expect(scores[1].score).toBe(25);
+  });
+
+  it("does not qualify when score equals the 10th place (strict >)", () => {
+    let hs = createEmptyHighScores();
+    // Fill 10 slots with score 50
+    for (let i = 0; i < 10; i++) {
+      hs = updateHighScores(hs, {
+        id: `g${i}`, diceCount: 5,
+        players: [makePlayer(`P${i}`, { chance: 50 })],
+      });
+    }
+    // New player ties the lowest (50) — should NOT qualify (strict >)
+    hs = updateHighScores(hs, {
+      id: "g-tie", diceCount: 5,
+      players: [makePlayer("Loser", { chance: 50 })],
+    });
+    const scores = getHighScoresForDiceCount(hs, 5);
+    expect(scores).toHaveLength(10);
+    expect(scores.every((s) => s.playerName !== "Loser")).toBe(true);
+  });
+
+  it("does not mutate original high scores", () => {
+    const hs = createEmptyHighScores();
+    updateHighScores(hs, {
+      id: "g1", diceCount: 5,
+      players: [makePlayer("Alice", { ones: 5 })],
+    });
+    expect(hs.entries).toHaveLength(0);
+  });
 });

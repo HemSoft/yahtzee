@@ -106,6 +106,26 @@ export function createEmptyHighScores(): HighScores {
   return { entries: [] };
 }
 
+function scoreQualifies(score: number, forDiceCount: HighScoreEntry[]): boolean {
+  return (
+    forDiceCount.length < MAX_HIGH_SCORES_PER_DICE_COUNT ||
+    score > forDiceCount[forDiceCount.length - 1].score
+  );
+}
+
+function recalculateRanks(entries: HighScoreEntry[]): HighScoreEntry[] {
+  const diceCountsPresent = [...new Set(entries.map((e) => e.diceCount))];
+  const result: HighScoreEntry[] = [];
+  for (const dc of diceCountsPresent) {
+    const forDc = entries
+      .filter((e) => e.diceCount === dc)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_HIGH_SCORES_PER_DICE_COUNT);
+    result.push(...forDc.map((entry, i) => ({ ...entry, rankCurrent: i + 1 })));
+  }
+  return result;
+}
+
 export function updateHighScores(
   highScores: HighScores,
   game: { id: string; diceCount: number; players: PlayerState[] },
@@ -115,21 +135,12 @@ export function updateHighScores(
 
   for (const player of game.players) {
     const score = calculateTotal(player, game.diceCount).grandTotal;
-
-    // Get existing entries for this dice count, sorted by score desc
     const forDiceCount = newEntries
       .filter((e) => e.diceCount === game.diceCount)
       .sort((a, b) => b.score - a.score);
 
-    // Check if this score qualifies (top N or fewer than N entries exist)
-    const qualifies =
-      forDiceCount.length < MAX_HIGH_SCORES_PER_DICE_COUNT ||
-      score > forDiceCount[forDiceCount.length - 1].score;
-
-    if (qualifies) {
-      // Determine rank among current entries + this new one
+    if (scoreQualifies(score, forDiceCount)) {
       const rank = forDiceCount.filter((e) => e.score > score).length + 1;
-
       newEntries.push({
         diceCount: game.diceCount,
         dateRecorded: now,
@@ -138,25 +149,12 @@ export function updateHighScores(
         isAi: !!player.isAi,
         gameId: game.id,
         rankOriginal: rank,
-        rankCurrent: rank, // will be recalculated below
+        rankCurrent: rank,
       });
     }
   }
 
-  // Recalculate rankCurrent for all entries per dice count, and trim to top N
-  const diceCountsPresent = [...new Set(newEntries.map((e) => e.diceCount))];
-  const result: HighScoreEntry[] = [];
-
-  for (const dc of diceCountsPresent) {
-    const forDc = newEntries
-      .filter((e) => e.diceCount === dc)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, MAX_HIGH_SCORES_PER_DICE_COUNT);
-
-    result.push(...forDc.map((entry, i) => ({ ...entry, rankCurrent: i + 1 })));
-  }
-
-  return { entries: result };
+  return { entries: recalculateRanks(newEntries) };
 }
 
 export function getHighScoresForDiceCount(highScores: HighScores, diceCount: number): HighScoreEntry[] {

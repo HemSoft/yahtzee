@@ -55,6 +55,10 @@ describe("twoPairs", () => {
   test("works with full house", () => {
     expect(twoPairs([2, 2, 6, 6, 6])).toBe(16);
   });
+
+  test("picks highest two pairs from three pairs", () => {
+    expect(twoPairs([1, 1, 3, 3, 5, 5])).toBe(16);
+  });
 });
 
 describe("upperScore", () => {
@@ -114,6 +118,14 @@ describe("fullHouse", () => {
 
   test("scores 25 with 6 dice when triple + pair exist among extras", () => {
     expect(fullHouse([2, 5, 5, 5, 6, 6])).toBe(25);
+  });
+
+  test("scores 0 for yahtzee (no separate pair)", () => {
+    expect(fullHouse([5, 5, 5, 5, 5])).toBe(0);
+  });
+
+  test("scores 0 when no triple exists", () => {
+    expect(fullHouse([1, 1, 2, 2, 3])).toBe(0);
   });
 });
 
@@ -242,6 +254,10 @@ describe("tower", () => {
 
   test("returns 0 with three + three (castle, not tower)", () => {
     expect(tower([3, 3, 3, 5, 5, 5])).toBe(0);
+  });
+
+  test("scores with five of a kind + pair", () => {
+    expect(tower([4, 4, 4, 4, 4, 2, 2])).toBe(24);
   });
 });
 
