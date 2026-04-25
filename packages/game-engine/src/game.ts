@@ -1,6 +1,6 @@
 import type { CategoryId } from "./scoring";
 import { CATEGORIES, getCategories, getUpperBonusThreshold, getUpperBonusValue } from "./scoring";
-import { rollDice, reroll } from "./dice";
+import { rollDice } from "./dice";
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -172,15 +172,11 @@ export function pickAiCategory(
   return bestId;
 }
 
-/** Execute a full AI turn: roll 3 times (no holding strategy), pick best category. */
+/** Execute a full AI turn: roll dice once (no holding strategy), pick best category. */
 export function executeAiTurn(game: GameState): GameState {
   const player = game.players[game.currentPlayerIndex];
   const cats = getCategories(game.diceCount);
-  let dice = rollDice(game.diceCount);
-
-  // Simple AI: re-roll twice (no hold strategy — keeps it fair-ish)
-  dice = rollDice(game.diceCount);
-  dice = rollDice(game.diceCount);
+  const dice = rollDice(game.diceCount);
 
   const categoryId = pickAiCategory(dice, player, game.diceCount);
   const cat = cats.find((c) => c.id === categoryId)!;
