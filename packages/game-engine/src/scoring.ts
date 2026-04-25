@@ -22,6 +22,15 @@ function hasNOfAKind(dice: number[], n: number): boolean {
   return counts(dice).some((c) => c >= n);
 }
 
+/** Return the highest face with at least `n` matching dice, scored as face × n. */
+function highestNOfAKind(dice: number[], n: number): number {
+  const c = counts(dice);
+  for (let face = 6; face >= 1; face--) {
+    if (c[face] >= n) return face * n;
+  }
+  return 0;
+}
+
 // ─── Upper Section ────────────────────────────────────────
 
 /** Score for a specific face value (1–6). */
@@ -33,11 +42,7 @@ export function upperScore(dice: number[], face: number): number {
 
 /** Highest pair — sum of the two matching dice. */
 export function onePair(dice: number[]): number {
-  const c = counts(dice);
-  for (let face = 6; face >= 1; face--) {
-    if (c[face] >= 2) return face * 2;
-  }
-  return 0;
+  return highestNOfAKind(dice, 2);
 }
 
 /** Two different pairs — sum of all four dice. */
@@ -52,19 +57,11 @@ export function twoPairs(dice: number[]): number {
 }
 
 export function threeOfAKind(dice: number[]): number {
-  const c = counts(dice);
-  for (let face = 6; face >= 1; face--) {
-    if (c[face] >= 3) return face * 3;
-  }
-  return 0;
+  return highestNOfAKind(dice, 3);
 }
 
 export function fourOfAKind(dice: number[]): number {
-  const c = counts(dice);
-  for (let face = 6; face >= 1; face--) {
-    if (c[face] >= 4) return face * 4;
-  }
-  return 0;
+  return highestNOfAKind(dice, 4);
 }
 
 export function fullHouse(dice: number[]): number {
@@ -123,11 +120,7 @@ export function threePairs(dice: number[]): number {
 
 /** Five of a kind — sum of those five dice. */
 export function fiveOfAKind(dice: number[]): number {
-  const c = counts(dice);
-  for (let face = 1; face <= 6; face++) {
-    if (c[face] >= 5) return face * 5;
-  }
-  return 0;
+  return highestNOfAKind(dice, 5);
 }
 
 /** Full straight: 1-2-3-4-5-6 all present — 21 points. */
