@@ -3,6 +3,7 @@ import {
   createGame,
   calculateTotal,
   calculateMaxPossibleScore,
+  getUpperBonus,
   isGameComplete,
   getAvailableCategories,
   pickAiCategory,
@@ -251,5 +252,76 @@ describe("calculateMaxPossibleScore", () => {
     // grandTotal via calculateTotal = 63+35+228 = 326
     // calculateMaxPossibleScore: no remaining categories, so max = actual
     expect(calculateMaxPossibleScore(player, 5)).toBe(326);
+  });
+});
+
+describe("getUpperBonus", () => {
+  test("returns bonus when threshold met for 5 dice", () => {
+    expect(getUpperBonus(63, 5)).toBe(35);
+  });
+
+  test("returns 0 when below threshold for 5 dice", () => {
+    expect(getUpperBonus(62, 5)).toBe(0);
+  });
+
+  test("returns 100 when threshold met for 6 dice", () => {
+    expect(getUpperBonus(84, 6)).toBe(100);
+  });
+
+  test("returns 0 when below threshold for 6 dice", () => {
+    expect(getUpperBonus(83, 6)).toBe(0);
+  });
+
+  test("returns bonus when above threshold", () => {
+    expect(getUpperBonus(100, 5)).toBe(35);
+  });
+});
+
+describe("pickAiCategory (tie-breaking)", () => {
+  test("prefers non-chance when tied", () => {
+    // With dice [1,2,3,4,5], chance = 15, large-straight = 40
+    // But let's create a case where chance ties: all ones → ones=5, chance=5
+    // Actually chance will sum all = 5, ones will be 5 too. But one-pair would be 0.
+    // Simpler: give it dice where sixes = 0, twos = 0, etc. and chance ties another
+    const player = {
+      id: "ai",
+      name: "Bot",
+      scores: {
+        // Score everything except "ones" and "chance"
+        twos: 0, threes: 0, fours: 0, fives: 0, sixes: 0,
+        "one-pair": 0, "two-pairs": 0, "three-of-a-kind": 0,
+        "four-of-a-kind": 0, "full-house": 0, "small-straight": 0,
+        "large-straight": 0, "yahtzee": 0,
+      } as Record<string, number>,
+      isAi: true,
+    };
+    const dice = [1, 1, 1, 1, 1]; // ones=5, chance=5 — tied!
+    const choice = pickAiCategory(dice, player);
+    // Should pick "ones" (non-chance) over "chance" when tied
+    expect(choice).toBe("ones");
+  });
+
+  test("works with 6-dice categories", () => {
+    const player = { id: "ai", name: "Bot", scores: {} as Record<string, number>, isAi: true };
+    const dice = [4, 4, 4, 4, 4, 4]; // All fours — maxi-yahtzee = 100
+    const choice = pickAiCategory(dice, player, 6);
+    expect(choice).toBe("maxi-yahtzee");
+  });
+
+  test("returns chance as fallback when it is the only option", () => {
+    const player = {
+      id: "ai",
+      name: "Bot",
+      scores: {
+        ones: 0, twos: 0, threes: 0, fours: 0, fives: 0, sixes: 0,
+        "one-pair": 0, "two-pairs": 0, "three-of-a-kind": 0,
+        "four-of-a-kind": 0, "full-house": 0, "small-straight": 0,
+        "large-straight": 0, "yahtzee": 0,
+      } as Record<string, number>,
+      isAi: true,
+    };
+    const dice = [1, 2, 3, 4, 5];
+    const choice = pickAiCategory(dice, player);
+    expect(choice).toBe("chance");
   });
 });

@@ -30,6 +30,7 @@ export {
   createGame,
   calculateTotal,
   calculateMaxPossibleScore,
+  getUpperBonus,
   isGameComplete,
   getAvailableCategories,
   pickAiCategory,
