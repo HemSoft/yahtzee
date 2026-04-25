@@ -31,6 +31,15 @@ function highestNOfAKind(dice: number[], n: number): number {
   return 0;
 }
 
+/** Count how many distinct faces appear at least `minimum` times. */
+function countFacesWithAtLeast(c: number[], minimum: number): number {
+  let total = 0;
+  for (let face = 1; face <= 6; face++) {
+    if (c[face] >= minimum) total++;
+  }
+  return total;
+}
+
 // ─── Upper Section ────────────────────────────────────────
 
 /** Score for a specific face value (1–6). */
@@ -66,17 +75,13 @@ export function fourOfAKind(dice: number[]): number {
 
 export function fullHouse(dice: number[]): number {
   const c = counts(dice);
-  // Need at least one face with 3+ and a different face with 2+
-  let hasTriple = false;
-  let tripleFace = -1;
+  let tripleFace = 0;
+  let hasPair = false;
   for (let face = 6; face >= 1; face--) {
-    if (c[face] >= 3) { hasTriple = true; tripleFace = face; break; }
+    if (c[face] >= 3 && !tripleFace) tripleFace = face;
+    else if (c[face] >= 2) hasPair = true;
   }
-  if (!hasTriple) return 0;
-  for (let face = 6; face >= 1; face--) {
-    if (face !== tripleFace && c[face] >= 2) return 25;
-  }
-  return 0;
+  return tripleFace && hasPair ? 25 : 0;
 }
 
 export function smallStraight(dice: number[]): number {
@@ -110,12 +115,7 @@ export function chance(dice: number[]): number {
 
 /** Three different pairs — sum of all dice. */
 export function threePairs(dice: number[]): number {
-  const c = counts(dice);
-  let pairCount = 0;
-  for (let face = 1; face <= 6; face++) {
-    if (c[face] >= 2) pairCount++;
-  }
-  return pairCount >= 3 ? sum(dice) : 0;
+  return countFacesWithAtLeast(counts(dice), 2) >= 3 ? sum(dice) : 0;
 }
 
 /** Five of a kind — sum of those five dice. */
@@ -131,12 +131,7 @@ export function fullStraight(dice: number[]): number {
 
 /** Castle/Villa: two sets of three same dice — sum of all dice. */
 export function castle(dice: number[]): number {
-  const c = counts(dice);
-  let tripleCount = 0;
-  for (let face = 1; face <= 6; face++) {
-    if (c[face] >= 3) tripleCount++;
-  }
-  return tripleCount >= 2 ? sum(dice) : 0;
+  return countFacesWithAtLeast(counts(dice), 3) >= 2 ? sum(dice) : 0;
 }
 
 /** Tower: four of one number + two of another — sum of all dice. */

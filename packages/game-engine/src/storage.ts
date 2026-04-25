@@ -106,6 +106,28 @@ export function createEmptyHighScores(): HighScores {
   return { entries: [] };
 }
 
+/** Sort entries by score desc, assign rankCurrent, and trim to top N per dice count. */
+function rankAndTrimEntries(entries: HighScoreEntry[]): HighScoreEntry[] {
+  const byDiceCount = new Map<number, HighScoreEntry[]>();
+  for (const entry of entries) {
+    let group = byDiceCount.get(entry.diceCount);
+    if (!group) {
+      group = [];
+      byDiceCount.set(entry.diceCount, group);
+    }
+    group.push(entry);
+  }
+
+  const result: HighScoreEntry[] = [];
+  for (const [, group] of byDiceCount) {
+    group.sort((a, b) => b.score - a.score);
+    for (let i = 0; i < Math.min(group.length, MAX_HIGH_SCORES_PER_DICE_COUNT); i++) {
+      result.push({ ...group[i], rankCurrent: i + 1 });
+    }
+  }
+  return result;
+}
+
 export function updateHighScores(
   highScores: HighScores,
   game: { id: string; diceCount: number; players: PlayerState[] },
@@ -116,18 +138,15 @@ export function updateHighScores(
   for (const player of game.players) {
     const score = calculateTotal(player, game.diceCount).grandTotal;
 
-    // Get existing entries for this dice count, sorted by score desc
     const forDiceCount = newEntries
       .filter((e) => e.diceCount === game.diceCount)
       .sort((a, b) => b.score - a.score);
 
-    // Check if this score qualifies (top N or fewer than N entries exist)
     const qualifies =
       forDiceCount.length < MAX_HIGH_SCORES_PER_DICE_COUNT ||
       score > forDiceCount[forDiceCount.length - 1].score;
 
     if (qualifies) {
-      // Determine rank among current entries + this new one
       const rank = forDiceCount.filter((e) => e.score > score).length + 1;
 
       newEntries.push({
@@ -138,25 +157,12 @@ export function updateHighScores(
         isAi: !!player.isAi,
         gameId: game.id,
         rankOriginal: rank,
-        rankCurrent: rank, // will be recalculated below
+        rankCurrent: rank,
       });
     }
   }
 
-  // Recalculate rankCurrent for all entries per dice count, and trim to top N
-  const diceCountsPresent = [...new Set(newEntries.map((e) => e.diceCount))];
-  const result: HighScoreEntry[] = [];
-
-  for (const dc of diceCountsPresent) {
-    const forDc = newEntries
-      .filter((e) => e.diceCount === dc)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, MAX_HIGH_SCORES_PER_DICE_COUNT);
-
-    result.push(...forDc.map((entry, i) => ({ ...entry, rankCurrent: i + 1 })));
-  }
-
-  return { entries: result };
+  return { entries: rankAndTrimEntries(newEntries) };
 }
 
 export function getHighScoresForDiceCount(highScores: HighScores, diceCount: number): HighScoreEntry[] {

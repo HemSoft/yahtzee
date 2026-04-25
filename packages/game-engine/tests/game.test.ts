@@ -167,6 +167,16 @@ describe("pickAiCategory", () => {
     const choice = pickAiCategory(dice, player);
     expect(choice).not.toBe("yahtzee");
   });
+
+  test("throws when no categories are available", () => {
+    const cats = CATEGORIES;
+    const scores: Record<string, number> = {};
+    for (const cat of cats) scores[cat.id] = 10;
+    const player = { id: "ai", name: "Bot", scores, isAi: true };
+    expect(() => pickAiCategory([1, 2, 3, 4, 5], player)).toThrow(
+      "No available categories to score"
+    );
+  });
 });
 
 describe("executeAiTurn", () => {

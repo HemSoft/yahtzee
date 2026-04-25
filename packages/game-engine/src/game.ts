@@ -157,33 +157,35 @@ export function pickAiCategory(
   player: PlayerState,
   diceCount: number = 5
 ): CategoryId {
-  const available = getAvailableCategories(player, diceCount);
   const cats = getCategories(diceCount);
-  let bestId = available[0];
+  const available = cats.filter((c) => player.scores[c.id] === undefined);
+  if (available.length === 0) {
+    throw new Error("No available categories to score");
+  }
+  let bestCat = available[0];
   let bestScore = -1;
-  for (const id of available) {
-    const cat = cats.find((c) => c.id === id)!;
+  for (const cat of available) {
     const s = cat.score(dice);
-    if (s > bestScore || (s === bestScore && bestId === "chance")) {
+    if (s > bestScore || (s === bestScore && bestCat.id === "chance")) {
       bestScore = s;
-      bestId = id;
+      bestCat = cat;
     }
   }
-  return bestId;
+  return bestCat.id;
 }
 
 /** Execute a full AI turn: roll 3 times (no holding strategy), pick best category. */
 export function executeAiTurn(game: GameState): GameState {
   const player = game.players[game.currentPlayerIndex];
-  const cats = getCategories(game.diceCount);
-  let dice = rollDice(game.diceCount);
 
-  // Simple AI: re-roll twice (no hold strategy — keeps it fair-ish)
-  dice = rollDice(game.diceCount);
-  dice = rollDice(game.diceCount);
+  // Simple AI: roll maxRolls times (no hold strategy — keeps it fair-ish), use last roll
+  let dice: number[] = [];
+  for (let i = 0; i < game.maxRolls; i++) {
+    dice = rollDice(game.diceCount);
+  }
 
   const categoryId = pickAiCategory(dice, player, game.diceCount);
-  const cat = cats.find((c) => c.id === categoryId)!;
+  const cat = getCategories(game.diceCount).find((c) => c.id === categoryId)!;
 
   const updatedPlayer = {
     ...player,
