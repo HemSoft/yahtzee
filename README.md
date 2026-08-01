@@ -1,5 +1,9 @@
 # Yahtzee
 
+[![Set it Free Loop](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FHemSoft%2Fyahtzee%2Fmain%2Fsfl.json&query=%24.version&prefix=v&label=Set%20it%20Free%20Loop&color=FFD700&style=flat&logo=githubactions&logoColor=white)](https://github.com/HemSoft/set-it-free-loop)
+<!-- SFL_BADGE: auto-updated by deploy-workflow.ps1 -->
+# Yahtzee
+
 Classic Yahtzee dice game with support for **5, 6, or N dice**, **multiplayer**, and **leaderboards**. Available as an Electron desktop app, Expo mobile app, and web app — all sharing a single codebase.
 
 ## Tech Stack
