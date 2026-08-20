@@ -283,7 +283,7 @@ export function App() {
 
   return (
     <ThemeProvider value={theme}>
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem", background: theme.bg, color: theme.text, minHeight: "100vh" }}>
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 2rem 3rem", background: theme.bg, color: theme.text, minHeight: "100vh" }}>
       <ThemeToggle onToggle={toggleTheme} />
       <h1 style={{ textAlign: "center", marginBottom: "1.5rem", color: theme.text }}>🎲 Yahtzee</h1>
 

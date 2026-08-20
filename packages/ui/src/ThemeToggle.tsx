@@ -16,7 +16,7 @@ export function ThemeToggle({ onToggle }: ThemeToggleProps) {
       style={{
         position: "fixed",
         top: "1rem",
-        right: "1rem",
+        right: "2rem",
         fontSize: "1.4rem",
         padding: "0.4rem 0.6rem",
         borderRadius: "50%",
