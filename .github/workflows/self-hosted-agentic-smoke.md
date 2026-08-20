@@ -6,7 +6,9 @@ on:
 permissions:
   contents: read
 
-engine: copilot
+engine:
+  id: copilot
+  command: "${{ github.workspace }}/.github/scripts/copilot-rootless.sh"
 max-ai-credits: 30
 runs-on: [self-hosted, Linux, X64, mini, yahtzee]
 timeout-minutes: 10

@@ -1,6 +1,6 @@
 # GH AW on the mini self-hosted runner
 
-Status: Pilot source compiled, dispatch blocked
+Status: Pilot published, rootless path validated, PAT required
 
 Last verified: 2026-08-19 from `home`
 
@@ -62,11 +62,14 @@ Node version within the workflow.
   outputs and minimum token permissions.
 - [x] Target the main agent job with
   `runs-on: [self-hosted, Linux, X64, mini, yahtzee]`.
-- [ ] Configure Copilot CLI installation in rootless mode so the workflow does
-  not depend on runner sudo. Compiler `v0.86.2` emits
-  `install_copilot_cli.sh` without `--rootless` for a conventional self-hosted
-  runner. It emits `--rootless` only for `runner.topology: arc-dind`, which is
-  not this VM and must not be declared as a workaround.
+- [x] Configure Copilot CLI installation in rootless mode so the workflow does
+  not depend on runner sudo. The source uses `engine.command` to invoke
+  `.github/scripts/copilot-rootless.sh` through the absolute
+  `${{ github.workspace }}` path. The launcher pins Copilot CLI `1.0.79`, calls
+  the compiler-provided checksum-verifying installer with `--rootless`, and
+  then executes the installed binary. Strict compilation removes the default
+  sudo-dependent host install step. A test in the exact pinned agent image as
+  UID `999` installed and ran Copilot CLI `1.0.79` with exit code 0 and no sudo.
 - [x] Compile and validate the generated lock workflow with the pinned compiler.
   `gh aw validate self-hosted-agentic-smoke --strict --json` passes with no
   errors or warnings. An independent actionlint 1.7.12 container run inside the
@@ -118,9 +121,6 @@ Node version within the workflow.
 
 - Repository secret `COPILOT_GITHUB_TOKEN` has not been created. The existing
   GitHub CLI OAuth token is not a supported substitute for this Actions job.
-- Stable compiler `v0.86.2` cannot emit rootless Copilot CLI installation for
-  this conventional self-hosted VM. The generated step would call `sudo`, and
-  the `actions` account intentionally has no sudo access.
 - Persistent mini runners remain out of scope for untrusted PR code.
 
 ## Pilot compile evidence
@@ -133,12 +133,18 @@ Node version within the workflow.
 - Compiler validation:
   `gh aw validate self-hosted-agentic-smoke --strict --json`
 - Lock inspection confirms compiler `v0.86.2`, Copilot CLI `1.0.79`, the exact
-  self-hosted label set, Node 24 setup, a rootless AWF install, and a non-rootless
-  Copilot CLI install.
+  self-hosted label set, Node 24 setup, a rootless AWF install, and the custom
+  rootless Copilot launcher. The default sudo-dependent Copilot install step is
+  absent.
 - Independent actionlint used pinned image
   `rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667`
-  inside the guest, passed with exit code 0, and the temporary image was removed.
-- Guest isolation was rechecked afterward and returned `ISOLATION_OK` with
-  Tailscale absent and all tested tailnet, LAN, RFC1918 destinations blocked.
-- No agentic workflow was dispatched because the missing secret and runtime
-  sudo dependency are known preflight failures.
+  inside the guest and passed with exit code 0. The actionlint and agent images
+  pulled for validation were removed, and no test containers remain.
+- Guest isolation was rechecked after the rootless installer test and returned
+  `ISOLATION_OK` with Tailscale absent and all tested tailnet, LAN, RFC1918
+  destinations blocked.
+- Published pilot commit
+  `c226a90d039dd68833b1738e0dfe5e25b12d92f4` matches `origin/main` and GitHub
+  recognizes active workflow ID `338301135` as `Self-hosted agentic smoke`.
+- No agentic workflow was dispatched because `COPILOT_GITHUB_TOKEN` is still a
+  known preflight failure.
