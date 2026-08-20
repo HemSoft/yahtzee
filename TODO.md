@@ -1,8 +1,8 @@
 # GH AW on the mini self-hosted runner
 
-Status: Pilot published, rootless path validated, PAT required
+Status: Codex pilot compiled and verified, Actions credential required
 
-Last verified: 2026-08-19 from `home`
+Last verified: 2026-08-20 from `home`
 
 ## Goal
 
@@ -51,25 +51,21 @@ Node version within the workflow.
   `1ddfeabde198be39f277001ce4f3daea33366cf98aae7e0a9db3d615bc9df174`,
   which matches the published release asset. The generated lock records
   `compiler_version: "v0.86.2"`.
-- [ ] Confirm the Copilot authentication and billing path available to the
-  personal `HemSoft` account before adding a secret or permission. The local
-  Copilot CLI confirms that `HemSoft` has an active individual plan without
-  consuming AIC during the check. Because `HemSoft` is a user account rather
-  than an organization, this pilot requires a fine-grained personal access
-  token with account permission `Copilot Requests: Read`, stored as repository
-  secret `COPILOT_GITHUB_TOKEN`. That secret does not exist yet.
+- [x] Confirm the Codex authentication boundary before adding a secret. The
+  local Codex CLI `0.148.0` reports `Logged in using ChatGPT`, which covers
+  local subscription use. OpenAI's current authentication documentation says
+  programmatic CI/CD should use API-key authentication at standard API rates.
+  The pinned GH AW compiler's Codex engine validates either repository secret
+  `CODEX_API_KEY` or `OPENAI_API_KEY`; neither secret exists in this repository.
 - [x] Add a `workflow_dispatch`-only GH AW Markdown source with zero safe
   outputs and minimum token permissions.
 - [x] Target the main agent job with
   `runs-on: [self-hosted, Linux, X64, mini, yahtzee]`.
-- [x] Configure Copilot CLI installation in rootless mode so the workflow does
-  not depend on runner sudo. The source uses `engine.command` to invoke
-  `.github/scripts/copilot-rootless.sh` through the absolute
-  `${{ github.workspace }}` path. The launcher pins Copilot CLI `1.0.79`, calls
-  the compiler-provided checksum-verifying installer with `--rootless`, and
-  then executes the installed binary. Strict compilation removes the default
-  sudo-dependent host install step. A test in the exact pinned agent image as
-  UID `999` installed and ran Copilot CLI `1.0.79` with exit code 0 and no sudo.
+- [x] Use the built-in Codex engine without a sudo-dependent custom launcher.
+  The generated workflow uses SHA-pinned `actions/setup-node` v7 with Node 24,
+  then runs `npm install --ignore-scripts -g @openai/codex@0.147.0`. The former
+  `.github/scripts/copilot-rootless.sh` launcher and its repository-wide shell
+  line-ending rule were removed.
 - [x] Compile and validate the generated lock workflow with the pinned compiler.
   `gh aw validate self-hosted-agentic-smoke --strict --json` passes with no
   errors or warnings. An independent actionlint 1.7.12 container run inside the
@@ -101,8 +97,8 @@ Node version within the workflow.
   consumer copies.
 - [ ] Register a distinct repository runner service wherever the deployed SFL
   workflow executes. The current registration belongs only to Yahtzee.
-- [ ] Confirm SFL's GitHub App, safe-output permissions, and Copilot billing are
-  scoped to the selected HemSoft test repository.
+- [ ] Confirm SFL's GitHub App, safe-output permissions, and Codex API billing
+  are scoped to the selected HemSoft test repository.
 - [ ] Start with one trusted private PR and low review effort.
 - [ ] Verify SFL's ripgrep setup takes the preinstalled path without sudo.
 - [ ] Measure total duration, AIC, memory, disk, Docker cleanup, and review
@@ -119,8 +115,9 @@ Node version within the workflow.
 
 ## Current blockers
 
-- Repository secret `COPILOT_GITHUB_TOKEN` has not been created. The existing
-  GitHub CLI OAuth token is not a supported substitute for this Actions job.
+- Repository secret `CODEX_API_KEY` or `OPENAI_API_KEY` has not been created.
+  The local ChatGPT-backed Codex login is not a supported substitute for the
+  built-in GH AW Codex engine in GitHub Actions.
 - Persistent mini runners remain out of scope for untrusted PR code.
 
 ## Pilot compile evidence
@@ -132,10 +129,10 @@ Node version within the workflow.
   to commit `6aab9e5b5c91c615506061f09bedd81a23babe3c`.
 - Compiler validation:
   `gh aw validate self-hosted-agentic-smoke --strict --json`
-- Lock inspection confirms compiler `v0.86.2`, Copilot CLI `1.0.79`, the exact
-  self-hosted label set, Node 24 setup, a rootless AWF install, and the custom
-  rootless Copilot launcher. The default sudo-dependent Copilot install step is
-  absent.
+- Lock inspection confirms compiler `v0.86.2`, Codex CLI `0.147.0`, default
+  model `gpt-5.4`, the exact self-hosted label set, Node 24 setup, a rootless
+  AWF install, and API-key fallback from `CODEX_API_KEY` to `OPENAI_API_KEY`.
+  No Codex install or execution step invokes sudo.
 - Independent actionlint used pinned image
   `rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667`
   inside the guest and passed with exit code 0. The actionlint and agent images
@@ -146,10 +143,18 @@ Node version within the workflow.
 - Published pilot commit
   `c226a90d039dd68833b1738e0dfe5e25b12d92f4` matches `origin/main` and GitHub
   recognizes active workflow ID `338301135` as `Self-hosted agentic smoke`.
-- Published rootless launcher commit
-  `39059a361357d0f06b2d3b4788521695ce09113e` matches `origin/main`. GitHub
-  stores `.github/scripts/copilot-rootless.sh` with executable mode `100755`,
-  and the live lock invokes it through `${{ github.workspace }}`.
-- No agentic workflow was dispatched because `COPILOT_GITHUB_TOKEN` is still a
-  known preflight failure. A current repository secret metadata check returned
-  `CopilotSecretPresent: False`.
+- The previous Copilot launcher commit
+  `39059a361357d0f06b2d3b4788521695ce09113e` is historical evidence only. The
+  Codex conversion removes that launcher and recompiles the lock from the
+  Markdown source.
+- On 2026-08-20, strict compile with reviewed secret changes approved completed
+  with zero compile warnings. Strict JSON validation returned `valid: true`,
+  zero errors, and zero structured warnings. Independent actionlint 1.7.12
+  passed in the guest after ignoring only the custom runner labels and GH AW
+  `concurrency.queue` extension.
+- Runner ID 21 remained online and idle. The runner service was active, Docker
+  server `29.7.2` was available to `actions`, no validation containers remained,
+  and the post-validation isolation check returned `ISOLATION_OK`.
+- No agentic workflow was dispatched because neither supported Codex API secret
+  exists. A repository secret-name check showed only `OPENROUTER_API_KEY` and
+  `SFL_APP_PRIVATE_KEY`.
