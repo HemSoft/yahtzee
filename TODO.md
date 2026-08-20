@@ -147,6 +147,10 @@ Node version within the workflow.
   `39059a361357d0f06b2d3b4788521695ce09113e` is historical evidence only. The
   Codex conversion removes that launcher and recompiles the lock from the
   Markdown source.
+- Published Codex conversion commit
+  `e9e0c7961686c031377b95e89aef968db0a57880` matches local `main`,
+  `origin/main`, and GitHub's active workflow ID `338301135`; divergence is
+  `0 0`. GitHub reports no runs for the converted workflow.
 - On 2026-08-20, strict compile with reviewed secret changes approved completed
   with zero compile warnings. Strict JSON validation returned `valid: true`,
   zero errors, and zero structured warnings. Independent actionlint 1.7.12
