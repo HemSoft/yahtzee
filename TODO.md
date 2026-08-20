@@ -146,5 +146,10 @@ Node version within the workflow.
 - Published pilot commit
   `c226a90d039dd68833b1738e0dfe5e25b12d92f4` matches `origin/main` and GitHub
   recognizes active workflow ID `338301135` as `Self-hosted agentic smoke`.
+- Published rootless launcher commit
+  `39059a361357d0f06b2d3b4788521695ce09113e` matches `origin/main`. GitHub
+  stores `.github/scripts/copilot-rootless.sh` with executable mode `100755`,
+  and the live lock invokes it through `${{ github.workspace }}`.
 - No agentic workflow was dispatched because `COPILOT_GITHUB_TOKEN` is still a
-  known preflight failure.
+  known preflight failure. A current repository secret metadata check returned
+  `CopilotSecretPresent: False`.
