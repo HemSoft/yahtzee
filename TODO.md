@@ -6,9 +6,7 @@ Last verified: 2026-08-20 from `home`
 
 ## Goal
 
-Prove one harmless GitHub Agentic Workflow on the isolated Yahtzee runner,
-then use that evidence to design a safe SFL deployment for trusted HemSoft
-repositories.
+Prove one harmless GitHub Agentic Workflow on the isolated Yahtzee runner.
 
 ## Verified infrastructure
 
@@ -91,21 +89,6 @@ Node version within the workflow.
 - [ ] Prove the single runner's serialized execution does not cause workflow
   timeouts or unacceptable queueing.
 
-## Milestone 3: SFL feasibility pilot
-
-- [ ] Make SFL runner changes in the upstream workflow source before deploying
-  consumer copies.
-- [ ] Register a distinct repository runner service wherever the deployed SFL
-  workflow executes. The current registration belongs only to Yahtzee.
-- [ ] Confirm SFL's GitHub App, safe-output permissions, and Codex API billing
-  are scoped to the selected HemSoft test repository.
-- [ ] Start with one trusted private PR and low review effort.
-- [ ] Verify SFL's ripgrep setup takes the preinstalled path without sudo.
-- [ ] Measure total duration, AIC, memory, disk, Docker cleanup, and review
-  correctness before widening use.
-- [ ] Keep public or otherwise untrusted PR review on GitHub-hosted runners until
-  mini has a one-job ephemeral runner with a clean VM restore or rebuild.
-
 ## Monitoring
 
 - Runner status: <https://github.com/HemSoft/yahtzee/settings/actions/runners>
@@ -160,5 +143,4 @@ Node version within the workflow.
   server `29.7.2` was available to `actions`, no validation containers remained,
   and the post-validation isolation check returned `ISOLATION_OK`.
 - No agentic workflow was dispatched because neither supported Codex API secret
-  exists. A repository secret-name check showed only `OPENROUTER_API_KEY` and
-  `SFL_APP_PRIVATE_KEY`.
+  exists.
