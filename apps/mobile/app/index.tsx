@@ -28,7 +28,7 @@ import {
   type GameLog,
   type GameLogEntry,
 } from "@yahtzee/game-engine";
-import { lightTheme, darkTheme, type Theme } from "@yahtzee/ui";
+import { lightTheme, darkTheme } from "@yahtzee/ui";
 
 const DIE_FACES: Record<number, string> = {
   1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅",
@@ -103,7 +103,7 @@ export default function Index() {
       try {
         const themeRaw = await AsyncStorage.getItem("yahtzee-theme");
         if (themeRaw === "dark") setThemeMode("dark");
-      } catch {}
+      } catch { /* A missing local preference uses the default light theme. */ }
     })();
   }, []);
 
@@ -164,7 +164,7 @@ export default function Index() {
     gameStartedAt.current = new Date().toISOString();
     setGame(g);
     setScreen("playing");
-  }, [diceCount, playerName, aiOpponents]);
+  }, [diceCount, playerName, aiOpponents, recentNames]);
 
   const handleCancelGame = useCallback(() => {
     setScreen("setup");
@@ -205,7 +205,7 @@ export default function Index() {
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [game?.currentPlayerIndex, game?.currentRound, screen, advanceToNextPlayer, handleGameFinished]);
+  }, [game, screen, advanceToNextPlayer, handleGameFinished]);
 
   // Auto-roll dice when advancing to a human player's turn
   useEffect(() => {
@@ -223,7 +223,7 @@ export default function Index() {
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [game?.currentPlayerIndex, game?.currentRound, screen]);
+  }, [game, screen]);
 
   const handleRoll = useCallback(() => {
     if (!game || game.rollsLeft <= 0) return;
@@ -529,7 +529,7 @@ export default function Index() {
           {/* Grand total row */}
           <View style={[styles.sheetRow, { backgroundColor: theme.grandTotalBg }]}>
             <View style={styles.catCol}><Text style={{ fontWeight: "bold", color: theme.text }}>Grand Total</Text></View>
-            {game.players.map((p, i) => (
+            {game.players.map((p) => (
               <View key={p.id} style={styles.playerCol}>
                 <Text style={{ fontWeight: "bold", textAlign: "center", color: theme.text }}>{calculateTotal(p, game.diceCount).grandTotal}</Text>
               </View>
