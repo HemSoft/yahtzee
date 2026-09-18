@@ -13,7 +13,7 @@ export async function recordScore(ctx: MutationCtx, args: ScoreSubmission) {
     throw new Error("Score must be a finite nonnegative integer");
   }
   const receipt = await ctx.db.query("highScoreReceipts")
-    .withIndex("by_gameId_playerName_isAi_diceCount", (q) => q
+    .withIndex("by_gameId_and_playerName_and_isAi_and_diceCount", (q) => q
       .eq("gameId", args.gameId).eq("playerName", args.playerName)
       .eq("isAi", args.isAi).eq("diceCount", args.diceCount))
     .first();

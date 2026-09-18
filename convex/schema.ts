@@ -28,7 +28,7 @@ export default defineSchema({
     playerName: v.string(),
     isAi: v.boolean(),
     diceCount: v.number(),
-  }).index("by_gameId_playerName_isAi_diceCount", ["gameId", "playerName", "isAi", "diceCount"]),
+  }).index("by_gameId_and_playerName_and_isAi_and_diceCount", ["gameId", "playerName", "isAi", "diceCount"]),
 
   highScores: defineTable({
     diceCount: v.number(),
