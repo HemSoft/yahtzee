@@ -2,7 +2,7 @@
   "name": "yahtzee",
   "version": "0.1.0",
   "private": true,
-  "description": "Classic Yahtzee dice game with 5/6/N dice, multiplayer, and leaderboards — Electron desktop + Expo mobile + web",
+  "description": "Classic Yahtzee dice game with 5/6/N dice, multiplayer, and leaderboards \u00e2\u20ac\u201d Electron desktop + Expo mobile + web",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -17,7 +17,7 @@
     "test": "bun run --filter @yahtzee/game-engine test",
     "test:watch": "bun run --filter @yahtzee/game-engine test --watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "tsc --build"
+    "typecheck": "bun run --filter \"*\" typecheck && tsc -p convex/tsconfig.json --noEmit"
   },
   "author": "Franz Hemmer <franz_hemmer@hotmail.com>",
   "license": "MIT",
@@ -27,5 +27,8 @@
   },
   "dependencies": {
     "convex": "^1.17.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
   }
 }

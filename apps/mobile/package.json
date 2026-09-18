@@ -20,10 +20,13 @@
     "react": "^19.0.0",
     "react-native": "~0.76.0",
     "react-native-safe-area-context": "~5.0.0",
-    "react-native-screens": "~4.4.0"
+    "react-native-screens": "~4.4.0",
+    "@yahtzee/ui": "workspace:*",
+    "convex": "^1.17.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
   }
 }
