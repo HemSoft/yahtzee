@@ -72,11 +72,12 @@ Mobile device/simulator setup and native packaging require the corresponding Exp
 bun run test          # Engine unit tests
 bun run test:watch    # Watch mode
 bun run typecheck     # All five workspaces and Convex
+bun run lint          # TypeScript, React Hooks and ESM configuration
 bun run build:web
 bun run build:desktop
 ```
 
-`bun run lint` is declared but its dependency/configuration repair is tracked in [issue #9](https://github.com/HemSoft/yahtzee/issues/9). No production deployment is needed for these checks. A frontend build without a URL can compile, but it will not start successfully until configured.
+See [the lint policy](docs/lint-policy.md) for rules and generated-code exclusions. No production deployment is needed for these checks. A frontend build without a URL can compile, but it will not start successfully until configured.
 
 ## Planned work
 

@@ -45,7 +45,7 @@ function createWindow() {
         { type: "separator" },
         { role: "togglefullscreen" },
         ...(process.env.NODE_ENV === "development"
-          ? [{ role: "toggleDevTools" } as any]
+          ? [{ role: "toggleDevTools" as const }]
           : []),
       ],
     },

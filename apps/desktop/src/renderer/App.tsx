@@ -17,7 +17,7 @@ import {
   type GameLog,
   type GameLogEntry,
 } from "@yahtzee/game-engine";
-import { DiceRow, Scorecard, GameSettings, ThemeToggle, ThemeProvider, lightTheme, darkTheme, type Theme } from "@yahtzee/ui";
+import { DiceRow, Scorecard, GameSettings, ThemeToggle, ThemeProvider, lightTheme, darkTheme } from "@yahtzee/ui";
 
 function loadThemeMode(): "light" | "dark" {
   try {
@@ -191,7 +191,7 @@ export function App() {
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [game?.currentPlayerIndex, game?.currentRound, screen, advanceToNextPlayer, handleGameFinished]);
+  }, [game, screen, advanceToNextPlayer, handleGameFinished]);
 
   // Auto-roll dice when advancing to a human player's turn
   useEffect(() => {
@@ -209,7 +209,7 @@ export function App() {
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [game?.currentPlayerIndex, game?.currentRound, screen]);
+  }, [game, screen]);
 
   const handleRoll = useCallback(() => {
     if (!game || game.rollsLeft <= 0) return;

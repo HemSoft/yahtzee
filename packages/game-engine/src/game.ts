@@ -1,5 +1,5 @@
 import type { CategoryId } from "./scoring";
-import { CATEGORIES, getCategories, getUpperBonusThreshold, getUpperBonusValue } from "./scoring";
+import { getCategories, getUpperBonusThreshold, getUpperBonusValue } from "./scoring";
 import { rollDice } from "./dice";
 
 // ─── Types ────────────────────────────────────────────────
