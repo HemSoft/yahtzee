@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
+import { randomUUID } from "expo-crypto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -158,7 +159,7 @@ export default function Index() {
     for (let i = 0; i < aiOpponents; i++) {
       players.push({ id: `ai-${i}`, name: AI_NAMES[i], isAi: true });
     }
-    const g = createGame({ id: `${Date.now()}`, diceCount, players });
+    const g = createGame({ id: randomUUID(), diceCount, players });
     g.status = "playing";
     gameStartedAt.current = new Date().toISOString();
     setGame(g);
