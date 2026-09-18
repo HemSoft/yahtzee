@@ -17,7 +17,7 @@
     "test": "bun run --filter @yahtzee/game-engine test",
     "test:watch": "bun run --filter @yahtzee/game-engine test --watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "tsc --build"
+    "typecheck": "bun run --filter \"*\" typecheck && tsc -p convex/tsconfig.json --noEmit"
   },
   "author": "Franz Hemmer <franz_hemmer@hotmail.com>",
   "license": "MIT",
@@ -27,5 +27,8 @@
   },
   "dependencies": {
     "convex": "^1.17.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
   }
 }

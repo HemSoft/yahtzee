@@ -63,6 +63,7 @@ bun run dev:mobile
 ```bash
 bun test              # Run game engine tests
 bun run test:watch    # Watch mode
+bun run typecheck     # Check every workspace and the Convex backend
 ```
 
 ## Game Features
