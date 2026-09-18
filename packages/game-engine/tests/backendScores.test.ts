@@ -32,6 +32,15 @@ const result = (gameId = "game", score = 100): ScoreSubmission => ({
 });
 
 describe("backend high-score receipts", () => {
+  test("invalid numeric scores cannot evict results or consume a receipt", async () => {
+    const { ctx, tables } = fixture();
+    for (let i = 0; i < 10; i++) await recordScore(ctx, result(String(i)));
+    const before = JSON.stringify(tables);
+    for (const score of [NaN, Infinity, -Infinity, -1, 1.5]) {
+      await expect(recordScore(ctx, result("invalid", score))).rejects.toThrow("finite nonnegative integer");
+    }
+    expect(JSON.stringify(tables)).toBe(before);
+  });
   test("concurrent public mutations persist a single result", async () => {
     const t = convexTest(schema, {
       "../../../convex/_generated/server.ts": () => import("../../../convex/_generated/server"),

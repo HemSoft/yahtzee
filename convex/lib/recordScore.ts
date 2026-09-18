@@ -9,6 +9,9 @@ const LIMIT = 10;
  * OCC retries concurrent writers, so they observe the committed receipt.
  */
 export async function recordScore(ctx: MutationCtx, args: ScoreSubmission) {
+  if (!Number.isSafeInteger(args.score) || args.score < 0) {
+    throw new Error("Score must be a finite nonnegative integer");
+  }
   const receipt = await ctx.db.query("highScoreReceipts")
     .withIndex("by_gameId_playerName_isAi_diceCount", (q) => q
       .eq("gameId", args.gameId).eq("playerName", args.playerName)
