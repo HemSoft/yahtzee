@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { convexTest } from "convex-test";
+import schema from "../../../convex/schema";
+import { api } from "../../../convex/_generated/api";
 import { recordScore, type ScoreSubmission } from "../../../convex/lib/recordScore";
 import type { MutationCtx } from "../../../convex/_generated/server";
 
@@ -29,6 +32,16 @@ const result = (gameId = "game", score = 100): ScoreSubmission => ({
 });
 
 describe("backend high-score receipts", () => {
+  test("concurrent public mutations persist a single result", async () => {
+    const t = convexTest(schema, {
+      "../../../convex/_generated/server.ts": () => import("../../../convex/_generated/server"),
+      "../../../convex/highScores.ts": () => import("../../../convex/highScores"),
+    });
+    await Promise.all(Array.from({ length: 8 }, () => t.mutation(api.highScores.submit, result())));
+    const rows = await t.query(api.highScores.top, { diceCount: 5 });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].rankCurrent).toBe(1);
+  });
   test("replaying a game/player result inserts once", async () => {
     const { ctx, tables } = fixture();
     await recordScore(ctx, result()); await recordScore(ctx, result());
