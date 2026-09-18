@@ -1,0 +1,4600 @@
+[
+  {
+    "package": "@babel/core",
+    "id": 1123528,
+    "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8",
+    "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+    "severity": "low",
+    "vulnerable_versions": "<=7.29.0",
+    "cwe": [
+      "CWE-22",
+      "CWE-200"
+    ],
+    "cvss": {
+      "score": 3.2,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:C/C:L/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "@babel/core@7.29.0",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "@vitejs/plugin-react@4.7.0",
+          "@babel/core@7.29.0"
+        ]
+      }
+    ],
+    "current": [
+      "@babel/core@7.29.7"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@babel/plugin-transform-modules-systemjs",
+    "id": 1120258,
+    "url": "https://github.com/advisories/GHSA-fv7c-fp4j-7gwp",
+    "title": "@babel/plugin-transform-modules-systemjs generates arbitrary code when compiling malicious input",
+    "severity": "high",
+    "vulnerable_versions": ">=7.12.0 <=7.29.3",
+    "cwe": [
+      "CWE-94",
+      "CWE-843"
+    ],
+    "cvss": {
+      "score": 8.2,
+      "vectorString": "CVSS:3.1/AV:L/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H"
+    },
+    "locked": [
+      {
+        "version": "@babel/plugin-transform-modules-systemjs@7.29.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/codegen@0.76.9",
+          "@babel/preset-env@7.29.2",
+          "@babel/plugin-transform-modules-systemjs@7.29.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Present through mobile Babel tooling. SystemJS output is not configured by this application; refreshed the dependency anyway."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1158518,
+    "url": "https://github.com/advisories/GHSA-6gmq-8vp8-gcm6",
+    "title": "xmldom: XML fragment injection via invalid EntityReference.nodeName during requireWellFormed serialization",
+    "severity": "moderate",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-116"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1117097,
+    "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp",
+    "title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion",
+    "severity": "high",
+    "vulnerable_versions": "<0.8.12",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1117894,
+    "url": "https://github.com/advisories/GHSA-2v35-w6hq-6mfw",
+    "title": "xmldom: Uncontrolled recursion in XML serialization leads to DoS",
+    "severity": "high",
+    "vulnerable_versions": "<0.8.13",
+    "cwe": [
+      "CWE-674"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1117897,
+    "url": "https://github.com/advisories/GHSA-f6ww-3ggp-fr8h",
+    "title": "xmldom has XML injection through unvalidated DocumentType serialization",
+    "severity": "high",
+    "vulnerable_versions": "<0.8.13",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1117900,
+    "url": "https://github.com/advisories/GHSA-x6wf-f3px-wcqx",
+    "title": "xmldom has XML node injection through unvalidated processing instruction serialization",
+    "severity": "high",
+    "vulnerable_versions": "<0.8.13",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1117903,
+    "url": "https://github.com/advisories/GHSA-j759-j44w-7fr8",
+    "title": "xmldom has XML node injection through unvalidated comment serialization",
+    "severity": "high",
+    "vulnerable_versions": "<0.8.13",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193689,
+    "url": "https://github.com/advisories/GHSA-w2rr-34g9-rvrj",
+    "title": "xmldom: Element name injection via createElement() bypasses requireWellFormed",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.13",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193692,
+    "url": "https://github.com/advisories/GHSA-4w3w-2rp5-g8jm",
+    "title": "xmldom: Attribute name injection via setAttribute() bypasses requireWellFormed",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.13",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193696,
+    "url": "https://github.com/advisories/GHSA-c7q8-3ch8-vqpv",
+    "title": "xmldom: Processing Instruction Target Injection Bypasses requireWellFormed",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193700,
+    "url": "https://github.com/advisories/GHSA-27p8-2357-5qqv",
+    "title": "xmldom: DocType `name` Injection Bypasses requireWellFormed",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-91"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193705,
+    "url": "https://github.com/advisories/GHSA-6h8r-xr42-gp59",
+    "title": "xmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content",
+    "severity": "moderate",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-1286"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193708,
+    "url": "https://github.com/advisories/GHSA-8344-3jmq-59r6",
+    "title": "xmldom: Quadratic-time attribute deduplication",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193709,
+    "url": "https://github.com/advisories/GHSA-x4fp-j954-r2f4",
+    "title": "xmldom: End-tag Whitespace-Trim Regex ReDoS — quadratic backtracking in the 0.8.x end-tag parser",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-400",
+      "CWE-1333"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193712,
+    "url": "https://github.com/advisories/GHSA-965w-775f-mr7g",
+    "title": "xmldom: Quadratic-memory consumption",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "@xmldom/xmldom",
+    "id": 1193715,
+    "url": "https://github.com/advisories/GHSA-93r5-fhx6-vmg9",
+    "title": "xmldom: Quadratic-time parsing via the malformed-input recovery path — `parseElementStartPart` re-scan and `normalize()` adjacent-text merge",
+    "severity": "high",
+    "vulnerable_versions": ">=0.7.0 <=0.8.14",
+    "cwe": [
+      "CWE-400",
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "@xmldom/xmldom@0.7.13",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/plist@0.2.2",
+          "@xmldom/xmldom@0.7.13"
+        ]
+      },
+      {
+        "version": "@xmldom/xmldom@0.8.11",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "simple-plist@1.3.1",
+          "plist@3.1.0",
+          "@xmldom/xmldom@0.8.11"
+        ]
+      }
+    ],
+    "current": [
+      "@xmldom/xmldom@0.8.15",
+      "@xmldom/xmldom@0.9.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "baseline-browser-mapping",
+    "id": 1193686,
+    "url": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv",
+    "title": "baseline-browser-mapping process termination on invalid input causes denial of service",
+    "severity": "moderate",
+    "vulnerable_versions": ">=2.0.0 <2.11.0",
+    "cwe": [
+      "CWE-705"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "baseline-browser-mapping@2.10.10",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "@vitejs/plugin-react@4.7.0",
+          "@babel/core@7.29.0",
+          "@babel/helper-compilation-targets@7.28.6",
+          "browserslist@4.28.1",
+          "baseline-browser-mapping@2.10.10"
+        ]
+      }
+    ],
+    "current": [
+      "baseline-browser-mapping@2.11.25"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1130588,
+    "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+    "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+    "severity": "high",
+    "vulnerable_versions": "<1.1.17",
+    "cwe": [
+      "CWE-400",
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@1.1.12",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "minimatch@3.1.5",
+          "brace-expansion@1.1.12"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1130589,
+    "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+    "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+    "severity": "high",
+    "vulnerable_versions": ">=2.0.0 <2.1.3",
+    "cwe": [
+      "CWE-400",
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "cacache@18.0.4",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "sucrase@3.35.0",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1130736,
+    "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+    "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+    "severity": "high",
+    "vulnerable_versions": ">=2.0.0 <2.1.4",
+    "cwe": [
+      "CWE-400",
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "cacache@18.0.4",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "sucrase@3.35.0",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1130737,
+    "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+    "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+    "severity": "high",
+    "vulnerable_versions": "<1.1.18",
+    "cwe": [
+      "CWE-400",
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@1.1.12",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "minimatch@3.1.5",
+          "brace-expansion@1.1.12"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1115540,
+    "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v",
+    "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+    "severity": "moderate",
+    "vulnerable_versions": "<1.1.13",
+    "cwe": [
+      "CWE-400"
+    ],
+    "cvss": {
+      "score": 6.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@1.1.12",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "minimatch@3.1.5",
+          "brace-expansion@1.1.12"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1115541,
+    "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v",
+    "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+    "severity": "moderate",
+    "vulnerable_versions": ">=2.0.0 <2.0.3",
+    "cwe": [
+      "CWE-400"
+    ],
+    "cvss": {
+      "score": 6.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "cacache@18.0.4",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "sucrase@3.35.0",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1123896,
+    "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+    "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+    "severity": "high",
+    "vulnerable_versions": ">=2.0.0 <2.1.2",
+    "cwe": [
+      "CWE-400",
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "cacache@18.0.4",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      },
+      {
+        "version": "brace-expansion@2.0.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config@10.0.11",
+          "sucrase@3.35.0",
+          "glob@10.5.0",
+          "minimatch@9.0.9",
+          "brace-expansion@2.0.2"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "brace-expansion",
+    "id": 1123897,
+    "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+    "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+    "severity": "high",
+    "vulnerable_versions": "<1.1.16",
+    "cwe": [
+      "CWE-400",
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "brace-expansion@1.1.12",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "minimatch@3.1.5",
+          "brace-expansion@1.1.12"
+        ]
+      }
+    ],
+    "current": [
+      "brace-expansion@1.1.21",
+      "brace-expansion@5.0.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "browserslist",
+    "id": 1153171,
+    "url": "https://github.com/advisories/GHSA-c83g-rgw3-j3cx",
+    "title": "Browserslist: Unbounded memory growth (no cache eviction) via distinct query results, leading to eventual OOM",
+    "severity": "high",
+    "vulnerable_versions": "<=4.28.6",
+    "cwe": [
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "browserslist@4.28.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "@vitejs/plugin-react@4.7.0",
+          "@babel/core@7.29.0",
+          "@babel/helper-compilation-targets@7.28.6",
+          "browserslist@4.28.1"
+        ]
+      }
+    ],
+    "current": [
+      "browserslist@4.29.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "browserslist",
+    "id": 1153172,
+    "url": "https://github.com/advisories/GHSA-73wf-gq98-2v4g",
+    "title": "Browserslist: Uncaught crash / prototype write via untrusted browserslist-stats.json custom stats (normalizeStats)",
+    "severity": "high",
+    "vulnerable_versions": "<=4.28.6",
+    "cwe": [
+      "CWE-248",
+      "CWE-1321"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "browserslist@4.28.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "@vitejs/plugin-react@4.7.0",
+          "@babel/core@7.29.0",
+          "@babel/helper-compilation-targets@7.28.6",
+          "browserslist@4.28.1"
+        ]
+      }
+    ],
+    "current": [
+      "browserslist@4.29.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "decode-uri-component",
+    "id": 1147955,
+    "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+    "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+    "severity": "moderate",
+    "vulnerable_versions": "<=0.4.2",
+    "cwe": [
+      "CWE-400",
+      "CWE-405",
+      "CWE-407",
+      "CWE-1176"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "decode-uri-component@0.2.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "@react-navigation/native@7.1.34",
+          "@react-navigation/core@7.16.2",
+          "query-string@7.1.3",
+          "decode-uri-component@0.2.2"
+        ]
+      }
+    ],
+    "current": [
+      "decode-uri-component@0.5.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo navigation parses URL query strings. Malformed external navigation input is plausible; fixed decoder and actual-consumer regression are included."
+  },
+  {
+    "package": "electron",
+    "id": 1107272,
+    "url": "https://github.com/advisories/GHSA-vmqv-hx8q-j7mg",
+    "title": "Electron has ASAR Integrity Bypass via resource modification",
+    "severity": "moderate",
+    "vulnerable_versions": "<35.7.5",
+    "cwe": [
+      "CWE-94",
+      "CWE-829"
+    ],
+    "cvss": {
+      "score": 6.1,
+      "vectorString": "CVSS:3.1/AV:L/AC:L/PR:L/UI:R/S:U/C:L/I:H/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116041,
+    "url": "https://github.com/advisories/GHSA-5rqw-r77c-jp79",
+    "title": "Electron: AppleScript injection in app.moveToApplicationsFolder on macOS",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-78"
+    ],
+    "cvss": {
+      "score": 6.5,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116045,
+    "url": "https://github.com/advisories/GHSA-xj5x-m3f3-5x3h",
+    "title": "Electron: Service worker can spoof executeJavaScript IPC replies",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-290",
+      "CWE-345"
+    ],
+    "cvss": {
+      "score": 5.9,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:L/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116049,
+    "url": "https://github.com/advisories/GHSA-r5p7-gp4j-qhrx",
+    "title": "Electron: Incorrect origin passed to permission request handler for iframe requests",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-346"
+    ],
+    "cvss": {
+      "score": 5.4,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116053,
+    "url": "https://github.com/advisories/GHSA-3c8v-cfp5-9885",
+    "title": "Electron: Out-of-bounds read in second-instance IPC on macOS and Linux",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-125"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116057,
+    "url": "https://github.com/advisories/GHSA-xwr5-m59h-vwqr",
+    "title": "Electron: nodeIntegrationInWorker not correctly scoped in shared renderer processes",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-653"
+    ],
+    "cvss": {
+      "score": 6.8,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116060,
+    "url": "https://github.com/advisories/GHSA-532v-xpq5-8h95",
+    "title": "Electron: Use-after-free in offscreen child window paint callback",
+    "severity": "high",
+    "vulnerable_versions": "<39.8.1",
+    "cwe": [
+      "CWE-416"
+    ],
+    "cvss": {
+      "score": 8.1,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116064,
+    "url": "https://github.com/advisories/GHSA-mwmh-mq4g-g6gr",
+    "title": "Electron: Registry key path injection in app.setAsDefaultProtocolClient on Windows",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-20",
+      "CWE-74"
+    ],
+    "cvss": {
+      "score": 4.7,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116068,
+    "url": "https://github.com/advisories/GHSA-9w97-2464-8783",
+    "title": "Electron: Use-after-free in download save dialog callback",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-416"
+    ],
+    "cvss": {
+      "score": 5.8,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116072,
+    "url": "https://github.com/advisories/GHSA-8337-3p73-46f4",
+    "title": "Electron: Use-after-free in WebContents fullscreen, pointer-lock, and keyboard-lock permission callbacks",
+    "severity": "high",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-416"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116076,
+    "url": "https://github.com/advisories/GHSA-jjp3-mq3x-295m",
+    "title": "Electron: Use-after-free in PowerMonitor on Windows and macOS",
+    "severity": "high",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-416"
+    ],
+    "cvss": {
+      "score": 7,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116084,
+    "url": "https://github.com/advisories/GHSA-jfqx-fxh3-c62j",
+    "title": "Electron: Unquoted executable path in app.setLoginItemSettings on Windows",
+    "severity": "low",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-428"
+    ],
+    "cvss": {
+      "score": 3.9,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:H/UI:N/S:U/C:L/I:L/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116088,
+    "url": "https://github.com/advisories/GHSA-4p4r-m79c-wq3v",
+    "title": "Electron: HTTP Response Header Injection in custom protocol handlers and webRequest",
+    "severity": "moderate",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-74",
+      "CWE-113"
+    ],
+    "cvss": {
+      "score": 5.9,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116092,
+    "url": "https://github.com/advisories/GHSA-9899-m83m-qhpj",
+    "title": "Electron: USB device selection not validated against filtered device list",
+    "severity": "low",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-862"
+    ],
+    "cvss": {
+      "score": 3.3,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116111,
+    "url": "https://github.com/advisories/GHSA-8x5q-pvf5-64mp",
+    "title": "Electron: Use-after-free in offscreen shared texture release() callback",
+    "severity": "low",
+    "vulnerable_versions": ">=33.0.0-alpha.1 <39.8.5",
+    "cwe": [
+      "CWE-416"
+    ],
+    "cvss": {
+      "score": 2.3,
+      "vectorString": "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116259,
+    "url": "https://github.com/advisories/GHSA-f37v-82c4-4x64",
+    "title": "Electron: Crash in clipboard.readImage() on malformed clipboard image data",
+    "severity": "low",
+    "vulnerable_versions": "<39.8.5",
+    "cwe": [
+      "CWE-476"
+    ],
+    "cvss": {
+      "score": 2.8,
+      "vectorString": "CVSS:3.1/AV:L/AC:L/PR:L/UI:R/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1116320,
+    "url": "https://github.com/advisories/GHSA-f3pv-wv63-48x8",
+    "title": "Electron: Named window.open targets not scoped to the opener's browsing context",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.5",
+    "cwe": [
+      "CWE-668"
+    ],
+    "cvss": {
+      "score": 6,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:L/I:L/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1117459,
+    "url": "https://github.com/advisories/GHSA-9wfr-w7mm-pc7f",
+    "title": "Electron: Renderer command-line switch injection via undocumented commandLineSwitches webPreference",
+    "severity": "high",
+    "vulnerable_versions": "<38.8.6",
+    "cwe": [
+      "CWE-88",
+      "CWE-912"
+    ],
+    "cvss": {
+      "score": 7.7,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:H"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136552,
+    "url": "https://github.com/advisories/GHSA-v3j7-r9gq-3gjw",
+    "title": "Electron: Custom protocol with supportFetchAPI but not corsEnabled allows cross-origin reads",
+    "severity": "high",
+    "vulnerable_versions": "<39.8.10",
+    "cwe": [
+      "CWE-942"
+    ],
+    "cvss": {
+      "score": 7.4,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136551,
+    "url": "https://github.com/advisories/GHSA-jm7p-cc5g-qwxx",
+    "title": "Electron: Parent process code-sign check is spoofable",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.8",
+    "cwe": [
+      "CWE-367"
+    ],
+    "cvss": {
+      "score": 6.3,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136559,
+    "url": "https://github.com/advisories/GHSA-m55f-7gqj-fr98",
+    "title": "Electron: Extension tab APIs operate across session boundaries",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.8",
+    "cwe": [
+      "CWE-284"
+    ],
+    "cvss": {
+      "score": 6.6,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136560,
+    "url": "https://github.com/advisories/GHSA-5c9j-mhmv-5xgx",
+    "title": "Electron: shell.openPath path validation bypass via embedded null byte",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.6",
+    "cwe": [
+      "CWE-20",
+      "CWE-158"
+    ],
+    "cvss": {
+      "score": 6,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:R/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136567,
+    "url": "https://github.com/advisories/GHSA-h7rp-cf8h-j98x",
+    "title": "Electron: Context isolation bypass via Function.prototype.bind hijack",
+    "severity": "high",
+    "vulnerable_versions": "<39.8.9",
+    "cwe": [
+      "CWE-693"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136571,
+    "url": "https://github.com/advisories/GHSA-x8rc-wpg4-grpf",
+    "title": "Electron: Cross-origin iframe can position native autofill popup",
+    "severity": "low",
+    "vulnerable_versions": "<39.8.8",
+    "cwe": [
+      "CWE-1021"
+    ],
+    "cvss": {
+      "score": 3.1,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136575,
+    "url": "https://github.com/advisories/GHSA-9pf5-hg6p-4pwp",
+    "title": "Electron: Permission Check Handler Receives Main Frame Origin Instead of Requesting Iframe Origin",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.7",
+    "cwe": [
+      "CWE-346"
+    ],
+    "cvss": {
+      "score": 5.9,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136579,
+    "url": "https://github.com/advisories/GHSA-pfmc-3mgc-p6fp",
+    "title": "Electron: Off-screen rendering trusts GPU-supplied geometry over shared-memory size",
+    "severity": "low",
+    "vulnerable_versions": "<39.8.10",
+    "cwe": [
+      "CWE-125"
+    ],
+    "cvss": {
+      "score": 3.9,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:H/UI:N/S:C/C:L/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136590,
+    "url": "https://github.com/advisories/GHSA-v64r-4m7r-3mvq",
+    "title": "Electron: HTTP redirect followed into local file loader",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.8",
+    "cwe": [
+      "CWE-918"
+    ],
+    "cvss": {
+      "score": 5.9,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136597,
+    "url": "https://github.com/advisories/GHSA-v93f-fgjr-hjrj",
+    "title": "Electron: window.open features string controls some window options considered privileged",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.8",
+    "cwe": [
+      "CWE-20"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136607,
+    "url": "https://github.com/advisories/GHSA-9f4c-93c8-jc8g",
+    "title": "Electron: Sandboxed iframe can bypass the allow-popups restriction via the OpenURL navigation path",
+    "severity": "high",
+    "vulnerable_versions": "<39.8.10",
+    "cwe": [
+      "CWE-693",
+      "CWE-1021"
+    ],
+    "cvss": {
+      "score": 7.2,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136634,
+    "url": "https://github.com/advisories/GHSA-p2rr-rvmm-c5fp",
+    "title": "Electron: Sandboxed iframes can launch external protocol handlers",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.8",
+    "cwe": [
+      "CWE-284"
+    ],
+    "cvss": {
+      "score": 5.4,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136647,
+    "url": "https://github.com/advisories/GHSA-f2r8-jv7c-xqmp",
+    "title": "Electron: DevTools embedder handler executes arbitrary files via shell open",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.9",
+    "cwe": [
+      "CWE-78"
+    ],
+    "cvss": {
+      "score": 6.9,
+      "vectorString": "CVSS:3.1/AV:L/AC:H/PR:H/UI:R/S:C/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136651,
+    "url": "https://github.com/advisories/GHSA-ff2p-hmqr-hxm4",
+    "title": "Electron: contextBridge object copy honors prototype setters",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.9",
+    "cwe": [
+      "CWE-1321"
+    ],
+    "cvss": {
+      "score": 5.4,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "electron",
+    "id": 1136659,
+    "url": "https://github.com/advisories/GHSA-4f78-qhmw-8j8m",
+    "title": "Electron: DevTools JavaScript Injection via Unsanitized Dock State Parameter",
+    "severity": "moderate",
+    "vulnerable_versions": "<39.8.7",
+    "cwe": [
+      "CWE-94",
+      "CWE-116"
+    ],
+    "cvss": {
+      "score": 5.7,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "electron@33.4.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11"
+        ]
+      }
+    ],
+    "current": [
+      "electron@44.4.3"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Desktop Chromium/Node runtime is used. Individual affected APIs vary; no remote exploit was demonstrated. Upgrade the runtime rather than declaring every API reachable."
+  },
+  {
+    "package": "esbuild",
+    "id": 1102341,
+    "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+    "title": "esbuild enables any website to send any requests to the development server and read the response",
+    "severity": "moderate",
+    "vulnerable_versions": "<=0.24.2",
+    "cwe": [
+      "CWE-346"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "esbuild@0.21.5",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron-vite@2.3.0",
+          "esbuild@0.21.5"
+        ]
+      }
+    ],
+    "current": [
+      "esbuild@0.27.0",
+      "esbuild@0.25.12"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "extract-zip",
+    "id": 1139346,
+    "url": "https://github.com/advisories/GHSA-jmr9-qjv8-65gv",
+    "title": "extract-zip unvalidated symlink path traversal",
+    "severity": "high",
+    "vulnerable_versions": "<=2.0.1",
+    "cwe": [
+      "CWE-22"
+    ],
+    "cvss": {
+      "score": 8.1,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "extract-zip@2.0.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11",
+          "extract-zip@2.0.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Electron installation extracts release archives, not game submissions. Lifecycle scripts are disabled in qualification installs; fixed version still installed."
+  },
+  {
+    "package": "extract-zip",
+    "id": 1193685,
+    "url": "https://github.com/advisories/GHSA-7pqw-9j4j-h8q3",
+    "title": "extract-zip allows arbitrary file writes through symlink archive entries",
+    "severity": "high",
+    "vulnerable_versions": "<=2.0.1",
+    "cwe": [
+      "CWE-22"
+    ],
+    "cvss": {
+      "score": 8.1,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:H"
+    },
+    "locked": [
+      {
+        "version": "extract-zip@2.0.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "electron@33.4.11",
+          "extract-zip@2.0.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Electron installation extracts release archives, not game submissions. Lifecycle scripts are disabled in qualification installs; fixed version still installed."
+  },
+  {
+    "package": "fast-uri",
+    "id": 1158524,
+    "url": "https://github.com/advisories/GHSA-f65p-4m7j-42xc",
+    "title": "fast-uri vulnerable to server-side request forgery via malformed IPv6 normalization",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.1.6",
+    "cwe": [
+      "CWE-20",
+      "CWE-918"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "fast-uri@3.1.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "schema-utils@4.3.3",
+          "ajv@8.18.0",
+          "fast-uri@3.1.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "fast-uri",
+    "id": 1158530,
+    "url": "https://github.com/advisories/GHSA-jqff-g426-hqxp",
+    "title": "fast-uri vulnerable to host confusion via percent-encoded scheme normalization",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.1.6",
+    "cwe": [
+      "CWE-177"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "fast-uri@3.1.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "schema-utils@4.3.3",
+          "ajv@8.18.0",
+          "fast-uri@3.1.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "fast-uri",
+    "id": 1130720,
+    "url": "https://github.com/advisories/GHSA-7p8r-x3mc-p8w7",
+    "title": "fast-uri vulnerable to host confusion via backslash authority introducer",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.1.5",
+    "cwe": [
+      "CWE-436"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "fast-uri@3.1.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "schema-utils@4.3.3",
+          "ajv@8.18.0",
+          "fast-uri@3.1.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "fast-uri",
+    "id": 1124064,
+    "url": "https://github.com/advisories/GHSA-v2hh-gcrm-f6hx",
+    "title": "fast-uri vulnerable to host confusion via literal backslash authority delimiter",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <=3.1.3",
+    "cwe": [
+      "CWE-436"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "fast-uri@3.1.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "schema-utils@4.3.3",
+          "ajv@8.18.0",
+          "fast-uri@3.1.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "fast-uri",
+    "id": 1204921,
+    "url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6",
+    "title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.1.3",
+    "cwe": [
+      "CWE-436",
+      "CWE-551"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "fast-uri@3.1.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "schema-utils@4.3.3",
+          "ajv@8.18.0",
+          "fast-uri@3.1.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "fast-uri",
+    "id": 1145559,
+    "url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6",
+    "title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <=3.1.0",
+    "cwe": [
+      "CWE-22"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "fast-uri@3.1.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "schema-utils@4.3.3",
+          "ajv@8.18.0",
+          "fast-uri@3.1.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "fast-uri",
+    "id": 1153168,
+    "url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc",
+    "title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <=3.1.1",
+    "cwe": [
+      "CWE-140",
+      "CWE-436"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "fast-uri@3.1.0",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo-router@4.0.22",
+          "schema-utils@4.3.3",
+          "ajv@8.18.0",
+          "fast-uri@3.1.0"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "form-data",
+    "id": 1120744,
+    "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx",
+    "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.0.5",
+    "cwe": [
+      "CWE-93"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "form-data@3.0.4",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "form-data@3.0.4"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "image-size",
+    "id": 1138808,
+    "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+    "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+    "severity": "high",
+    "vulnerable_versions": "<=2.0.2",
+    "cwe": [
+      "CWE-835"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "image-size@1.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/community-cli-plugin@0.76.9",
+          "metro@0.81.5",
+          "image-size@1.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "image-size",
+    "id": 1138809,
+    "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+    "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+    "severity": "high",
+    "vulnerable_versions": "<=2.0.2",
+    "cwe": [
+      "CWE-835"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "image-size@1.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/community-cli-plugin@0.76.9",
+          "metro@0.81.5",
+          "image-size@1.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1121859,
+    "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+    "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+    "severity": "moderate",
+    "vulnerable_versions": "<3.15.0",
+    "cwe": [
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "babel-jest@29.7.0",
+          "babel-plugin-istanbul@6.1.1",
+          "@istanbuljs/load-nyc-config@1.1.0",
+          "js-yaml@3.14.2"
+        ]
+      },
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/community-cli-plugin@0.76.9",
+          "metro-config@0.81.5",
+          "cosmiconfig@5.2.1",
+          "js-yaml@3.14.2"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1121860,
+    "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+    "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+    "severity": "moderate",
+    "vulnerable_versions": ">=4.0.0 <=4.1.1",
+    "cwe": [
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@4.1.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/xcpretty@4.4.1",
+          "js-yaml@4.1.1"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1123911,
+    "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+    "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+    "severity": "high",
+    "vulnerable_versions": ">=4.0.0 <4.3.0",
+    "cwe": [
+      "CWE-400",
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@4.1.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/xcpretty@4.4.1",
+          "js-yaml@4.1.1"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1123912,
+    "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+    "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.15.0",
+    "cwe": [
+      "CWE-400",
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "babel-jest@29.7.0",
+          "babel-plugin-istanbul@6.1.1",
+          "@istanbuljs/load-nyc-config@1.1.0",
+          "js-yaml@3.14.2"
+        ]
+      },
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/community-cli-plugin@0.76.9",
+          "metro-config@0.81.5",
+          "cosmiconfig@5.2.1",
+          "js-yaml@3.14.2"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1138114,
+    "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+    "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.15.1",
+    "cwe": [
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "babel-jest@29.7.0",
+          "babel-plugin-istanbul@6.1.1",
+          "@istanbuljs/load-nyc-config@1.1.0",
+          "js-yaml@3.14.2"
+        ]
+      },
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/community-cli-plugin@0.76.9",
+          "metro-config@0.81.5",
+          "cosmiconfig@5.2.1",
+          "js-yaml@3.14.2"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1138115,
+    "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+    "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+    "severity": "high",
+    "vulnerable_versions": ">=4.0.0 <4.3.1",
+    "cwe": [
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@4.1.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/xcpretty@4.4.1",
+          "js-yaml@4.1.1"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1193726,
+    "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+    "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.15.2",
+    "cwe": [
+      "CWE-400",
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "babel-jest@29.7.0",
+          "babel-plugin-istanbul@6.1.1",
+          "@istanbuljs/load-nyc-config@1.1.0",
+          "js-yaml@3.14.2"
+        ]
+      },
+      {
+        "version": "js-yaml@3.14.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/community-cli-plugin@0.76.9",
+          "metro-config@0.81.5",
+          "cosmiconfig@5.2.1",
+          "js-yaml@3.14.2"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "js-yaml",
+    "id": 1193727,
+    "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+    "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+    "severity": "high",
+    "vulnerable_versions": ">=4.0.0 <4.3.2",
+    "cwe": [
+      "CWE-400",
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "js-yaml@4.1.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/xcpretty@4.4.1",
+          "js-yaml@4.1.1"
+        ]
+      }
+    ],
+    "current": [
+      "js-yaml@4.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "nanoid",
+    "id": 1138811,
+    "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+    "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+    "severity": "high",
+    "vulnerable_versions": "<3.3.16",
+    "cwe": [
+      "CWE-835"
+    ],
+    "cvss": {
+      "score": 5.9,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "nanoid@3.3.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "postcss@8.5.8",
+          "nanoid@3.3.11"
+        ]
+      }
+    ],
+    "current": [
+      "nanoid@3.3.19"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "nanoid",
+    "id": 1139427,
+    "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+    "title": "nanoid: custom generators can loop indefinitely when size is zero",
+    "severity": "high",
+    "vulnerable_versions": "<3.3.18",
+    "cwe": [
+      "CWE-835"
+    ],
+    "cvss": {
+      "score": 5.9,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "nanoid@3.3.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "postcss@8.5.8",
+          "nanoid@3.3.11"
+        ]
+      }
+    ],
+    "current": [
+      "nanoid@3.3.19"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "nanoid",
+    "id": 1153189,
+    "url": "https://github.com/advisories/GHSA-xwg4-73v4-xw9w",
+    "title": "nanoid: Integer Overflow or Wraparound",
+    "severity": "high",
+    "vulnerable_versions": "<3.3.12",
+    "cwe": [
+      "CWE-190"
+    ],
+    "cvss": {
+      "score": 7.4,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "nanoid@3.3.11",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "postcss@8.5.8",
+          "nanoid@3.3.11"
+        ]
+      }
+    ],
+    "current": [
+      "nanoid@3.3.19"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "node-forge",
+    "id": 1115545,
+    "url": "https://github.com/advisories/GHSA-2328-f5f3-gj25",
+    "title": "Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)",
+    "severity": "high",
+    "vulnerable_versions": "<=1.3.3",
+    "cwe": [
+      "CWE-295"
+    ],
+    "cvss": {
+      "score": 7.4,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "node-forge@1.3.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "node-forge@1.3.3"
+        ]
+      }
+    ],
+    "current": [
+      "node-forge@1.4.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development/signing tooling uses certificate code. No application-provided certificate verification endpoint was identified; fixed compatible release installed."
+  },
+  {
+    "package": "node-forge",
+    "id": 1115546,
+    "url": "https://github.com/advisories/GHSA-q67f-28xg-22rw",
+    "title": "Forge has signature forgery in Ed25519 due to missing S > L check",
+    "severity": "high",
+    "vulnerable_versions": "<1.4.0",
+    "cwe": [
+      "CWE-347"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "node-forge@1.3.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "node-forge@1.3.3"
+        ]
+      }
+    ],
+    "current": [
+      "node-forge@1.4.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development/signing tooling uses certificate code. No application-provided certificate verification endpoint was identified; fixed compatible release installed."
+  },
+  {
+    "package": "node-forge",
+    "id": 1115548,
+    "url": "https://github.com/advisories/GHSA-5m6q-g25r-mvwx",
+    "title": "Forge has Denial of Service via Infinite Loop in BigInteger.modInverse() with Zero Input",
+    "severity": "high",
+    "vulnerable_versions": "<1.4.0",
+    "cwe": [
+      "CWE-835"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "node-forge@1.3.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "node-forge@1.3.3"
+        ]
+      }
+    ],
+    "current": [
+      "node-forge@1.4.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development/signing tooling uses certificate code. No application-provided certificate verification endpoint was identified; fixed compatible release installed."
+  },
+  {
+    "package": "node-forge",
+    "id": 1115612,
+    "url": "https://github.com/advisories/GHSA-ppp5-5v6c-4jwp",
+    "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
+    "severity": "high",
+    "vulnerable_versions": "<1.4.0",
+    "cwe": [
+      "CWE-20",
+      "CWE-347"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "node-forge@1.3.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "node-forge@1.3.3"
+        ]
+      }
+    ],
+    "current": [
+      "node-forge@1.4.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development/signing tooling uses certificate code. No application-provided certificate verification endpoint was identified; fixed compatible release installed."
+  },
+  {
+    "package": "picomatch",
+    "id": 1115549,
+    "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p",
+    "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+    "severity": "moderate",
+    "vulnerable_versions": "<2.3.2",
+    "cwe": [
+      "CWE-1321"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "picomatch@2.3.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "babel-jest@29.7.0",
+          "@jest/transform@29.7.0",
+          "jest-haste-map@29.7.0",
+          "anymatch@3.1.3",
+          "picomatch@2.3.1"
+        ]
+      },
+      {
+        "version": "picomatch@2.3.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "jest-environment-node@29.7.0",
+          "jest-util@29.7.0",
+          "picomatch@2.3.1"
+        ]
+      },
+      {
+        "version": "picomatch@2.3.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "fast-glob@3.3.3",
+          "micromatch@4.0.8",
+          "picomatch@2.3.1"
+        ]
+      }
+    ],
+    "current": [
+      "picomatch@4.0.7",
+      "picomatch@2.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "picomatch",
+    "id": 1115550,
+    "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p",
+    "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+    "severity": "moderate",
+    "vulnerable_versions": ">=3.0.0 <3.0.2",
+    "cwe": [
+      "CWE-1321"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "picomatch@3.0.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "picomatch@3.0.1"
+        ]
+      }
+    ],
+    "current": [
+      "picomatch@4.0.7",
+      "picomatch@2.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "picomatch",
+    "id": 1115551,
+    "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p",
+    "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+    "severity": "moderate",
+    "vulnerable_versions": ">=4.0.0 <4.0.4",
+    "cwe": [
+      "CWE-1321"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "picomatch@4.0.3",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "picomatch@4.0.3"
+        ]
+      }
+    ],
+    "current": [
+      "picomatch@4.0.7",
+      "picomatch@2.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "picomatch",
+    "id": 1115552,
+    "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj",
+    "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+    "severity": "high",
+    "vulnerable_versions": "<2.3.2",
+    "cwe": [
+      "CWE-1333"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "picomatch@2.3.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "babel-jest@29.7.0",
+          "@jest/transform@29.7.0",
+          "jest-haste-map@29.7.0",
+          "anymatch@3.1.3",
+          "picomatch@2.3.1"
+        ]
+      },
+      {
+        "version": "picomatch@2.3.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "jest-environment-node@29.7.0",
+          "jest-util@29.7.0",
+          "picomatch@2.3.1"
+        ]
+      },
+      {
+        "version": "picomatch@2.3.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "fast-glob@3.3.3",
+          "micromatch@4.0.8",
+          "picomatch@2.3.1"
+        ]
+      }
+    ],
+    "current": [
+      "picomatch@4.0.7",
+      "picomatch@2.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "picomatch",
+    "id": 1115553,
+    "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj",
+    "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+    "severity": "high",
+    "vulnerable_versions": ">=3.0.0 <3.0.2",
+    "cwe": [
+      "CWE-1333"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "picomatch@3.0.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "picomatch@3.0.1"
+        ]
+      }
+    ],
+    "current": [
+      "picomatch@4.0.7",
+      "picomatch@2.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "picomatch",
+    "id": 1115554,
+    "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj",
+    "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+    "severity": "high",
+    "vulnerable_versions": ">=4.0.0 <4.0.4",
+    "cwe": [
+      "CWE-1333"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "picomatch@4.0.3",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "picomatch@4.0.3"
+        ]
+      }
+    ],
+    "current": [
+      "picomatch@4.0.7",
+      "picomatch@2.3.2"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "postcss",
+    "id": 1130709,
+    "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+    "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+    "severity": "moderate",
+    "vulnerable_versions": "<=8.5.22",
+    "cwe": [
+      "CWE-22",
+      "CWE-200"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "postcss@8.5.8",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "postcss@8.5.8"
+        ]
+      },
+      {
+        "version": "postcss@8.4.49",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "postcss@8.4.49"
+        ]
+      }
+    ],
+    "current": [
+      "postcss@8.5.28"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "postcss",
+    "id": 1117015,
+    "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+    "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+    "severity": "moderate",
+    "vulnerable_versions": "<8.5.10",
+    "cwe": [
+      "CWE-79"
+    ],
+    "cvss": {
+      "score": 6.1,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "postcss@8.5.8",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "postcss@8.5.8"
+        ]
+      },
+      {
+        "version": "postcss@8.4.49",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "postcss@8.4.49"
+        ]
+      }
+    ],
+    "current": [
+      "postcss@8.5.28"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "postcss",
+    "id": 1124252,
+    "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+    "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+    "severity": "high",
+    "vulnerable_versions": "<=8.5.11",
+    "cwe": [
+      "CWE-22",
+      "CWE-200"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "postcss@8.5.8",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "postcss@8.5.8"
+        ]
+      },
+      {
+        "version": "postcss@8.4.49",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "postcss@8.4.49"
+        ]
+      }
+    ],
+    "current": [
+      "postcss@8.5.28"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "postcss",
+    "id": 1139510,
+    "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+    "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+    "severity": "high",
+    "vulnerable_versions": "<=8.5.17",
+    "cwe": [
+      "CWE-22"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "postcss@8.5.8",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1",
+          "postcss@8.5.8"
+        ]
+      },
+      {
+        "version": "postcss@8.4.49",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/metro-config@0.19.12",
+          "postcss@8.4.49"
+        ]
+      }
+    ],
+    "current": [
+      "postcss@8.5.28"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Build/configuration tooling consumes source, assets or configuration. This is not proof of a remotely exploitable production endpoint; untrusted repository inputs can still affect developer/CI processes. Refreshed compatible dependencies without an exception."
+  },
+  {
+    "package": "shell-quote",
+    "id": 1120422,
+    "url": "https://github.com/advisories/GHSA-w7jw-789q-3m8p",
+    "title": "shell-quote quote() does not escape newlines in object .op values",
+    "severity": "critical",
+    "vulnerable_versions": ">=1.1.0 <=1.8.3",
+    "cwe": [
+      "CWE-77",
+      "CWE-78"
+    ],
+    "cvss": {
+      "score": 8.1,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    },
+    "locked": [
+      {
+        "version": "shell-quote@1.8.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "react-devtools-core@5.3.2",
+          "shell-quote@1.8.3"
+        ]
+      }
+    ],
+    "current": [
+      "shell-quote@1.10.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "React Native/Expo developer tooling constructs shell commands. No application endpoint forwards user input to this API; untrusted development inputs remain a concern."
+  },
+  {
+    "package": "shell-quote",
+    "id": 1123944,
+    "url": "https://github.com/advisories/GHSA-395f-4hp3-45gv",
+    "title": "shell-quote: Quadratic-complexity Denial of Service in `parse()` (CWE-407)",
+    "severity": "high",
+    "vulnerable_versions": "<=1.8.4",
+    "cwe": [
+      "CWE-407"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "shell-quote@1.8.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "react-devtools-core@5.3.2",
+          "shell-quote@1.8.3"
+        ]
+      }
+    ],
+    "current": [
+      "shell-quote@1.10.0"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "React Native/Expo developer tooling constructs shell commands. No application endpoint forwards user input to this API; untrusted development inputs remain a concern."
+  },
+  {
+    "package": "tar",
+    "id": 1112659,
+    "url": "https://github.com/advisories/GHSA-34x7-hfp2-rc4v",
+    "title": "node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal",
+    "severity": "high",
+    "vulnerable_versions": "<7.5.7",
+    "cwe": [
+      "CWE-22",
+      "CWE-59"
+    ],
+    "cvss": {
+      "score": 8.2,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1113300,
+    "url": "https://github.com/advisories/GHSA-8qq5-rm4j-mr97",
+    "title": "node-tar is Vulnerable to Arbitrary File Overwrite and Symlink Poisoning via Insufficient Path Sanitization",
+    "severity": "high",
+    "vulnerable_versions": "<=7.5.2",
+    "cwe": [
+      "CWE-22"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1113375,
+    "url": "https://github.com/advisories/GHSA-83g3-92jg-28cx",
+    "title": "Arbitrary File Read/Write via Hardlink Target Escape Through Symlink Chain in node-tar Extraction",
+    "severity": "high",
+    "vulnerable_versions": "<7.5.8",
+    "cwe": [
+      "CWE-22"
+    ],
+    "cvss": {
+      "score": 7.1,
+      "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1114200,
+    "url": "https://github.com/advisories/GHSA-qffp-2rhf-9h96",
+    "title": "tar has Hardlink Path Traversal via Drive-Relative Linkpath",
+    "severity": "high",
+    "vulnerable_versions": "<=7.5.9",
+    "cwe": [
+      "CWE-22",
+      "CWE-59"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1114302,
+    "url": "https://github.com/advisories/GHSA-9ppj-qmqm-q256",
+    "title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath",
+    "severity": "high",
+    "vulnerable_versions": "<=7.5.10",
+    "cwe": [
+      "CWE-22"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1120782,
+    "url": "https://github.com/advisories/GHSA-vmf3-w455-68vh",
+    "title": "node-tar applies PAX size override to intermediary GNU long-name/long-link headers, causing tar parser interpretation differential (file smuggling)",
+    "severity": "moderate",
+    "vulnerable_versions": "<=7.5.15",
+    "cwe": [
+      "CWE-436"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1114680,
+    "url": "https://github.com/advisories/GHSA-r6q2-hw4h-h46w",
+    "title": "Race Condition in node-tar Path Reservations via Unicode Ligature Collisions on macOS APFS",
+    "severity": "high",
+    "vulnerable_versions": "<=7.5.3",
+    "cwe": [
+      "CWE-176",
+      "CWE-367"
+    ],
+    "cvss": {
+      "score": 8.8,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:H/A:L"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1123939,
+    "url": "https://github.com/advisories/GHSA-w8wr-v893-vjvp",
+    "title": "node-tar: Process crash via PAX numeric path type confusion",
+    "severity": "moderate",
+    "vulnerable_versions": "<=7.5.17",
+    "cwe": [
+      "CWE-704"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1123940,
+    "url": "https://github.com/advisories/GHSA-23hp-3jrh-7fpw",
+    "title": "node-tar: Decompression/parse DoS via unlimited input",
+    "severity": "critical",
+    "vulnerable_versions": "<=7.5.18",
+    "cwe": [
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1123941,
+    "url": "https://github.com/advisories/GHSA-8x88-c5mf-7j5w",
+    "title": "node-tar: Negative tar entry size causes infinite loop in archive replace",
+    "severity": "high",
+    "vulnerable_versions": "<=7.5.17",
+    "cwe": [
+      "CWE-835"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1123942,
+    "url": "https://github.com/advisories/GHSA-gvwx-54wh-qm9j",
+    "title": "node-tar: Uncaught Exception DoS via NUL byte in PAX path/linkpath records",
+    "severity": "moderate",
+    "vulnerable_versions": "<=7.5.16",
+    "cwe": [
+      "CWE-248"
+    ],
+    "cvss": {
+      "score": 5.3,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "tar",
+    "id": 1145647,
+    "url": "https://github.com/advisories/GHSA-r292-9mhp-454m",
+    "title": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
+    "severity": "high",
+    "vulnerable_versions": "<=7.5.20",
+    "cwe": [
+      "CWE-400",
+      "CWE-674"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "tar@6.2.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "tar@6.2.1"
+        ]
+      }
+    ],
+    "current": [],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI archive handling is development/install tooling, not a game-result input. Refreshed compatible dependencies."
+  },
+  {
+    "package": "undici",
+    "id": 1130716,
+    "url": "https://github.com/advisories/GHSA-8xcm-r25x-g524",
+    "title": "undici vulnerable to downstream response desynchronization via retry interceptor",
+    "severity": "moderate",
+    "vulnerable_versions": "<6.28.0",
+    "cwe": [
+      "CWE-444"
+    ],
+    "cvss": {
+      "score": 4.8,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "undici@6.24.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "undici@6.24.1"
+        ]
+      }
+    ],
+    "current": [
+      "undici@7.29.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development CLI HTTP client, not the application backend server. Malicious upstream responses are a possible developer-tool threat."
+  },
+  {
+    "package": "undici",
+    "id": 1130727,
+    "url": "https://github.com/advisories/GHSA-m8rv-5g2x-5cg5",
+    "title": "undici vulnerable to CRLF Injection via blob-like body 'type' property",
+    "severity": "moderate",
+    "vulnerable_versions": "<6.28.0",
+    "cwe": [
+      "CWE-93"
+    ],
+    "cvss": {
+      "score": 4.2,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "undici@6.24.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "undici@6.24.1"
+        ]
+      }
+    ],
+    "current": [
+      "undici@7.29.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development CLI HTTP client, not the application backend server. Malicious upstream responses are a possible developer-tool threat."
+  },
+  {
+    "package": "undici",
+    "id": 1130732,
+    "url": "https://github.com/advisories/GHSA-v3r7-h72x-cjcm",
+    "title": "undici vulnerable to cookie attribute injection via unsanitized domain and unparsed setCookie fields",
+    "severity": "moderate",
+    "vulnerable_versions": "<6.28.0",
+    "cwe": [
+      "CWE-74"
+    ],
+    "cvss": {
+      "score": 4.8,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "undici@6.24.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "undici@6.24.1"
+        ]
+      }
+    ],
+    "current": [
+      "undici@7.29.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development CLI HTTP client, not the application backend server. Malicious upstream responses are a possible developer-tool threat."
+  },
+  {
+    "package": "undici",
+    "id": 1121242,
+    "url": "https://github.com/advisories/GHSA-p88m-4jfj-68fv",
+    "title": "undici vulnerable to HTTP header injection via Set-Cookie percent-decoding",
+    "severity": "moderate",
+    "vulnerable_versions": "<6.27.0",
+    "cwe": [
+      "CWE-93"
+    ],
+    "cvss": {
+      "score": 5.9,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "undici@6.24.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "undici@6.24.1"
+        ]
+      }
+    ],
+    "current": [
+      "undici@7.29.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development CLI HTTP client, not the application backend server. Malicious upstream responses are a possible developer-tool threat."
+  },
+  {
+    "package": "undici",
+    "id": 1121245,
+    "url": "https://github.com/advisories/GHSA-vxpw-j846-p89q",
+    "title": "undici WebSocket client vulnerable to denial of service via fragment count bypass",
+    "severity": "high",
+    "vulnerable_versions": "<6.27.0",
+    "cwe": [
+      "CWE-400",
+      "CWE-770"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "undici@6.24.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "undici@6.24.1"
+        ]
+      }
+    ],
+    "current": [
+      "undici@7.29.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development CLI HTTP client, not the application backend server. Malicious upstream responses are a possible developer-tool threat."
+  },
+  {
+    "package": "undici",
+    "id": 1121255,
+    "url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m",
+    "title": "undici vulnerable to Set-Cookie SameSite attribute downgrade via permissive substring matching",
+    "severity": "low",
+    "vulnerable_versions": "<6.27.0",
+    "cwe": [
+      "CWE-183"
+    ],
+    "cvss": {
+      "score": 3.7,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "undici@6.24.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "undici@6.24.1"
+        ]
+      }
+    ],
+    "current": [
+      "undici@7.29.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development CLI HTTP client, not the application backend server. Malicious upstream responses are a possible developer-tool threat."
+  },
+  {
+    "package": "undici",
+    "id": 1137243,
+    "url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52",
+    "title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
+    "severity": "low",
+    "vulnerable_versions": "<6.27.0",
+    "cwe": [
+      "CWE-367"
+    ],
+    "cvss": {
+      "score": 3.7,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+    },
+    "locked": [
+      {
+        "version": "undici@6.24.1",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "undici@6.24.1"
+        ]
+      }
+    ],
+    "current": [
+      "undici@7.29.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo development CLI HTTP client, not the application backend server. Malicious upstream responses are a possible developer-tool threat."
+  },
+  {
+    "package": "uuid",
+    "id": 1119441,
+    "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+    "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+    "severity": "moderate",
+    "vulnerable_versions": "<11.1.1",
+    "cwe": [
+      "CWE-787",
+      "CWE-1285"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+    },
+    "locked": [
+      {
+        "version": "uuid@8.3.2",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@expo/rudder-sdk-node@1.1.1",
+          "uuid@8.3.2"
+        ]
+      },
+      {
+        "version": "uuid@7.0.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/config-plugins@9.0.17",
+          "xcode@3.0.1",
+          "uuid@7.0.3"
+        ]
+      }
+    ],
+    "current": [
+      "uuid@11.1.1"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Expo CLI telemetry uses UUIDs. No caller using attacker-supplied output buffers was identified; retain the fix instead of accepting an exception."
+  },
+  {
+    "package": "vite",
+    "id": 1120784,
+    "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3",
+    "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+    "severity": "moderate",
+    "vulnerable_versions": "<=6.4.2",
+    "cwe": [
+      "CWE-73",
+      "CWE-522"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "vite@6.4.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1"
+        ]
+      }
+    ],
+    "current": [
+      "vite@7.3.6"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Development server is used with its default localhost binding. Malicious requests to an exposed development server are a relevant threat; production static assets do not contain that server."
+  },
+  {
+    "package": "vite",
+    "id": 1116229,
+    "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9",
+    "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+    "severity": "moderate",
+    "vulnerable_versions": "<=6.4.1",
+    "cwe": [
+      "CWE-22",
+      "CWE-200"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "vite@6.4.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1"
+        ]
+      }
+    ],
+    "current": [
+      "vite@7.3.6"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Development server is used with its default localhost binding. Malicious requests to an exposed development server are a relevant threat; production static assets do not contain that server."
+  },
+  {
+    "package": "vite",
+    "id": 1116234,
+    "url": "https://github.com/advisories/GHSA-p9ff-h696-f583",
+    "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
+    "severity": "high",
+    "vulnerable_versions": ">=6.0.0 <=6.4.1",
+    "cwe": [
+      "CWE-200",
+      "CWE-306"
+    ],
+    "cvss": {
+      "score": 0,
+      "vectorString": null
+    },
+    "locked": [
+      {
+        "version": "vite@6.4.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1"
+        ]
+      }
+    ],
+    "current": [
+      "vite@7.3.6"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Development server is used with its default localhost binding. Malicious requests to an exposed development server are a relevant threat; production static assets do not contain that server."
+  },
+  {
+    "package": "vite",
+    "id": 1123525,
+    "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff",
+    "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+    "severity": "high",
+    "vulnerable_versions": "<=6.4.2",
+    "cwe": [
+      "CWE-22",
+      "CWE-200"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "vite@6.4.1",
+        "path": [
+          "apps/desktop (devDependencies)",
+          "vite@6.4.1"
+        ]
+      }
+    ],
+    "current": [
+      "vite@7.3.6"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Development server is used with its default localhost binding. Malicious requests to an exposed development server are a relevant threat; production static assets do not contain that server."
+  },
+  {
+    "package": "ws",
+    "id": 1119108,
+    "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+    "title": "ws: Uninitialized memory disclosure",
+    "severity": "moderate",
+    "vulnerable_versions": ">=8.0.0 <8.20.1",
+    "cwe": [
+      "CWE-908"
+    ],
+    "cvss": {
+      "score": 4.4,
+      "vectorString": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N"
+    },
+    "locked": [
+      {
+        "version": "ws@8.18.0",
+        "path": [
+          "root (dependencies)",
+          "convex@1.34.0",
+          "ws@8.18.0"
+        ]
+      }
+    ],
+    "current": [
+      "ws@8.21.0",
+      "ws@7.5.13"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Convex/Metro client and development transports use WebSockets. Malicious peer resource exhaustion is relevant, but no application exploit was demonstrated."
+  },
+  {
+    "package": "ws",
+    "id": 1123259,
+    "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+    "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+    "severity": "high",
+    "vulnerable_versions": ">=8.0.0 <8.21.0",
+    "cwe": [
+      "CWE-400",
+      "CWE-770",
+      "CWE-1050"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "ws@8.18.0",
+        "path": [
+          "root (dependencies)",
+          "convex@1.34.0",
+          "ws@8.18.0"
+        ]
+      }
+    ],
+    "current": [
+      "ws@8.21.0",
+      "ws@7.5.13"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Convex/Metro client and development transports use WebSockets. Malicious peer resource exhaustion is relevant, but no application exploit was demonstrated."
+  },
+  {
+    "package": "ws",
+    "id": 1123260,
+    "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+    "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+    "severity": "high",
+    "vulnerable_versions": ">=7.0.0 <7.5.11",
+    "cwe": [
+      "CWE-400",
+      "CWE-770",
+      "CWE-1050"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "ws@7.5.10",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "@react-native/community-cli-plugin@0.76.9",
+          "metro@0.81.5",
+          "ws@7.5.10"
+        ]
+      },
+      {
+        "version": "ws@7.5.10",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "react-devtools-core@5.3.2",
+          "ws@7.5.10"
+        ]
+      }
+    ],
+    "current": [
+      "ws@8.21.0",
+      "ws@7.5.13"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Convex/Metro client and development transports use WebSockets. Malicious peer resource exhaustion is relevant, but no application exploit was demonstrated."
+  },
+  {
+    "package": "ws",
+    "id": 1123261,
+    "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+    "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+    "severity": "high",
+    "vulnerable_versions": ">=6.0.0 <6.2.4",
+    "cwe": [
+      "CWE-400",
+      "CWE-770",
+      "CWE-1050"
+    ],
+    "cvss": {
+      "score": 7.5,
+      "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    "locked": [
+      {
+        "version": "ws@6.2.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "expo@52.0.49",
+          "@expo/cli@0.22.28",
+          "@react-native/dev-middleware@0.76.9",
+          "ws@6.2.3"
+        ]
+      },
+      {
+        "version": "ws@6.2.3",
+        "path": [
+          "apps/mobile (dependencies)",
+          "react-native@0.76.9",
+          "ws@6.2.3"
+        ]
+      }
+    ],
+    "current": [
+      "ws@8.21.0",
+      "ws@7.5.13"
+    ],
+    "disposition": "Resolved in refreshed lockfile; current native Bun audit returns no advisories.",
+    "reachability": "Convex/Metro client and development transports use WebSockets. Malicious peer resource exhaustion is relevant, but no application exploit was demonstrated."
+  }
+]

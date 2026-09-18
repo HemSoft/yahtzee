@@ -17,7 +17,8 @@
     "test": "bun run --filter @yahtzee/game-engine test",
     "test:watch": "bun run --filter @yahtzee/game-engine test --watch",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "bun run --filter \"*\" typecheck && tsc -p convex/tsconfig.json --noEmit"
+    "typecheck": "bun run --filter \"*\" typecheck && tsc -p convex/tsconfig.json --noEmit && tsc -p scripts/tsconfig.json",
+    "security": "bun scripts/security-audit.ts"
   },
   "author": "Franz Hemmer <franz_hemmer@hotmail.com>",
   "license": "MIT",
@@ -26,15 +27,27 @@
     "url": "git+https://github.com/HemSoft/yahtzee.git"
   },
   "dependencies": {
-    "convex": "^1.17.0"
+    "convex": "1.46.0"
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",
-    "convex-test": "0.0.41",
+    "@types/bun": "1.3.7",
+    "convex-test": "0.0.59",
     "eslint": "9.39.4",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.5.0",
-    "typescript": "5.9.3",
+    "typescript": "6.0.3",
     "typescript-eslint": "8.70.0"
+  },
+  "packageManager": "bun@1.3.7",
+  "engines": {
+    "node": "^22.13.0 || >=24.3.0"
+  },
+  "overrides": {
+    "decode-uri-component": "0.5.0",
+    "uuid": "11.1.1"
+  },
+  "patchedDependencies": {
+    "query-string@7.1.3": "patches/query-string@7.1.3.patch"
   }
 }
