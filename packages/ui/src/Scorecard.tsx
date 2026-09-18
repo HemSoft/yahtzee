@@ -73,9 +73,10 @@ export function Scorecard({
 
   return (
     <div style={{ overflowX: "auto" }}>
+      <style>{`.yahtzee-score-action:focus-visible { outline: 3px solid ${theme.primary}; outline-offset: 2px; }`}</style>
       {canSelect && (
         <p style={{ textAlign: "center", color: theme.textMuted, fontSize: "0.85rem", margin: "0 0 0.5rem" }}>
-          Click any highlighted row to place your score
+          Choose a highlighted category to place your score
         </p>
       )}
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
@@ -122,7 +123,16 @@ export function Scorecard({
                 }}
               >
                 <td style={tdStyle}>
-                  {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  <button
+                    className="yahtzee-score-action"
+                    type="button"
+                    disabled={!isAvailable}
+                    onClick={(event) => { event.stopPropagation(); onSelectCategory(cat.id); }}
+                    aria-label={`Score ${cat.label}`}
+                    style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
+                  >
+                    {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  </button>
                 </td>
                 {players.map((p, i) => (
                   <td
@@ -174,7 +184,16 @@ export function Scorecard({
                 }}
               >
                 <td style={tdStyle}>
-                  {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  <button
+                    className="yahtzee-score-action"
+                    type="button"
+                    disabled={!isAvailable}
+                    onClick={(event) => { event.stopPropagation(); onSelectCategory(cat.id); }}
+                    aria-label={`Score ${cat.label}`}
+                    style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
+                  >
+                    {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  </button>
                 </td>
                 {players.map((p, i) => (
                   <td
