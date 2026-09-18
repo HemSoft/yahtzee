@@ -21,6 +21,15 @@ export default defineSchema({
     .index("by_diceCount", ["diceCount"])
     .index("by_gameId", ["gameId"]),
 
+  // Durable receipts prevent replay even after a score leaves the top ten.
+  // Additive schema change; existing scores are recognized on their first replay.
+  highScoreReceipts: defineTable({
+    gameId: v.string(),
+    playerName: v.string(),
+    isAi: v.boolean(),
+    diceCount: v.number(),
+  }).index("by_gameId_playerName_isAi_diceCount", ["gameId", "playerName", "isAi", "diceCount"]),
+
   highScores: defineTable({
     diceCount: v.number(),
     dateRecorded: v.string(),
