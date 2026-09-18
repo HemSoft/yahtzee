@@ -13,6 +13,8 @@ async (page) => {
   await page.getByRole('button', { name: 'Score Twos', exact: true }).focus();
   await page.keyboard.press('Space');
   if ((await page.getByRole('status').textContent()) !== 'Selections: 2') throw new Error('Keyboard activation did not select exactly once');
+  await page.getByRole("row").filter({ has: page.getByRole("button", { name: "Score Threes", exact: true }) }).getByRole("cell").last().click();
+  if ((await page.getByRole("status").textContent()) !== "Selections: 3") throw new Error("Row pointer target regressed");
   for (const action of await actions.all()) {
     if (await action.isEnabled()) { await action.focus(); await page.keyboard.press('Enter'); }
   }

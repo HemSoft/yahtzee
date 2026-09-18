@@ -114,6 +114,7 @@ export function Scorecard({
             return (
               <tr
                 key={cat.id}
+                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
                   background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
@@ -126,7 +127,7 @@ export function Scorecard({
                     className="yahtzee-score-action"
                     type="button"
                     disabled={!isAvailable}
-                    onClick={() => onSelectCategory(cat.id)}
+                    onClick={(event) => { event.stopPropagation(); onSelectCategory(cat.id); }}
                     aria-label={`Score ${cat.label}`}
                     style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
                   >
@@ -174,6 +175,7 @@ export function Scorecard({
             return (
               <tr
                 key={cat.id}
+                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
                   background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
@@ -186,7 +188,7 @@ export function Scorecard({
                     className="yahtzee-score-action"
                     type="button"
                     disabled={!isAvailable}
-                    onClick={() => onSelectCategory(cat.id)}
+                    onClick={(event) => { event.stopPropagation(); onSelectCategory(cat.id); }}
                     aria-label={`Score ${cat.label}`}
                     style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
                   >
