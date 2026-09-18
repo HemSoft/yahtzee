@@ -113,7 +113,6 @@ export function Scorecard({
             return (
               <tr
                 key={cat.id}
-                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
                   background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
@@ -122,7 +121,15 @@ export function Scorecard({
                 }}
               >
                 <td style={tdStyle}>
-                  {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  <button
+                    type="button"
+                    disabled={!isAvailable}
+                    onClick={() => onSelectCategory(cat.id)}
+                    aria-label={`Score ${cat.label}`}
+                    style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
+                  >
+                    {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  </button>
                 </td>
                 {players.map((p, i) => (
                   <td
@@ -165,7 +172,6 @@ export function Scorecard({
             return (
               <tr
                 key={cat.id}
-                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
                 style={{
                   cursor: isAvailable ? "pointer" : "default",
                   background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
@@ -174,7 +180,15 @@ export function Scorecard({
                 }}
               >
                 <td style={tdStyle}>
-                  {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  <button
+                    type="button"
+                    disabled={!isAvailable}
+                    onClick={() => onSelectCategory(cat.id)}
+                    aria-label={`Score ${cat.label}`}
+                    style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
+                  >
+                    {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
+                  </button>
                 </td>
                 {players.map((p, i) => (
                   <td
