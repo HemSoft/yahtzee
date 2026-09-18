@@ -8,6 +8,12 @@ The main branch must require the exact status `quality-gate`, require it against
 
 Connected Codex current-head review is the mission's review policy. It may return a clean comment instead of formal approval. No additional human-approval count is introduced by this workflow. If maintainers add one later, it becomes a separate required gate. Administrative bypasses require an explicit incident decision and must not substitute for missing test evidence.
 
+## Trust boundary
+
+A required status name is not an immutable-workflow security boundary. A pull request can edit workflow or package scripts, so a green status alone is not permission to merge. Review those edits at the exact candidate head and use the guarded merge process to check the actual workflow run, its steps and resolved review findings. Repository administrators remain trusted to manage settings; these rules do not defend against a malicious administrator.
+
+GitHub's [required-workflow rule](https://docs.github.com/en/enterprise-cloud@latest/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets#require-workflows-to-pass-before-merging) is available at organization or enterprise level. This repository is personal-account owned. Moving ownership or provisioning a separate verifier app needs a separate owner decision; this change does not claim that unavailable guarantee or introduce privileged `pull_request_target` execution. Current-head Codex review and guarded merges remain required process controls for workflow/script changes, though branch protection itself does not enforce a Codex comment.
+
 Record run URLs, queue time and final qualification duration when changing CI. No performance target is invented here. Keep expensive future mutation/E2E/soak checks tied to the exact candidate rather than treating scheduled runs of another commit as merge evidence.
 
 Native signed iOS/Android packages are outside this build matrix; mobile TypeScript is checked on both hosts. Desktop bundling is not an installation or code-signing test.
