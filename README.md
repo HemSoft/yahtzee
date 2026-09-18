@@ -36,7 +36,7 @@ bun install --frozen-lockfile
 ### Backend and environment
 
 1. Run `bun run dev:convex` from the repository root and follow the Convex development-project setup. This can create deployment configuration and deploy development functions. Use a development project, not production, for local testing.
-2. Copy `.env.local.example` to `.env.local` in the repository root. Set `VITE_CONVEX_URL` to the development deployment's HTTPS URL. Both Vite configurations explicitly read environment files from this root.
+2. Edit the repository-root `.env.local` created by Convex. Preserve its `CONVEX_DEPLOYMENT` selector and add or verify `VITE_CONVEX_URL` using the development deployment's HTTPS URL. Use `.env.local.example` as a reference, not as a replacement for the generated file. Both Vite configurations explicitly read environment files from this root.
 3. For mobile, create `apps/mobile/.env.local` and set `EXPO_PUBLIC_CONVEX_URL` to the same URL. Expo runs from the mobile workspace and reads its environment there; putting only the Expo variable in the repository root is not enough.
 4. Restart the frontend after changing environment values. Never commit local environment files or deployment credentials.
 
