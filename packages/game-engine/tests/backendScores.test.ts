@@ -17,7 +17,10 @@ function fixture() {
       const query = {
         withIndex(_name: string, build: (q: typeof index) => unknown) { build(index); return query; },
         order(_direction: string) { return query; },
-        first: async () => rows()[0] ?? null,
+        unique: async () => {
+          if (rows().length > 1) throw new Error("Duplicate receipt");
+          return rows()[0] ?? null;
+        },
         take: async (n: number) => rows().sort((a, b) => Number(b.score) - Number(a.score)).slice(0, n),
       };
       return query;
@@ -50,6 +53,12 @@ describe("backend high-score receipts", () => {
     const rows = await t.query(api.highScores.top, { diceCount: 5 });
     expect(rows).toHaveLength(1);
     expect(rows[0].rankCurrent).toBe(1);
+  });
+  test("corrupt duplicate receipts fail instead of hiding the invariant violation", async () => {
+    const { ctx, tables } = fixture();
+    tables.highScoreReceipts.push({ ...result() }, { ...result() });
+    await expect(recordScore(ctx, result())).rejects.toThrow("Duplicate receipt");
+    expect(tables.highScores).toHaveLength(0);
   });
   test("replaying a game/player result inserts once", async () => {
     const { ctx, tables } = fixture();
