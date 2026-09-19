@@ -1,6 +1,6 @@
 # Application qualification
 
-Application quality runs for every pull request, main update and merge-group candidate. It has no path filters. Linux and Windows each run the locked install, all-workspace/backend/tool typecheck, lint, unit/backend tests, web/desktop production builds, native JavaScript exports and client journeys. Each independent check runs after a successful install even if another check failed. A failed, cancelled or skipped validation matrix cannot make `quality-gate` pass.
+Application quality runs for every pull request, main update and merge-group candidate. It has no path filters. Linux and Windows each run the locked install, all-workspace/backend/tool typecheck, lint, unit/backend tests, web/desktop production builds, native JavaScript exports and client journeys with the [per-function risk gate](function-risk.md). Each independent check runs after a successful install even if another check failed. A failed, cancelled or skipped validation matrix cannot make `quality-gate` pass.
 
 Use GitHub-hosted runners for untrusted pull-request code. The persistent mini runner remains manual-only. Workflow tokens are read-only, action references are pinned, jobs have timeouts and newer updates cancel stale runs. No deployment credentials are needed.
 
