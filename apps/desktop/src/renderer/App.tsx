@@ -1,23 +1,15 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
+import React, { useState, useCallback, useMemo } from "react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import {
-  createGame,
-  rollDice,
-  reroll,
   getAvailableCategories,
-  isGameComplete,
   calculateTotal,
-  executeAiTurn,
   pickAiCategory,
-  getCategories,
   createEmptyGameLog,
-  type GameState,
-  type CategoryId,
   type GameLog,
   type GameLogEntry,
 } from "@yahtzee/game-engine";
-import { DiceRow, Scorecard, GameSettings, ThemeToggle, ThemeProvider, lightTheme, darkTheme } from "@yahtzee/ui";
+import { DiceRow, Scorecard, GameSettings, ThemeToggle, ThemeProvider, lightTheme, darkTheme, useGameSession } from "@yahtzee/ui";
 
 function loadThemeMode(): "light" | "dark" {
   try {
@@ -41,19 +33,20 @@ function saveRecentName(name: string) {
   return updated;
 }
 
-const AI_NAMES = ["Bot Alpha", "Bot Beta", "Bot Gamma"];
-
 type Screen = "setup" | "playing" | "finished";
 
 export function App() {
-  const [screen, setScreen] = useState<Screen>("setup");
+  const [screenState, setScreen] = useState<Screen>("setup");
   const [playerName, setPlayerName] = useState(() => loadRecentNames()[0] ?? "");
   const [recentNames, setRecentNames] = useState(loadRecentNames);
   const [diceCount, setDiceCount] = useState(5);
   const [aiOpponents, setAiOpponents] = useState(0);
-  const [game, setGame] = useState<GameState | null>(null);
-  const gameStartedAt = useRef<string>("");
-  const lastLoggedGameRef = useRef<string>("");
+  const startGuest = useAction(api.gameSessions.start);
+  const moveGuest = useMutation(api.games.move);
+  const { game, busy, error, canRetry, retry, start, reset,
+    roll: handleRoll, toggleHold: handleToggleHold, selectCategory: handleSelectCategory,
+  } = useGameSession({ start: startGuest, move: moveGuest });
+  const screen = screenState === "playing" && game?.status === "finished" ? "finished" : screenState;
   const [themeMode, setThemeMode] = useState<"light" | "dark">(loadThemeMode);
   const theme = themeMode === "dark" ? darkTheme : lightTheme;
 
@@ -82,9 +75,6 @@ export function App() {
     [topScoresRaw]
   );
 
-  // Convex mutations
-  const addGameLog = useMutation(api.gameLogs.add);
-  const submitHighScore = useMutation(api.highScores.submit);
 
   const toggleTheme = useCallback(() => {
     setThemeMode((prev) => {
@@ -94,183 +84,24 @@ export function App() {
     });
   }, []);
 
-  const handleGameFinished = useCallback((finishedGame: GameState) => {
-    if (lastLoggedGameRef.current === finishedGame.id) return;
-    lastLoggedGameRef.current = finishedGame.id;
-
-    const completedAt = new Date().toISOString();
-    const startDate = new Date(gameStartedAt.current);
-    const endDate = new Date(completedAt);
-    const durationSeconds = Math.round((endDate.getTime() - startDate.getTime()) / 1000);
-
-    const players = finishedGame.players.map((p) => ({
-      name: p.name,
-      isAi: !!p.isAi,
-      score: calculateTotal(p, finishedGame.diceCount).grandTotal,
-      scores: { ...p.scores },
-    }));
-
-    const winner = players.reduce((best, p) => (p.score > best.score ? p : best), players[0]);
-
-    addGameLog({
-      gameId: finishedGame.id,
-      diceCount: finishedGame.diceCount,
-      startedAt: gameStartedAt.current,
-      completedAt,
-      durationSeconds,
-      players,
-      winnerName: winner.name,
-    });
-
-    const now = new Date().toISOString();
-    for (const p of players) {
-      submitHighScore({
-        diceCount: finishedGame.diceCount,
-        dateRecorded: now,
-        score: p.score,
-        playerName: p.name,
-        isAi: p.isAi,
-        gameId: finishedGame.id,
-      });
+  const handleStartGame = useCallback(async () => {
+    const name = playerName.trim();
+    if (await start({ name, diceCount, aiOpponents })) {
+      setScreen("playing");
+      try {
+        const updated = saveRecentName(name);
+        if (updated) setRecentNames(updated);
+      } catch { /* Name history is optional; the authorized game is already active. */ }
     }
-  }, [addGameLog, submitHighScore]);
-
-  const handleStartGame = useCallback(() => {
-    const trimmedName = playerName.trim();
-    const updated = saveRecentName(trimmedName);
-    if (updated) setRecentNames(updated);
-    const players: { id: string; name: string; isAi?: boolean }[] = [
-      { id: "local", name: trimmedName },
-    ];
-    for (let i = 0; i < aiOpponents; i++) {
-      players.push({ id: `ai-${i}`, name: AI_NAMES[i], isAi: true });
-    }
-    const g = createGame({ id: crypto.randomUUID(), diceCount, players });
-    g.status = "playing";
-    gameStartedAt.current = new Date().toISOString();
-    setGame(g);
-    setScreen("playing");
-  }, [diceCount, playerName, aiOpponents]);
+  }, [playerName, diceCount, aiOpponents, start]);
 
   const handleCancelGame = useCallback(() => {
-    setScreen("setup");
-    setGame(null);
-  }, []);
-
-  const advanceToNextPlayer = useCallback((g: GameState): GameState => {
-    const nextIndex = (g.currentPlayerIndex + 1) % g.players.length;
-    const nextRound = nextIndex === 0 ? g.currentRound + 1 : g.currentRound;
-    return {
-      ...g,
-      currentPlayerIndex: nextIndex,
-      dice: new Array(g.diceCount).fill(0),
-      held: new Set(),
-      rollsLeft: g.maxRolls,
-      currentRound: nextRound,
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!game || screen !== "playing") return;
-    const current = game.players[game.currentPlayerIndex];
-    if (!current.isAi) return;
-
-    const timeout = setTimeout(() => {
-      setGame((prev) => {
-        if (!prev) return prev;
-        let g = executeAiTurn(prev);
-        if (isGameComplete(g)) {
-          g.status = "finished";
-          setScreen("finished");
-          handleGameFinished(g);
-          return g;
-        }
-        g = advanceToNextPlayer(g);
-        return g;
-      });
-    }, 400);
-
-    return () => clearTimeout(timeout);
-  }, [game, screen, advanceToNextPlayer, handleGameFinished]);
-
-  // Auto-roll dice when advancing to a human player's turn
-  useEffect(() => {
-    if (!game || screen !== "playing") return;
-    const current = game.players[game.currentPlayerIndex];
-    if (current.isAi) return;
-    if (game.rollsLeft !== game.maxRolls) return;
-    if (game.dice.some((d) => d !== 0)) return;
-
-    const timeout = setTimeout(() => {
-      setGame((prev) => {
-        if (!prev) return prev;
-        return { ...prev, dice: rollDice(prev.diceCount), rollsLeft: prev.rollsLeft - 1 };
-      });
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [game, screen]);
-
-  const handleRoll = useCallback(() => {
-    if (!game || game.rollsLeft <= 0) return;
-    setGame((prev) => {
-      if (!prev) return prev;
-      const newDice =
-        prev.rollsLeft === prev.maxRolls
-          ? rollDice(prev.diceCount)
-          : reroll(prev.dice, prev.held);
-      return { ...prev, dice: newDice, rollsLeft: prev.rollsLeft - 1 };
-    });
-  }, [game]);
-
-  const handleToggleHold = useCallback(
-    (index: number) => {
-      if (!game || game.rollsLeft === game.maxRolls) return;
-      setGame((prev) => {
-        if (!prev) return prev;
-        const newHeld = new Set(prev.held);
-        if (newHeld.has(index)) newHeld.delete(index);
-        else newHeld.add(index);
-        return { ...prev, held: newHeld };
-      });
-    },
-    [game]
-  );
-
-  const handleSelectCategory = useCallback(
-    (categoryId: CategoryId) => {
-      if (!game) return;
-      const cats = getCategories(game.diceCount);
-      const cat = cats.find((c) => c.id === categoryId);
-      if (!cat) return;
-
-      setGame((prev) => {
-        if (!prev) return prev;
-        const playerIdx = prev.currentPlayerIndex;
-        const player = { ...prev.players[playerIdx] };
-        player.scores = { ...player.scores, [categoryId]: cat.score(prev.dice) };
-
-        const newPlayers = [...prev.players];
-        newPlayers[playerIdx] = player;
-
-        let newGame: GameState = { ...prev, players: newPlayers };
-
-        if (isGameComplete(newGame)) {
-          newGame.status = "finished";
-          setScreen("finished");
-          handleGameFinished(newGame);
-          return newGame;
-        }
-
-        newGame = advanceToNextPlayer(newGame);
-        return newGame;
-      });
-    },
-    [game, advanceToNextPlayer, handleGameFinished]
-  );
+    reset(); setScreen("setup");
+  }, [reset]);
 
   const currentPlayer = game?.players[game.currentPlayerIndex];
   const isHumanTurn = currentPlayer && !currentPlayer.isAi;
+  const canInteract = !!isHumanTurn && !busy && !canRetry;
   const hasRolled = game ? game.rollsLeft < game.maxRolls : false;
   const suggestedCategory = game && isHumanTurn && hasRolled
     ? pickAiCategory(game.dice, game.players[game.currentPlayerIndex], game.diceCount)
@@ -282,8 +113,11 @@ export function App() {
       <ThemeToggle onToggle={toggleTheme} />
       <h1 style={{ textAlign: "center", marginBottom: "1.5rem", color: theme.text }}>🎲 Yahtzee</h1>
 
+      {busy && <p role="status">{game ? "Saving move..." : "Starting guest game..."}</p>}
+      {error && <div role="alert"><p>{error}</p>{canRetry && <button onClick={retry} disabled={busy}>Retry move</button>}</div>}
+
       {screen === "setup" && (
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <fieldset disabled={busy} style={{ display: "flex", justifyContent: "center", border: 0, padding: 0, margin: 0, minWidth: 0 }}>
           <GameSettings
             diceCount={diceCount}
             onDiceCountChange={setDiceCount}
@@ -294,7 +128,7 @@ export function App() {
             onStartGame={handleStartGame}
             recentNames={recentNames}
           />
-        </div>
+        </fieldset>
       )}
 
       {screen === "playing" && game && (
@@ -333,11 +167,11 @@ export function App() {
               dice={game.dice}
               held={game.held}
               onToggleHold={handleToggleHold}
-              disabled={!isHumanTurn || game.rollsLeft === 0}
+              disabled={!canInteract || game.rollsLeft === 0}
             />
             <button
               onClick={handleRoll}
-              disabled={!isHumanTurn || game.rollsLeft <= 0}
+              disabled={!canInteract || game.rollsLeft <= 0}
               style={{
                 marginTop: "1rem",
                 padding: "0.75rem 2rem",
@@ -345,9 +179,9 @@ export function App() {
                 fontWeight: "bold",
                 borderRadius: "8px",
                 border: "none",
-                background: isHumanTurn && game.rollsLeft > 0 ? theme.primary : theme.disabledBg,
+                background: canInteract && game.rollsLeft > 0 ? theme.primary : theme.disabledBg,
                 color: "#fff",
-                cursor: isHumanTurn && game.rollsLeft > 0 ? "pointer" : "default",
+                cursor: canInteract && game.rollsLeft > 0 ? "pointer" : "default",
               }}
             >
               {game.rollsLeft === game.maxRolls ? "Roll Dice" : `Re-roll (${game.rollsLeft})`}
@@ -360,7 +194,7 @@ export function App() {
             currentDice={game.dice}
             availableCategories={isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex], game.diceCount) : []}
             onSelectCategory={handleSelectCategory}
-            canInteract={!!isHumanTurn}
+            canInteract={canInteract}
             hasRolled={game.rollsLeft < game.maxRolls}
             diceCount={game.diceCount}
             suggestedCategory={suggestedCategory}

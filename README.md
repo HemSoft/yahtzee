@@ -1,16 +1,16 @@
 # Yahtzee
 
-A dice game for web, Electron desktop and Expo mobile, sharing a TypeScript game engine. Play one local human against zero to three AI opponents. Convex stores completed game logs and leaderboards.
+A dice game for web, Electron desktop and Expo mobile, sharing a TypeScript game engine. Play one local human against zero to three AI opponents. Convex owns active games and persists their computed results.
 
-Remote play with friends is not implemented. There is no room creation, join flow or shared live-game API. Local solo play still requires a configured Convex backend at startup; this is not an offline application.
+Remote play with friends is not implemented. There is no room creation or join flow. The guest-game API supports one local human, not remote human multiplayer. All play requires a configured, reachable Convex backend; this is not an offline application.
 
 ## Implemented gameplay
 
 - Five-dice play and extended six-or-more-dice modes. Web and desktop offer custom counts from 2 to 20; mobile offers 5, 6, 8 and 10.
-- One human player and up to three local AI opponents. AI turns use a single roll and greedy category selection.
+- One human player and up to three AI opponents. Convex generates rolls, validates moves and runs AI turns using a single roll and greedy category selection.
 - Dice holding, up to three rolls per turn, scorecard totals and upper-section bonuses.
 - House-rule scoring includes pairs and scores three/four of a kind using matching dice only. The five-dice scorecard has 15 categories, rather than the standard 13-category Yahtzee sheet.
-- Shared completed-game history and top-ten leaderboards per dice count. Display names are not authenticated account identities.
+- Verified completed-game history and top-ten leaderboards per dice count. Display names are not authenticated account identities. Guest capabilities stay in memory, expire after 12 hours and are lost on reload; see [the security and migration contract](docs/guest-games.md).
 
 ## Stack and layout
 
@@ -20,8 +20,8 @@ Remote play with friends is not implemented. There is no room creation, join flo
 | `apps/desktop` | Electron and electron-vite application |
 | `apps/mobile` | Expo and React Native application |
 | `packages/game-engine` | Dice, scoring, totals and AI rules |
-| `packages/ui` | Shared web/desktop React controls and theme values |
-| `convex` | Schema, completed logs and leaderboard functions |
+| `packages/ui` | Shared session lifecycle, web/desktop controls and themes |
+| `convex` | Authorized game moves, temporary sessions, verified results and rankings |
 
 The project uses Bun workspaces. Native mobile renders its own controls; it does not render the shared HTML scorecard.
 
@@ -69,20 +69,25 @@ Mobile device/simulator setup and native packaging require the corresponding Exp
 ### Validate and build
 
 ```sh
-bun run test          # Engine unit tests
+bun run test          # Engine and isolated backend tests
 bun run test:watch    # Watch mode
-bun run typecheck     # All five workspaces and Convex
+bun run typecheck     # All workspaces, Convex and validation tools
 bun run lint          # TypeScript, React Hooks and ESM configuration
 bun run security      # Dependency advisories, no exceptions currently accepted
 bun run build:web
 bun run build:desktop
+bun run build:mobile   # Android/iOS JavaScript and Hermes, not signed native packages
+bun run test:clients:install  # Install pinned Chromium and Electron test binaries
+bun run test:clients          # Web, actual Electron and mobile-source journeys
 ```
+
+See [client qualification](docs/client-qualification.md) for Linux display dependencies, artifacts, failure probes and native-device limits. The suite uses an isolated in-memory backend, not a deployment.
 
 See [the lint policy](docs/lint-policy.md) for rules and generated-code exclusions. No production deployment is needed for these checks. A frontend build without a URL can compile, but it will not start successfully until configured.
 
 ## Planned work
 
-Remote human multiplayer is planned, not part of the current application. Do not interpret shared leaderboards as live multiplayer. Server-side result integrity, replay handling and application journey tests are tracked in the [issue queue](https://github.com/HemSoft/yahtzee/issues).
+Remote human multiplayer is planned, not part of the current application. Do not interpret shared leaderboards as live multiplayer. Server-authoritative results, durable replay handling and isolated client journeys are implemented. Remaining work is tracked in the [issue queue](https://github.com/HemSoft/yahtzee/issues).
 
 ## License
 
