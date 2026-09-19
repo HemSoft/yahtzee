@@ -9,7 +9,7 @@ function createWindow() {
     minHeight: 600,
     title: "Yahtzee",
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      preload: join(__dirname, "../preload/index.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
     },

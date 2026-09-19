@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,46 +7,39 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
-import { randomUUID } from "expo-crypto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import {
-  createGame,
-  rollDice,
-  reroll,
   getAvailableCategories,
-  isGameComplete,
   calculateTotal,
   calculateMaxPossibleScore,
-  executeAiTurn,
   pickAiCategory,
   getCategories,
   createEmptyGameLog,
-  type GameState,
-  type CategoryId,
   type GameLog,
   type GameLogEntry,
 } from "@yahtzee/game-engine";
-import { lightTheme, darkTheme } from "@yahtzee/ui";
+import { lightTheme, darkTheme, useGameSession } from "@yahtzee/ui";
 
 const DIE_FACES: Record<number, string> = {
   1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅",
 };
 
-const AI_NAMES = ["Bot Alpha", "Bot Beta", "Bot Gamma"];
-
 type Screen = "setup" | "playing" | "finished";
 
 export default function Index() {
-  const [screen, setScreen] = useState<Screen>("setup");
+  const [screenState, setScreen] = useState<Screen>("setup");
   const [playerName, setPlayerName] = useState("");
   const [recentNames, setRecentNames] = useState<string[]>([]);
   const [diceCount, setDiceCount] = useState(5);
   const [aiOpponents, setAiOpponents] = useState(0);
-  const [game, setGame] = useState<GameState | null>(null);
-  const gameStartedAt = useRef<string>("");
-  const lastLoggedGameRef = useRef<string>("");
+  const startGuest = useAction(api.gameSessions.start);
+  const moveGuest = useMutation(api.games.move);
+  const { game, busy, error, canRetry, retry, start, reset,
+    roll: handleRoll, toggleHold: handleToggleHold, selectCategory: handleSelectCategory,
+  } = useGameSession({ start: startGuest, move: moveGuest });
+  const screen = screenState === "playing" && game?.status === "finished" ? "finished" : screenState;
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const theme = themeMode === "dark" ? darkTheme : lightTheme;
 
@@ -85,9 +78,6 @@ export default function Index() {
     [topScoresRaw]
   );
 
-  // Convex mutations
-  const addGameLog = useMutation(api.gameLogs.add);
-  const submitHighScore = useMutation(api.highScores.submit);
 
   const toggleTheme = useCallback(() => {
     setThemeMode((prev) => {
@@ -107,198 +97,44 @@ export default function Index() {
     })();
   }, []);
 
-  const handleGameFinished = useCallback((finishedGame: GameState) => {
-    if (lastLoggedGameRef.current === finishedGame.id) return;
-    lastLoggedGameRef.current = finishedGame.id;
-
-    const completedAt = new Date().toISOString();
-    const startDate = new Date(gameStartedAt.current);
-    const endDate = new Date(completedAt);
-    const durationSeconds = Math.round((endDate.getTime() - startDate.getTime()) / 1000);
-
-    const players = finishedGame.players.map((p) => ({
-      name: p.name,
-      isAi: !!p.isAi,
-      score: calculateTotal(p, finishedGame.diceCount).grandTotal,
-      scores: { ...p.scores },
-    }));
-
-    const winner = players.reduce((best, p) => (p.score > best.score ? p : best), players[0]);
-
-    addGameLog({
-      gameId: finishedGame.id,
-      diceCount: finishedGame.diceCount,
-      startedAt: gameStartedAt.current,
-      completedAt,
-      durationSeconds,
-      players,
-      winnerName: winner.name,
-    });
-
-    const now = new Date().toISOString();
-    for (const p of players) {
-      submitHighScore({
-        diceCount: finishedGame.diceCount,
-        dateRecorded: now,
-        score: p.score,
-        playerName: p.name,
-        isAi: p.isAi,
-        gameId: finishedGame.id,
-      });
+  const handleStartGame = useCallback(async () => {
+    const name = playerName.trim();
+    if (await start({ name, diceCount, aiOpponents })) {
+      setScreen("playing");
+      const updated = [name, ...recentNames.filter((entry) => entry !== name)].slice(0, 5);
+      setRecentNames(updated);
+      AsyncStorage.setItem("yahtzee-recent-names", JSON.stringify(updated)).catch(() => {});
     }
-  }, [addGameLog, submitHighScore]);
-
-  const handleStartGame = useCallback(() => {
-    const trimmedName = playerName.trim();
-    const updated = [trimmedName, ...recentNames.filter((n) => n !== trimmedName)].slice(0, 5);
-    setRecentNames(updated);
-    AsyncStorage.setItem("yahtzee-recent-names", JSON.stringify(updated)).catch(() => {});
-    const players: { id: string; name: string; isAi?: boolean }[] = [
-      { id: "local", name: trimmedName },
-    ];
-    for (let i = 0; i < aiOpponents; i++) {
-      players.push({ id: `ai-${i}`, name: AI_NAMES[i], isAi: true });
-    }
-    const g = createGame({ id: randomUUID(), diceCount, players });
-    g.status = "playing";
-    gameStartedAt.current = new Date().toISOString();
-    setGame(g);
-    setScreen("playing");
-  }, [diceCount, playerName, aiOpponents, recentNames]);
+  }, [playerName, diceCount, aiOpponents, recentNames, start]);
 
   const handleCancelGame = useCallback(() => {
-    setScreen("setup");
-    setGame(null);
-  }, []);
-
-  const advanceToNextPlayer = useCallback((g: GameState): GameState => {
-    const nextIndex = (g.currentPlayerIndex + 1) % g.players.length;
-    const nextRound = nextIndex === 0 ? g.currentRound + 1 : g.currentRound;
-    return {
-      ...g,
-      currentPlayerIndex: nextIndex,
-      dice: new Array(g.diceCount).fill(0),
-      held: new Set(),
-      rollsLeft: g.maxRolls,
-      currentRound: nextRound,
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!game || screen !== "playing") return;
-    const current = game.players[game.currentPlayerIndex];
-    if (!current.isAi) return;
-
-    const timeout = setTimeout(() => {
-      setGame((prev) => {
-        if (!prev) return prev;
-        let g = executeAiTurn(prev);
-        if (isGameComplete(g)) {
-          g.status = "finished";
-          setScreen("finished");
-          handleGameFinished(g);
-          return g;
-        }
-        g = advanceToNextPlayer(g);
-        return g;
-      });
-    }, 400);
-
-    return () => clearTimeout(timeout);
-  }, [game, screen, advanceToNextPlayer, handleGameFinished]);
-
-  // Auto-roll dice when advancing to a human player's turn
-  useEffect(() => {
-    if (!game || screen !== "playing") return;
-    const current = game.players[game.currentPlayerIndex];
-    if (current.isAi) return;
-    if (game.rollsLeft !== game.maxRolls) return;
-    if (game.dice.some((d: number) => d !== 0)) return;
-
-    const timeout = setTimeout(() => {
-      setGame((prev) => {
-        if (!prev) return prev;
-        return { ...prev, dice: rollDice(prev.diceCount), rollsLeft: prev.rollsLeft - 1 };
-      });
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [game, screen]);
-
-  const handleRoll = useCallback(() => {
-    if (!game || game.rollsLeft <= 0) return;
-    setGame((prev) => {
-      if (!prev) return prev;
-      const newDice =
-        prev.rollsLeft === prev.maxRolls
-          ? rollDice(prev.diceCount)
-          : reroll(prev.dice, prev.held);
-      return { ...prev, dice: newDice, rollsLeft: prev.rollsLeft - 1 };
-    });
-  }, [game]);
-
-  const handleToggleHold = useCallback(
-    (index: number) => {
-      if (!game || game.rollsLeft === game.maxRolls) return;
-      setGame((prev) => {
-        if (!prev) return prev;
-        const newHeld = new Set(prev.held);
-        if (newHeld.has(index)) newHeld.delete(index);
-        else newHeld.add(index);
-        return { ...prev, held: newHeld };
-      });
-    },
-    [game]
-  );
-
-  const handleSelectCategory = useCallback(
-    (categoryId: CategoryId) => {
-      if (!game) return;
-      const cats = getCategories(game.diceCount);
-      const cat = cats.find((c) => c.id === categoryId);
-      if (!cat) return;
-
-      setGame((prev) => {
-        if (!prev) return prev;
-        const playerIdx = prev.currentPlayerIndex;
-        const player = { ...prev.players[playerIdx] };
-        player.scores = { ...player.scores, [categoryId]: cat.score(prev.dice) };
-
-        const newPlayers = [...prev.players];
-        newPlayers[playerIdx] = player;
-
-        let newGame: GameState = { ...prev, players: newPlayers };
-
-        if (isGameComplete(newGame)) {
-          newGame.status = "finished";
-          setScreen("finished");
-          handleGameFinished(newGame);
-          return newGame;
-        }
-
-        newGame = advanceToNextPlayer(newGame);
-        return newGame;
-      });
-    },
-    [game, advanceToNextPlayer, handleGameFinished]
-  );
+    reset(); setScreen("setup");
+  }, [reset]);
 
   const currentPlayer = game?.players[game.currentPlayerIndex];
   const isHumanTurn = currentPlayer && !currentPlayer.isAi;
+  const canInteract = !!isHumanTurn && !busy && !canRetry;
+  const connectionStatus = <View>
+    {busy && <Text accessibilityLiveRegion="polite" style={{ color: theme.text }}>{game ? "Saving move..." : "Starting guest game..."}</Text>}
+    {error && <Text accessibilityRole="alert" style={{ color: theme.text }}>{error}</Text>}
+    {canRetry && <TouchableOpacity accessibilityRole="button" onPress={retry} disabled={busy} style={[styles.startBtn, { backgroundColor: theme.primary }]}><Text style={styles.startBtnText}>Retry move</Text></TouchableOpacity>}
+  </View>;
 
   if (screen === "setup") {
     return (
       <View style={[styles.container, { backgroundColor: theme.bg }]}>
-        <TouchableOpacity onPress={toggleTheme} style={{ alignSelf: "flex-end", padding: 8, borderRadius: 8, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={themeMode === "light" ? "Switch to dark mode" : "Switch to light mode"} onPress={toggleTheme} style={{ alignSelf: "flex-end", padding: 8, borderRadius: 8, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }}>
           <Text style={{ fontSize: 20 }}>{theme.mode === "light" ? "🌙" : "☀️"}</Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: theme.text }]}>🎲 Yahtzee</Text>
+        {connectionStatus}
         <TextInput
           style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
           placeholder="Your name"
           placeholderTextColor={theme.textMuted}
           value={playerName}
           onChangeText={setPlayerName}
+          editable={!busy}
           maxLength={20}
         />
         {recentNames.length > 0 && (
@@ -306,6 +142,7 @@ export default function Index() {
             {recentNames.map((name) => (
               <TouchableOpacity
                 key={name}
+                disabled={busy}
                 onPress={() => setPlayerName(name)}
                 style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: playerName === name ? theme.accent : theme.border, backgroundColor: playerName === name ? theme.accentBg : theme.surface }}
               >
@@ -318,7 +155,9 @@ export default function Index() {
         <View style={styles.presetRow}>
           {[0, 1, 2, 3].map((n) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={n}
+              disabled={busy}
               style={[styles.presetBtn, { borderColor: theme.border, backgroundColor: theme.surface }, aiOpponents === n && { borderColor: theme.accent, backgroundColor: theme.accentBg }]}
               onPress={() => setAiOpponents(n)}
             >
@@ -332,7 +171,9 @@ export default function Index() {
         <View style={styles.presetRow}>
           {[5, 6, 8, 10].map((n) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={n}
+              disabled={busy}
               style={[styles.presetBtn, { borderColor: theme.border, backgroundColor: theme.surface }, diceCount === n && { borderColor: theme.primary, backgroundColor: theme.primaryBg }]}
               onPress={() => setDiceCount(n)}
             >
@@ -341,9 +182,10 @@ export default function Index() {
           ))}
         </View>
         <TouchableOpacity
-          style={[styles.startBtn, { backgroundColor: theme.success }, !playerName.trim() && styles.disabledBtn]}
+          style={[styles.startBtn, { backgroundColor: theme.success }, (!playerName.trim() || busy) && styles.disabledBtn]}
+          accessibilityRole="button"
           onPress={handleStartGame}
-          disabled={!playerName.trim()}
+          disabled={!playerName.trim() || busy}
         >
           <Text style={styles.startBtnText}>Start Game</Text>
         </TouchableOpacity>
@@ -376,6 +218,7 @@ export default function Index() {
         })}
         <TouchableOpacity
           style={[styles.startBtn, { backgroundColor: theme.success }]}
+          accessibilityRole="button"
           onPress={handleCancelGame}
         >
           <Text style={styles.startBtnText}>Play Again</Text>
@@ -412,7 +255,7 @@ export default function Index() {
 
   if (!game) return null;
 
-  const available = isHumanTurn ? getAvailableCategories(game.players[game.currentPlayerIndex], game.diceCount) : [];
+  const available = canInteract ? getAvailableCategories(game.players[game.currentPlayerIndex], game.diceCount) : [];
   const hasRolled = game.rollsLeft < game.maxRolls;
   const suggestedCategory = game && isHumanTurn && hasRolled
     ? pickAiCategory(game.dice, game.players[game.currentPlayerIndex], game.diceCount)
@@ -420,8 +263,9 @@ export default function Index() {
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.bg }]}>
+      {connectionStatus}
       {/* Quit button */}
-      <TouchableOpacity style={[styles.quitBtn, { borderColor: "#e57373" }]} onPress={handleCancelGame}>
+      <TouchableOpacity accessibilityRole="button" style={[styles.quitBtn, { borderColor: "#e57373" }]} onPress={handleCancelGame}>
         <Text style={styles.quitBtnText}>✕ Quit Game</Text>
       </TouchableOpacity>
 
@@ -437,9 +281,11 @@ export default function Index() {
         {game.dice.map((val, i) => (
           <TouchableOpacity
             key={i}
+            accessibilityRole="button"
+            accessibilityLabel={`Die showing ${val}${game.held.has(i) ? ", held" : ""}`}
             style={[styles.die, { backgroundColor: theme.dieBg, borderColor: "transparent" }, game.held.has(i) && { borderColor: theme.heldBorder, backgroundColor: theme.heldBg }]}
-            onPress={() => isHumanTurn && handleToggleHold(i)}
-            disabled={!isHumanTurn}
+            onPress={() => canInteract && handleToggleHold(i)}
+            disabled={!canInteract || game.rollsLeft === 0}
           >
             <Text style={[styles.dieText, { color: theme.text }]}>{val > 0 ? DIE_FACES[val] ?? val : "?"}</Text>
           </TouchableOpacity>
@@ -447,9 +293,10 @@ export default function Index() {
       </View>
 
       <TouchableOpacity
-        style={[styles.rollBtn, { backgroundColor: isHumanTurn && game.rollsLeft > 0 ? theme.primary : theme.disabledBg }, (!isHumanTurn || game.rollsLeft <= 0) && styles.disabledBtn]}
+        style={[styles.rollBtn, { backgroundColor: canInteract && game.rollsLeft > 0 ? theme.primary : theme.disabledBg }, (!canInteract || game.rollsLeft <= 0) && styles.disabledBtn]}
+        accessibilityRole="button"
         onPress={handleRoll}
-        disabled={!isHumanTurn || game.rollsLeft <= 0}
+        disabled={!canInteract || game.rollsLeft <= 0}
       >
         <Text style={styles.rollBtnText}>
           {game.rollsLeft === game.maxRolls ? "Roll Dice" : `Re-roll (${game.rollsLeft})`}
@@ -502,6 +349,8 @@ export default function Index() {
             return (
               <TouchableOpacity
                 key={cat.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Score ${cat.label}`}
                 style={[styles.sheetRow, { borderBottomColor: theme.border }, isAvailable && { backgroundColor: theme.availableBg }, isSuggested && { backgroundColor: theme.suggestionBg }]}
                 onPress={() => isAvailable && handleSelectCategory(cat.id)}
                 disabled={!isAvailable}

@@ -24,6 +24,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
@@ -48,6 +50,31 @@ jobs:
       - name: Desktop production build
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run build:desktop
+      - name: Android and iOS JavaScript and Hermes export
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        env:
+          EXPO_OFFLINE: '1'
+          EXPO_NO_TELEMETRY: '1'
+          EXPO_PUBLIC_CONVEX_URL: https://fixture.invalid
+        run: bun run build:mobile
+      - name: Install client-test browser and host dependencies
+        id: browsers
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+      - name: Client and backend journeys on Linux
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' && runner.os == 'Linux' }}
+        run: xvfb-run --auto-servernum bun run test:clients
+      - name: Client and backend journeys on Windows
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' && runner.os == 'Windows' }}
+        run: bun run test:clients
+      - name: Retain revision-bound client evidence
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: clients-${{ matrix.os }}-${{ github.sha }}
+          path: reports/clients/
+          retention-days: 3
+          if-no-files-found: warn
 
   quality-gate:
     name: quality-gate

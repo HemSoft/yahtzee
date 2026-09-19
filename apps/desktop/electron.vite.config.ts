@@ -14,6 +14,7 @@ export default defineConfig({
   preload: {
     plugins: [externalizeDepsPlugin()],
     envDir: monorepoRoot,
+    build: { rollupOptions: { output: { format: "cjs", entryFileNames: "index.cjs" } } },
   },
   renderer: {
     plugins: [react()],

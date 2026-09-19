@@ -44,15 +44,14 @@ describe("backend high-score receipts", () => {
     }
     expect(JSON.stringify(tables)).toBe(before);
   });
-  test("concurrent public mutations persist a single result", async () => {
+  test("legacy public score submissions are rejected, including concurrent replays", async () => {
     const t = convexTest(schema, {
       "../../../convex/_generated/server.ts": () => import("../../../convex/_generated/server"),
       "../../../convex/highScores.ts": () => import("../../../convex/highScores"),
     });
-    await Promise.all(Array.from({ length: 8 }, () => t.mutation(api.highScores.submit, result())));
-    const rows = await t.query(api.highScores.top, { diceCount: 5 });
-    expect(rows).toHaveLength(1);
-    expect(rows[0].rankCurrent).toBe(1);
+    const attempts = await Promise.allSettled(Array.from({ length: 8 }, () => t.mutation(api.highScores.submit, result())));
+    expect(attempts.every((attempt) => attempt.status === "rejected")).toBe(true);
+    expect(await t.query(api.highScores.top, { diceCount: 5 })).toHaveLength(0);
   });
   test("corrupt duplicate receipts fail instead of hiding the invariant violation", async () => {
     const { ctx, tables } = fixture();
@@ -98,9 +97,9 @@ describe("backend high-score receipts", () => {
     expect(tables.highScoreReceipts).toHaveLength(11);
     expect(tables.highScores.some((r) => r.gameId === "tie")).toBe(false);
   });
-  test("recognizes a legacy leaderboard entry without a receipt", async () => {
+  test("recognizes an existing verified leaderboard entry without a receipt", async () => {
     const { ctx, tables } = fixture();
-    tables.highScores.push({ ...result(), _id: "legacy" });
+    tables.highScores.push({ ...result(), verified: true, _id: "legacy" });
     await recordScore(ctx, result());
     expect(tables.highScores).toHaveLength(1);
     expect(tables.highScoreReceipts).toHaveLength(1);
