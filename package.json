@@ -22,7 +22,7 @@
     "security": "bun scripts/security-audit.ts",
     "codegen:offline": "bun scripts/convex-api-offline.mjs",
     "test:clients": "bun run build:desktop && node node_modules/playwright/cli.js test",
-    "test:clients:install": "node node_modules/playwright/cli.js install chromium"
+    "test:clients:install": "node node_modules/playwright/cli.js install chromium && node apps/desktop/node_modules/electron/install.js"
   },
   "author": "Franz Hemmer <franz_hemmer@hotmail.com>",
   "license": "MIT",

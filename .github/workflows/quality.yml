@@ -61,11 +61,15 @@ jobs:
         id: browsers
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: node node_modules/playwright/cli.js install --with-deps chromium
+      - name: Install pinned Electron binary outside the test timeout
+        id: electron
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: node apps/desktop/node_modules/electron/install.js
       - name: Client and backend journeys on Linux
-        if: ${{ !cancelled() && steps.browsers.outcome == 'success' && runner.os == 'Linux' }}
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' && steps.electron.outcome == 'success' && runner.os == 'Linux' }}
         run: xvfb-run --auto-servernum bun run test:clients
       - name: Client and backend journeys on Windows
-        if: ${{ !cancelled() && steps.browsers.outcome == 'success' && runner.os == 'Windows' }}
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' && steps.electron.outcome == 'success' && runner.os == 'Windows' }}
         run: bun run test:clients
       - name: Retain revision-bound client evidence
         if: ${{ always() && steps.install.outcome == 'success' }}

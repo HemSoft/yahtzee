@@ -77,7 +77,7 @@ bun run security      # Dependency advisories, no exceptions currently accepted
 bun run build:web
 bun run build:desktop
 bun run build:mobile   # Android/iOS JavaScript and Hermes, not signed native packages
-bun run test:clients:install  # Install the pinned Chromium test browser
+bun run test:clients:install  # Install pinned Chromium and Electron test binaries
 bun run test:clients          # Web, actual Electron and mobile-source journeys
 ```
 
