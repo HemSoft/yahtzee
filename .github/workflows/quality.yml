@@ -65,18 +65,20 @@ jobs:
         id: electron
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: node apps/desktop/node_modules/electron/install.js
-      - name: Client and backend journeys on Linux
+      - name: Client journeys and function-risk gate on Linux
         if: ${{ !cancelled() && steps.browsers.outcome == 'success' && steps.electron.outcome == 'success' && runner.os == 'Linux' }}
-        run: xvfb-run --auto-servernum bun run test:clients
-      - name: Client and backend journeys on Windows
+        run: xvfb-run --auto-servernum bun run quality:measure
+      - name: Client journeys and function-risk gate on Windows
         if: ${{ !cancelled() && steps.browsers.outcome == 'success' && steps.electron.outcome == 'success' && runner.os == 'Windows' }}
-        run: bun run test:clients
-      - name: Retain revision-bound client evidence
+        run: bun run quality:measure
+      - name: Retain revision-bound qualification evidence
         if: ${{ always() && steps.install.outcome == 'success' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: clients-${{ matrix.os }}-${{ github.sha }}
-          path: reports/clients/
+          name: qualification-${{ matrix.os }}-${{ github.sha }}
+          path: |
+            reports/clients/
+            reports/quality/
           retention-days: 3
           if-no-files-found: warn
 

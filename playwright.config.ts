@@ -8,7 +8,9 @@ export default defineConfig({
   projects: [{ name: "web" }, { name: "desktop" }, { name: "mobile-web-adapter" }],
   use: { baseURL: "http://127.0.0.1:5187" },
   webServer: {
-    command: "bun tests/clients/server.ts", url: "http://127.0.0.1:5187/health",
+    command: process.env.TEST_COVERAGE === "1"
+      ? "bun --preload ./scripts/quality/instrument-preload.ts tests/clients/server.ts"
+      : "bun tests/clients/server.ts", url: "http://127.0.0.1:5187/health",
     reuseExistingServer: false, timeout: 30_000,
   },
 });

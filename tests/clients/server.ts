@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 import schema from "../../convex/schema";
 import { api } from "../../convex/_generated/api";
 import type { FunctionArgs } from "convex/server";
+import { instrument } from "../../scripts/quality/instrument";
+import { isProductionSource, productionLoadFilter } from "../../scripts/quality/sources";
 
 const require = createRequire(import.meta.url);
 function backend() {
@@ -26,6 +28,11 @@ for (const client of ["web", "desktop", "mobile"]) {
     entrypoints: [resolve(`tests/clients/${client}.tsx`)], target: "browser",
     define: { "process.env.NODE_ENV": JSON.stringify("test"), __DEV__: "true" },
     plugins: [{ name: "isolated-client-backend", setup(build) {
+      if (process.env.TEST_COVERAGE === "1") build.onLoad({ filter: productionLoadFilter }, async ({ path }) => {
+        const source = await Bun.file(path).text();
+        return { contents: isProductionSource(path) ? instrument(source, path).code : source,
+          loader: path.endsWith(".tsx") ? "tsx" : path.endsWith(".jsx") ? "jsx" : /\.[cm]?ts$/.test(path) ? "ts" : "js" };
+      });
       build.onResolve({ filter: /^convex\/react$/ }, () => ({ path: resolve("tests/clients/backend-client.tsx") }));
       build.onResolve({ filter: /^react-native$/ }, () => ({ path: require.resolve("react-native-web") }));
       build.onResolve({ filter: /^@react-native-async-storage\/async-storage$/ }, () => ({ path: resolve("tests/clients/native-storage.ts") }));
@@ -40,6 +47,9 @@ Bun.serve({
   async fetch(request) {
     const path = new URL(request.url).pathname;
     if (path === "/health") return Response.json({ ready: true });
+    if (path === "/coverage" && process.env.TEST_COVERAGE === "1") {
+      return Response.json((globalThis as typeof globalThis & { __coverage__?: unknown }).__coverage__ ?? {});
+    }
     if (path === "/favicon.ico") return new Response(null, { status: 204 });
     if (outputs.has(path)) return new Response(outputs.get(path), { headers: { "content-type": "text/javascript" } });
     if (["/web", "/desktop", "/mobile"].includes(path)) {

@@ -20,6 +20,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "bun run --filter \"*\" typecheck && tsc -p convex/tsconfig.json --noEmit && tsc -p scripts/tsconfig.json && tsc -p tests/clients/tsconfig.json",
     "security": "bun scripts/security-audit.ts",
+    "quality:measure": "bun scripts/quality/run.ts",
     "codegen:offline": "bun scripts/convex-api-offline.mjs",
     "test:clients": "bun run build:desktop && node node_modules/playwright/cli.js test",
     "test:clients:install": "node node_modules/playwright/cli.js install chromium && node apps/desktop/node_modules/electron/install.js"
@@ -36,6 +37,8 @@
   "devDependencies": {
     "@eslint/js": "9.39.4",
     "@types/bun": "1.3.7",
+    "@types/istanbul-lib-coverage": "2.0.6",
+    "@types/istanbul-lib-instrument": "1.7.8",
     "@types/node": "24",
     "@types/react": "19",
     "@types/react-dom": "19",
@@ -43,6 +46,8 @@
     "eslint": "9.39.4",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.5.0",
+    "istanbul-lib-coverage": "3.2.2",
+    "istanbul-lib-instrument": "6.0.3",
     "playwright": "1.63.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",

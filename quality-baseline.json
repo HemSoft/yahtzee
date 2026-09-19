@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "legacy": {
+    "apps/desktop/src/renderer/App.tsx::/App#1": {
+      "maxCrap": 34.19821673525377,
+      "reason": "Existing at dc197876. Renderer component has complexity 34 and 51/54 observed branch arms. Keep this measured limit until render-state extraction lowers it."
+    },
+    "apps/mobile/app/index.tsx::/Index#1": {
+      "maxCrap": 40.37287209831589,
+      "reason": "Existing at dc197876. Native-screen component has complexity 40 and 61/65 observed branch arms through the declared web adapter. Keep this limit until screen extraction lowers it."
+    },
+    "apps/web/src/App.tsx::/App#1": {
+      "maxCrap": 34.19821673525377,
+      "reason": "Existing at dc197876. Web component has complexity 34 and 51/54 observed branch arms. Keep this measured limit until render-state extraction lowers it."
+    }
+  }
+}
