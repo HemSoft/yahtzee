@@ -12,7 +12,7 @@ On Linux, install Playwright host dependencies and use `xvfb-run --auto-servernu
 
 The command clears only its generated raw-counter directory, runs instrumented engine/backend tests, runs all six real-client journeys, and writes `reports/quality/report.md`, `report.json` and `functions.json`. The JSON report records the Git revision and dirty state. The function-only file omits volatile metadata so two runs at one revision can be compared directly. Missing unit/backend/client collections, empty collections and mismatched source locations fail the command.
 
-The pinned tools are TypeScript 6.0.3, istanbul-lib-instrument 6.0.3 and istanbul-lib-coverage 3.2.2. Bun 1.3.7 runs the tests. Runtime plugins add counters only during qualification; application source and shipped bundles are unchanged. Bun test completion hooks persist unit counters because its runner does not invoke process-exit handlers. Client counters and backend counters are captured before fixture shutdown.
+The pinned tools are TypeScript 6.0.3, istanbul-lib-instrument 6.0.3 and istanbul-lib-coverage 3.2.2. Bun 1.4.2 runs the tests. Runtime plugins add counters only during qualification; application source and shipped bundles are unchanged. Bun test completion hooks persist unit counters because its runner does not invoke process-exit handlers. Client counters and backend counters are captured before fixture shutdown.
 
 ## Inventory and metric
 
