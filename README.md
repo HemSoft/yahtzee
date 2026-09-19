@@ -27,7 +27,7 @@ The project uses Bun workspaces. Native mobile renders its own controls; it does
 
 ## Setup
 
-Use Bun 1.3.7 and Node.js 24.3 or newer, or Node 22 LTS at 22.13 or newer. CI uses Node 24; Windows validation used Node 24.12.0. Install the checked-in dependency versions:
+Use Bun 1.4.2 and Node.js 24.3 or newer, or Node 22 LTS at 22.13 or newer. CI uses Node 24; Windows validation used Node 24.12.0. Install the checked-in dependency versions:
 
 ```sh
 bun install --frozen-lockfile

@@ -14,7 +14,7 @@ Direct toolchain versions are pinned. Expo 57.0.24 uses its published React 19.2
 
 Electron 44.4.3, electron-vite 5.0.0, Vite 7.3.6 and plugin-react 5.2.0 have compatible peer ranges. Vite 8 is intentionally not selected because electron-vite 5 supports Vite 5 through 7. Convex 1.46.0 and convex-test 0.0.59 are aligned. The lockfile was regenerated from the pinned manifests to refresh stale compatible transitive versions; subsequent frozen installs preserve it.
 
-Node must satisfy the root `engines` field. Qualification uses Node 24 and Bun 1.3.7. Expo Android JavaScript/Hermes export passes; that is not a native device, signing or installation test.
+Node must satisfy the root `engines` field. Qualification uses Node 24 and Bun 1.4.2. Expo Android JavaScript/Hermes export passes; that is not a native device, signing or installation test.
 
 ## Compatibility patch
 
