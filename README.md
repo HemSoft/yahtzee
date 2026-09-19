@@ -80,9 +80,13 @@ bun run build:mobile   # Android/iOS JavaScript and Hermes, not signed native pa
 bun run test:clients:install  # Install pinned Chromium and Electron test binaries
 bun run test:clients          # Web, actual Electron and mobile-source journeys
 bun run quality:measure       # Production function complexity, branch coverage and CRAP
+bun run mutation:probe        # Reject a deliberately weakened bonus assertion
+bun run mutation              # Typechecked core-rule mutation gate
 ```
 
 See [client qualification](docs/client-qualification.md) for Linux display dependencies, artifacts, failure probes and native-device limits. The suite uses an isolated in-memory backend, not a deployment. [Function-risk measurement](docs/function-risk.md) combines these journeys with instrumented unit/backend tests and an explicit inventory of unimported production code.
+
+[Mutation testing](docs/mutation-testing.md) records the 95% break threshold, 98% target, measured survivors and isolated sensitivity proof.
 
 See [the lint policy](docs/lint-policy.md) for rules and generated-code exclusions. No production deployment is needed for these checks. A frontend build without a URL can compile, but it will not start successfully until configured.
 

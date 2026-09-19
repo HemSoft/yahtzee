@@ -35,11 +35,28 @@ const result = (gameId = "game", score = 100): ScoreSubmission => ({
 });
 
 describe("backend high-score receipts", () => {
+  test("the real leaderboard returns ranked verified results, including zero", async () => {
+    const t = convexTest(schema, {
+      "../../../convex/_generated/server.ts": () => import("../../../convex/_generated/server"),
+      "../../../convex/highScores.ts": () => import("../../../convex/highScores"),
+    });
+    await t.run(async (ctx) => {
+      for (const score of [100, 0, 200]) await recordScore(ctx, result(`score-${score}`, score));
+      await recordScore(ctx, { ...result("six", 999), diceCount: 6 });
+      await ctx.db.insert("highScores", result("unverified", 1000));
+    });
+    const board = await t.query(api.highScores.top, { diceCount: 5 });
+    expect(board.map((entry) => [entry.score, entry.rankCurrent])).toEqual([[200, 1], [100, 2], [0, 3]]);
+    expect(board.every((entry) => entry.verified === true && entry.diceCount === 5)).toBe(true);
+    for (const diceCount of [1, 21, 2.5, NaN]) {
+      await expect(t.query(api.highScores.top, { diceCount })).rejects.toThrow();
+    }
+  });
   test("invalid numeric scores cannot evict results or consume a receipt", async () => {
     const { ctx, tables } = fixture();
     for (let i = 0; i < 10; i++) await recordScore(ctx, result(String(i)));
     const before = JSON.stringify(tables);
-    for (const score of [NaN, Infinity, -Infinity, -1, 1.5]) {
+    for (const score of [NaN, Infinity, -Infinity, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
       await expect(recordScore(ctx, result("invalid", score))).rejects.toThrow("finite nonnegative integer");
     }
     expect(JSON.stringify(tables)).toBe(before);

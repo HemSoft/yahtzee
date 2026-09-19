@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createRequire } from "node:module";
 import { checkAudit } from "../../../scripts/security-policy";
+import manifest from "../../../package.json";
 
 const advisory = "https://github.com/advisories/GHSA-w5hq-g745-h8pq";
 const report = { uuid: [{ url: advisory, severity: "moderate" }] };
@@ -22,6 +23,16 @@ describe("dependency policy", () => {
     expect(() => checkAudit({ error: "network failure" }, [], "2026-09-18")).toThrow();
     expect(() => checkAudit([], [], "2026-09-18")).toThrow();
     expect(() => checkAudit({ uuid: [{}] }, [], "2026-09-18")).toThrow();
+  });
+  test("Stryker's real REST client resolves the fixed qs parser", () => {
+    const root = createRequire(new URL("../../../package.json", import.meta.url));
+    const stryker = createRequire(root.resolve("@stryker-mutator/core"));
+    const rest = createRequire(stryker.resolve("typed-rest-client/package.json"));
+    const query = rest("qs");
+    expect(rest("qs/package.json").version).toBe(manifest.overrides.qs);
+    expect(query.stringify({ dice: 6, name: "A B" })).toBe("dice=6&name=A%20B");
+    expect(query.stringify({ x: [null, undefined] }, { arrayFormat: "comma", encodeValuesOnly: true })).toBe("x=,");
+    expect(() => query.parse("a[0]=1,2,3", { comma: true, arrayLimit: 1, throwOnLimitExceeded: true })).toThrow("Array limit exceeded");
   });
   test("Expo Router's real query-string consumer uses the patched decoder", () => {
     const mobile = createRequire(new URL("../../../apps/mobile/package.json", import.meta.url));

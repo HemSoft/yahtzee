@@ -45,6 +45,8 @@ coverage/
 reports/
 test-results/
 playwright-report/
+.stryker-tmp/
+stryker.log
 
 # Misc
 *.tsbuildinfo
