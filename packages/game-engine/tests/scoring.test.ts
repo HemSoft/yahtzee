@@ -22,6 +22,11 @@ import {
 } from "../src/scoring";
 
 describe("onePair", () => {
+  test("includes face one when searching for matching dice", () => {
+    expect(onePair([1, 1, 3, 4, 5])).toBe(2);
+    expect(threeOfAKind([1, 1, 1, 4, 5])).toBe(3);
+    expect(twoPairs([1, 1, 6, 6, 3])).toBe(14);
+  });
   test("scores highest pair", () => {
     expect(onePair([3, 3, 5, 5, 1])).toBe(10);
   });

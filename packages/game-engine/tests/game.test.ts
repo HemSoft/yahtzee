@@ -67,6 +67,7 @@ describe("calculateTotal", () => {
     const totals = calculateTotal(player);
     expect(totals.upperSubtotal).toBe(63);
     expect(totals.upperBonus).toBe(35);
+    expect(totals.grandTotal).toBe(98);
   });
 
   test("no bonus below threshold", () => {
@@ -149,6 +150,11 @@ describe("getAvailableCategories", () => {
 });
 
 describe("pickAiCategory", () => {
+  test("prefers a matching maxi category over Chance at the same score", () => {
+    const player = { id: "ai", name: "Bot", scores: {} };
+    expect(pickAiCategory([1, 1, 2, 2, 3, 3], player, 6)).toBe("three-pairs");
+    expect(pickAiCategory([1, 1, 1, 2, 4, 6], player, 6)).toBe("chance");
+  });
   test("picks highest-scoring available category", () => {
     const player = { id: "ai", name: "Bot", scores: {} as Record<string, number>, isAi: true };
     const dice = [6, 6, 6, 6, 6]; // All sixes → sixes=30 should be strong
@@ -204,6 +210,13 @@ describe("executeAiTurn", () => {
 });
 
 describe("calculateMaxPossibleScore", () => {
+  test("lower points cannot earn an upper bonus on a completed card", () => {
+    const scores = Object.fromEntries(CATEGORIES.map((category) => [category.id, 0]));
+    Object.assign(scores, { ones: 2, twos: 6, threes: 9, fours: 12, fives: 15, sixes: 18, yahtzee: 50, chance: 20 });
+    const player = { id: "p", name: "Player", scores };
+    expect(calculateMaxPossibleScore(player, 5)).toBe(132);
+    expect(calculateTotal(player, 5).grandTotal).toBe(132);
+  });
   test("returns maximum possible score for empty scorecard (5 dice)", () => {
     const player = { id: "p1", name: "A", scores: {} };
     // Upper: 5+10+15+20+25+30=105, bonus=35

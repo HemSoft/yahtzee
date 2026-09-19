@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, setSystemTime } from "bun:test";
 import {
   createEmptyGameLog,
   addGameLogEntry,
@@ -15,6 +15,37 @@ function makePlayer(name: string, scores: Partial<Record<string, number>>, isAi 
 }
 
 describe("Game Log", () => {
+  it("records rounded seconds, copied scores and the first tied winner", () => {
+    setSystemTime(new Date("2026-03-22T10:00:05.600Z"));
+    try {
+      const players = [makePlayer("Alice", { chance: 10 }), makePlayer("Bob", { chance: 10 }), makePlayer("Carol", { chance: 5 })];
+      const log = addGameLogEntry(createEmptyGameLog(), { id: "clock", diceCount: 5, players }, "2026-03-22T10:00:00.000Z");
+      expect(log.entries[0].durationSeconds).toBe(6);
+      expect(log.entries[0].completedAt).toBe("2026-03-22T10:00:05.600Z");
+      expect(log.entries[0].winnerName).toBe("Alice");
+      players[0].scores.chance = 99;
+      expect(log.entries[0].players[0].scores).toEqual({ chance: 10 });
+    } finally { setSystemTime(); }
+  });
+
+  it("filters both dice mode and player when aggregating multiplayer logs", () => {
+    let log = createEmptyGameLog();
+    const games = [
+      { id: "a", diceCount: 5, players: [makePlayer("Alice", { chance: 10 }), makePlayer("Bob", { chance: 20 })] },
+      { id: "b", diceCount: 6, players: [makePlayer("Alice", { chance: 36 }), makePlayer("Bob", { chance: 35 })] },
+      { id: "c", diceCount: 5, players: [makePlayer("Bob", { chance: 25 })] },
+      { id: "d", diceCount: 5, players: [makePlayer("Alice", { chance: 21 }), makePlayer("Bob", { chance: 9 })] },
+    ];
+    for (const game of games) log = addGameLogEntry(log, game, "2026-03-22T10:00:00Z");
+    expect(getPlayerAverageScore(log, "Alice", 5)).toBe(16);
+    expect(getPlayerAverageScore(log, "Alice", 6)).toBe(36);
+    expect(getPlayerAverageScore(log, "Bob", 5)).toBe(18);
+    expect(getPlayerAverageScore(log, "Nobody", 5)).toBe(0);
+    expect(getPlayerGameCount(log, "Alice", 5)).toBe(2);
+    expect(getPlayerGameCount(log, "Alice", 6)).toBe(1);
+    expect(getPlayerGameCount(log, "Bob", 5)).toBe(3);
+    expect(getPlayerGameCount(log, "Nobody", 5)).toBe(0);
+  });
   it("starts empty", () => {
     const log = createEmptyGameLog();
     expect(log.entries).toHaveLength(0);
@@ -92,6 +123,20 @@ describe("Game Log", () => {
 });
 
 describe("High Scores", () => {
+  it("ranks multiple new players against only their mode and preserves insertion ranks", () => {
+    let board = createEmptyHighScores();
+    for (let i = 0; i < 10; i++) {
+      board = updateHighScores(board, { id: `five-${i}`, diceCount: 5, players: [makePlayer(`F${i}`, { chance: 10 + i })] });
+      board = updateHighScores(board, { id: `six-${i}`, diceCount: 6, players: [makePlayer(`S${i}`, { chance: 26 + i })] });
+    }
+    const oldSix = getHighScoresForDiceCount(board, 6);
+    board = updateHighScores(board, { id: "new", diceCount: 5, players: [makePlayer("First", { chance: 30 }), makePlayer("Second", { chance: 25 }), makePlayer("Low", { chance: 5 })] });
+    const five = getHighScoresForDiceCount({ entries: [...board.entries].reverse() }, 5);
+    expect(five.map((row) => row.score)).toEqual([30, 25, 19, 18, 17, 16, 15, 14, 13, 12]);
+    expect(five.map((row) => row.rankCurrent)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(five.slice(0, 2).map((row) => row.rankOriginal)).toEqual([1, 2]);
+    expect(getHighScoresForDiceCount(board, 6)).toEqual(oldSix);
+  });
   it("starts empty", () => {
     const hs = createEmptyHighScores();
     expect(hs.entries).toHaveLength(0);
@@ -197,6 +242,7 @@ describe("High Scores", () => {
     // Both have same score
     expect(scores[0].score).toBe(25);
     expect(scores[1].score).toBe(25);
+    expect(scores.map((row) => [row.playerName, row.rankOriginal, row.rankCurrent])).toEqual([["Alice", 1, 1], ["Bob", 1, 2]]);
   });
 
   it("does not qualify when score equals the 10th place (strict >)", () => {

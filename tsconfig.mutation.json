@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "rootDir": ".",
+    "types": ["bun", "node"]
+  },
+  "include": ["packages/game-engine/src/**/*.ts", "convex/**/*.ts"]
+}

@@ -1,0 +1,27 @@
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { execFileSync } from "node:child_process";
+import type { MutationTestResult } from "mutation-testing-report-schema";
+import config from "../../stryker.config.json";
+import { mutationGate } from "./report";
+
+const root = resolve(import.meta.dir, "../..");
+const directory = resolve(root, "reports/mutation");
+mkdirSync(directory, { recursive: true });
+for (const name of ["mutation.json", "mutation.html", "summary.json", "summary.md"]) rmSync(resolve(directory, name), { force: true });
+const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+const dirty = execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim().length > 0;
+const started = performance.now();
+const result = Bun.spawnSync(["node", "node_modules/@stryker-mutator/core/bin/stryker.js", "run"], { cwd: root, stdout: "inherit", stderr: "inherit" });
+const report = await Bun.file(resolve(directory, "mutation.json")).json() as MutationTestResult;
+const summary = mutationGate(report, config.thresholds.break, config.mutate);
+if (execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim() !== commit) throw new Error("Revision changed during mutation qualification");
+if (!dirty && execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim()) throw new Error("Clean source changed during mutation qualification");
+const seconds = (performance.now() - started) / 1000;
+const artifact = { commit, dirty, seconds, thresholds: config.thresholds, ...summary };
+writeFileSync(resolve(directory, "summary.json"), JSON.stringify(artifact, null, 2) + "\n");
+const { metrics } = summary;
+const rows = summary.survivors.map((mutant) => `- [${mutant.file}:${mutant.line}](https://github.com/HemSoft/yahtzee/blob/${commit}/${mutant.file}#L${mutant.line}), mutant ${mutant.id}, ${mutant.operator}`);
+writeFileSync(resolve(directory, "summary.md"), `# Core-rule mutation results\n\nRevision ${commit}. Dirty: ${dirty}. Duration ${seconds.toFixed(1)} seconds.\n\nScore ${metrics.mutationScore.toFixed(4)}%. Break ${config.thresholds.break}%; target ${config.thresholds.high}%.\n\n${metrics.killed} killed, ${metrics.timeout} timed out, ${metrics.survived} survived, ${metrics.noCoverage} uncovered, ${metrics.compileErrors} compile errors, ${metrics.runtimeErrors} runtime errors, ${metrics.ignored} explicitly ignored, ${metrics.pending} pending.\n\n## Surviving mutants\n\n${rows.join("\n") || "None."}\n`);
+console.log(`Mutation score ${metrics.mutationScore.toFixed(4)}%; ${seconds.toFixed(1)} seconds; gate ${summary.passed ? "passed" : "failed"}.`);
+process.exitCode = result.exitCode === 0 && summary.passed ? 0 : 1;
