@@ -20,6 +20,7 @@ interface ScorecardProps {
   diceCount?: number;
   suggestedCategory?: CategoryId;
   leaderboardScores?: number[];
+  compact?: boolean;
 }
 
 export function Scorecard({
@@ -33,6 +34,7 @@ export function Scorecard({
   diceCount = 5,
   suggestedCategory,
   leaderboardScores = [],
+  compact = false,
 }: ScorecardProps) {
   const cats = getCategories(diceCount);
   const upperCats = cats.filter((c) => c.section === "upper");
@@ -61,25 +63,28 @@ export function Scorecard({
   const theme = useTheme();
   const thStyle: React.CSSProperties = {
     textAlign: "left",
-    padding: "4px 8px",
+    padding: compact ? "1px 6px" : "4px 8px",
     borderBottom: `2px solid ${theme.borderStrong}`,
     color: theme.text,
   };
   const tdStyle: React.CSSProperties = {
-    padding: "4px 8px",
+    padding: compact ? "0 6px" : "4px 8px",
     borderBottom: `1px solid ${theme.border}`,
     color: theme.text,
   };
 
   return (
-    <div style={{ overflowX: "auto" }}>
-      <style>{`.yahtzee-score-action:focus-visible { outline: 3px solid ${theme.primary}; outline-offset: 2px; }`}</style>
+    <div data-testid="scorecard-scroll-container" style={{ overflowX: "auto", overflowY: compact ? "hidden" : undefined }}>
+      <style>{`
+        .yahtzee-score-action:focus-visible { outline: 3px solid ${theme.primary}; outline-offset: 2px; }
+        ${compact ? ".yahtzee-score-action { padding: 1px 4px !important; line-height: 1.05; }" : ""}
+      `}</style>
       {canSelect && (
-        <p style={{ textAlign: "center", color: theme.textMuted, fontSize: "0.85rem", margin: "0 0 0.5rem" }}>
+        <p style={{ textAlign: "center", color: theme.textMuted, fontSize: compact ? "0.75rem" : "0.85rem", margin: compact ? 0 : "0 0 0.5rem" }}>
           Choose a highlighted category to place your score
         </p>
       )}
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: compact ? "0.8rem" : "0.9rem", lineHeight: compact ? "1.05" : undefined }}>
         <thead>
           <tr>
             <th style={thStyle}>Category</th>
@@ -95,10 +100,10 @@ export function Scorecard({
                   lineHeight: "1.3",
                 }}
               >
-                <div style={{ fontSize: "1.1rem", fontWeight: "bold" }}>
+                <div style={{ fontSize: compact ? "0.9rem" : "1.1rem", fontWeight: "bold" }}>
                   {playerTotals[i].grandTotal} pts
                 </div>
-                <div style={{ fontSize: "0.75rem", color: theme.textMuted, fontWeight: "normal" }}>
+                <div style={{ fontSize: compact ? "0.65rem" : "0.75rem", color: theme.textMuted, fontWeight: "normal" }}>
                   #{gameRanks[i]} in game · best: #{bestLeaderboardRanks[i]}
                 </div>
                 <div>{p.name}{p.isAi ? " 🤖" : ""}</div>
@@ -219,7 +224,7 @@ export function Scorecard({
           <tr style={{ fontWeight: "bold", background: theme.grandTotalBg, color: theme.text }}>
             <td style={tdStyle}>Grand Total</td>
             {playerTotals.map((t, i) => (
-              <td key={i} style={{ ...tdStyle, textAlign: "center", fontSize: "1rem" }}>{t.grandTotal}</td>
+              <td key={i} style={{ ...tdStyle, textAlign: "center", fontSize: compact ? "0.85rem" : "1rem" }}>{t.grandTotal}</td>
             ))}
           </tr>
         </tbody>

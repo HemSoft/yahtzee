@@ -10,6 +10,28 @@ import { getCategories } from "../../packages/game-engine/src/scoring";
 
 const require = createRequire(import.meta.url);
 const origin = "http://127.0.0.1:5187";
+
+async function expectNoDocumentOverflow(page: Page) {
+  const metrics = await page.evaluate(() => ({
+    clientHeight: document.documentElement.clientHeight,
+    clientWidth: document.documentElement.clientWidth,
+    scrollHeight: document.documentElement.scrollHeight,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(metrics.scrollHeight, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.clientHeight);
+  expect(metrics.scrollWidth, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.clientWidth);
+}
+
+async function expectNoScorecardOverflow(page: Page) {
+  const metrics = await page.getByTestId("scorecard-scroll-container").evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    overflowY: getComputedStyle(element).overflowY,
+  }));
+  expect(metrics.scrollHeight - metrics.clientHeight, JSON.stringify(metrics)).toBeLessThanOrEqual(1);
+  expect(metrics.overflowY, JSON.stringify(metrics)).toBe("hidden");
+}
+
 async function saveCoverage(page: Page, info: TestInfo) {
   if (process.env.TEST_COVERAGE !== "1") return;
   const data = await page.evaluate(() => (globalThis as typeof globalThis & { __coverage__?: object }).__coverage__);
@@ -85,9 +107,16 @@ for (const diceCount of [5, 6]) {
     await client.getByRole("button", { name: "1 AI", exact: true }).click();
     await client.getByRole("button", { name: mobile ? String(diceCount) : diceCount === 5 ? "Classic (5)" : "Extended (6)", exact: true }).click();
     if (diceCount === 6) await client.getByRole("button", { name: "Switch to dark mode" }).click();
+    if (info.project.name === "desktop") await expectNoDocumentOverflow(client);
     await client.screenshot({ path: info.outputPath("setup.png"), fullPage: true });
     await client.getByRole("button", { name: "Start Game", exact: true }).click();
     await expect(client.getByRole("button", { name: "Re-roll (2)", exact: true })).toBeEnabled();
+    if (info.project.name === "desktop") {
+      await expectNoDocumentOverflow(client);
+      await expectNoScorecardOverflow(client);
+      await expect(client.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
+      await client.screenshot({ path: info.outputPath("initial.png") });
+    }
     const firstDie = client.getByRole("button", { name: /^Die showing / }).first();
     const heldValue = await firstDie.textContent();
     await firstDie.click();
