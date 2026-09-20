@@ -1,5 +1,5 @@
 import { test as base, expect, type TestInfo } from "playwright/test";
-import type { Page } from "playwright";
+import type { ElectronApplication, Page } from "playwright";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -10,6 +10,69 @@ import { getCategories } from "../../packages/game-engine/src/scoring";
 
 const require = createRequire(import.meta.url);
 const origin = "http://127.0.0.1:5187";
+const desktopApplications = new WeakMap<Page, ElectronApplication>();
+
+async function expectNoDocumentOverflow(page: Page) {
+  const metrics = await page.evaluate(() => ({
+    clientHeight: document.documentElement.clientHeight,
+    clientWidth: document.documentElement.clientWidth,
+    scrollHeight: document.documentElement.scrollHeight,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(metrics.scrollHeight, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.clientHeight);
+  expect(metrics.scrollWidth, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.clientWidth);
+  const shellMetrics = await page.getByTestId("desktop-app-shell").evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    clientWidth: element.clientWidth,
+    scrollHeight: element.scrollHeight,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(shellMetrics.scrollHeight, JSON.stringify(shellMetrics)).toBeLessThanOrEqual(shellMetrics.clientHeight);
+  expect(shellMetrics.scrollWidth, JSON.stringify(shellMetrics)).toBeLessThanOrEqual(shellMetrics.clientWidth);
+}
+
+async function expectNoScorecardOverflow(page: Page) {
+  const metrics = await page.getByTestId("scorecard-scroll-container").evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    overflowY: getComputedStyle(element).overflowY,
+  }));
+  expect(metrics.scrollHeight - metrics.clientHeight, JSON.stringify(metrics)).toBeLessThanOrEqual(1);
+  expect(metrics.overflowY, JSON.stringify(metrics)).toBe("hidden");
+}
+
+async function expectPlayingControlsDoNotOverlap(page: Page) {
+  const theme = await page.getByRole("button", { name: /Switch to .* mode/ }).boundingBox();
+  const quit = await page.getByRole("button", { name: "✕ Quit Game", exact: true }).boundingBox();
+  expect(theme).not.toBeNull();
+  expect(quit).not.toBeNull();
+  const overlapWidth = Math.max(0, Math.min(theme!.x + theme!.width, quit!.x + quit!.width) - Math.max(theme!.x, quit!.x));
+  const overlapHeight = Math.max(0, Math.min(theme!.y + theme!.height, quit!.y + quit!.height) - Math.max(theme!.y, quit!.y));
+  expect(overlapWidth * overlapHeight).toBe(0);
+}
+
+async function expectMinimumWindowFallback(page: Page) {
+  await page.setViewportSize({ width: 784, height: 535 });
+  const shell = page.getByTestId("desktop-app-shell");
+  expect(await shell.evaluate((element) => getComputedStyle(element).overflowY)).toBe("auto");
+  const application = desktopApplications.get(page);
+  expect(application).toBeDefined();
+  await application!.evaluate(({ BrowserWindow }, level) => {
+    const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    if (!window) throw new Error("Desktop window is unavailable");
+    window.webContents.setZoomLevel(level);
+  }, 1);
+  await expect.poll(async () => shell.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
+  await page.getByRole("row", { name: /Grand Total/ }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
+  await application!.evaluate(({ BrowserWindow }) => {
+    const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    if (!window) throw new Error("Desktop window is unavailable");
+    window.webContents.setZoomLevel(0);
+  });
+  await page.setViewportSize({ width: 944, height: 685 });
+}
+
 async function saveCoverage(page: Page, info: TestInfo) {
   if (process.env.TEST_COVERAGE !== "1") return;
   const data = await page.evaluate(() => (globalThis as typeof globalThis & { __coverage__?: object }).__coverage__);
@@ -39,6 +102,7 @@ const test = base.extend<{ client: Page }>({
         });
         try {
           const page = await app.firstWindow();
+          desktopApplications.set(page, app);
           await app.context().tracing.start({ screenshots: true, snapshots: true });
           try {
             await page.waitForLoadState();
@@ -85,9 +149,19 @@ for (const diceCount of [5, 6]) {
     await client.getByRole("button", { name: "1 AI", exact: true }).click();
     await client.getByRole("button", { name: mobile ? String(diceCount) : diceCount === 5 ? "Classic (5)" : "Extended (6)", exact: true }).click();
     if (diceCount === 6) await client.getByRole("button", { name: "Switch to dark mode" }).click();
+    if (info.project.name === "desktop") await expectNoDocumentOverflow(client);
     await client.screenshot({ path: info.outputPath("setup.png"), fullPage: true });
     await client.getByRole("button", { name: "Start Game", exact: true }).click();
     await expect(client.getByRole("button", { name: "Re-roll (2)", exact: true })).toBeEnabled();
+    if (info.project.name === "desktop") {
+      await expectNoDocumentOverflow(client);
+      await expectNoScorecardOverflow(client);
+      await expectPlayingControlsDoNotOverlap(client);
+      await expect(client.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
+      await client.screenshot({ path: info.outputPath("initial.png") });
+      await expectMinimumWindowFallback(client);
+      await expectNoDocumentOverflow(client);
+    }
     const firstDie = client.getByRole("button", { name: /^Die showing / }).first();
     const heldValue = await firstDie.textContent();
     await firstDie.click();

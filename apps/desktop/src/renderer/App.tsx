@@ -35,6 +35,32 @@ function saveRecentName(name: string) {
 
 type Screen = "setup" | "playing" | "finished";
 
+const standardRootLayout: React.CSSProperties = {
+  padding: "2rem 2rem 3rem",
+  minHeight: "100vh",
+  maxWidth: "100vw",
+  boxSizing: "border-box",
+  overflow: "hidden auto",
+};
+const rootLayoutByScreen: Record<Screen, React.CSSProperties> = {
+  setup: standardRootLayout,
+  finished: standardRootLayout,
+  playing: {
+    padding: "0.25rem 1rem",
+    minHeight: "100vh",
+    height: "100vh",
+    maxWidth: "100vw",
+    boxSizing: "border-box",
+    overflow: "hidden auto",
+  },
+};
+const standardHeadingLayout: React.CSSProperties = { textAlign: "center", margin: "0 0 1.5rem" };
+const headingLayoutByScreen: Record<Screen, React.CSSProperties> = {
+  setup: standardHeadingLayout,
+  finished: standardHeadingLayout,
+  playing: { textAlign: "center", margin: "0 0 0.2rem", fontSize: "1.45rem" },
+};
+
 export function App() {
   const [screenState, setScreen] = useState<Screen>("setup");
   const [playerName, setPlayerName] = useState(() => loadRecentNames()[0] ?? "");
@@ -109,9 +135,9 @@ export function App() {
 
   return (
     <ThemeProvider value={theme}>
-    <div style={{ padding: "2rem 2rem 3rem", background: theme.bg, color: theme.text, minHeight: "100vh", maxWidth: "100vw", overflowX: "hidden" }}>
+    <div data-testid="desktop-app-shell" style={{ ...rootLayoutByScreen[screen], background: theme.bg, color: theme.text }}>
       <ThemeToggle onToggle={toggleTheme} />
-      <h1 style={{ textAlign: "center", marginBottom: "1.5rem", color: theme.text }}>🎲 Yahtzee</h1>
+      <h1 style={{ ...headingLayoutByScreen[screen], color: theme.text }}>🎲 Yahtzee</h1>
 
       {busy && <p role="status">{game ? "Saving move..." : "Starting guest game..."}</p>}
       {error && <div role="alert"><p>{error}</p>{canRetry && <button onClick={retry} disabled={busy}>Retry move</button>}</div>}
@@ -132,13 +158,13 @@ export function App() {
       )}
 
       {screen === "playing" && game && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
             <button
               onClick={handleCancelGame}
               style={{
-                padding: "0.4rem 1rem",
-                fontSize: "0.85rem",
+                padding: "0.2rem 0.75rem",
+                fontSize: "0.75rem",
                 borderRadius: "6px",
                 border: "1px solid #e57373",
                 background: theme.surface,
@@ -151,7 +177,7 @@ export function App() {
           </div>
 
           <div style={{ textAlign: "center" }}>
-            <p style={{ marginBottom: "0.5rem", color: theme.textMuted }}>
+            <p style={{ margin: "0 0 0.2rem", fontSize: "0.8rem", color: theme.textMuted }}>
               {currentPlayer?.name}'s turn &nbsp;·&nbsp;
               Round {Math.min(game.currentRound, game.totalRounds)} / {game.totalRounds}
               &nbsp;·&nbsp;Rolls left: {game.rollsLeft}
@@ -168,14 +194,15 @@ export function App() {
               held={game.held}
               onToggleHold={handleToggleHold}
               disabled={!canInteract || game.rollsLeft === 0}
+              compact
             />
             <button
               onClick={handleRoll}
               disabled={!canInteract || game.rollsLeft <= 0}
               style={{
-                marginTop: "1rem",
-                padding: "0.75rem 2rem",
-                fontSize: "1.1rem",
+                marginTop: "0.25rem",
+                padding: "0.35rem 1.5rem",
+                fontSize: "0.9rem",
                 fontWeight: "bold",
                 borderRadius: "8px",
                 border: "none",
@@ -199,6 +226,7 @@ export function App() {
             diceCount={game.diceCount}
             suggestedCategory={suggestedCategory}
             leaderboardScores={leaderboardScores}
+            compact
           />
         </div>
       )}

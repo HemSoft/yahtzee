@@ -6,6 +6,7 @@ interface DieProps {
   held: boolean;
   onToggleHold: () => void;
   disabled?: boolean;
+  compact?: boolean;
 }
 
 const DIE_FACES: Record<number, string> = {
@@ -17,23 +18,23 @@ const DIE_FACES: Record<number, string> = {
   6: "⚅",
 };
 
-export function Die({ value, held, onToggleHold, disabled }: DieProps) {
+export function Die({ value, held, onToggleHold, disabled, compact = false }: DieProps) {
   const theme = useTheme();
   return (
     <button
       onClick={onToggleHold}
       disabled={disabled}
       style={{
-        fontSize: "3rem",
-        padding: "0.5rem",
+        fontSize: compact ? "2rem" : "3rem",
+        padding: compact ? "0.2rem" : "0.5rem",
         border: held ? `3px solid ${theme.heldBorder}` : "3px solid transparent",
         borderRadius: "12px",
         background: held ? theme.heldBg : theme.dieBg,
         color: theme.text,
         cursor: disabled ? "default" : "pointer",
         transition: "all 0.15s ease",
-        minWidth: "4rem",
-        minHeight: "4rem",
+        minWidth: compact ? "3rem" : "4rem",
+        minHeight: compact ? "3rem" : "4rem",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -50,11 +51,12 @@ interface DiceRowProps {
   held: Set<number>;
   onToggleHold: (index: number) => void;
   disabled?: boolean;
+  compact?: boolean;
 }
 
-export function DiceRow({ dice, held, onToggleHold, disabled }: DiceRowProps) {
+export function DiceRow({ dice, held, onToggleHold, disabled, compact = false }: DiceRowProps) {
   return (
-    <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center" }}>
+    <div style={{ display: "flex", gap: compact ? "0.4rem" : "0.75rem", flexWrap: "wrap", justifyContent: "center" }}>
       {dice.map((value, i) => (
         <Die
           key={i}
@@ -62,6 +64,7 @@ export function DiceRow({ dice, held, onToggleHold, disabled }: DiceRowProps) {
           held={held.has(i)}
           onToggleHold={() => onToggleHold(i)}
           disabled={disabled}
+          compact={compact}
         />
       ))}
     </div>
