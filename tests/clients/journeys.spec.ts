@@ -52,15 +52,13 @@ async function expectPlayingControlsDoNotOverlap(page: Page) {
 
 async function expectMinimumWindowFallback(page: Page) {
   await page.setViewportSize({ width: 784, height: 535 });
-  const metrics = await page.getByTestId("desktop-app-shell").evaluate((element) => ({
-    clientHeight: element.clientHeight,
-    overflowY: getComputedStyle(element).overflowY,
-    scrollHeight: element.scrollHeight,
-  }));
-  expect(metrics.overflowY, JSON.stringify(metrics)).toBe("auto");
-  expect(metrics.scrollHeight, JSON.stringify(metrics)).toBeGreaterThan(metrics.clientHeight);
+  const shell = page.getByTestId("desktop-app-shell");
+  expect(await shell.evaluate((element) => getComputedStyle(element).overflowY)).toBe("auto");
+  await page.keyboard.press("Control+=");
+  await expect.poll(async () => shell.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
   await page.getByRole("row", { name: /Grand Total/ }).scrollIntoViewIfNeeded();
   await expect(page.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
+  await page.keyboard.press("Control+0");
   await page.setViewportSize({ width: 944, height: 685 });
 }
 
