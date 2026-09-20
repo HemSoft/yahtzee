@@ -1,5 +1,5 @@
 import { test as base, expect, type TestInfo } from "playwright/test";
-import type { Page } from "playwright";
+import type { ElectronApplication, Page } from "playwright";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -10,6 +10,7 @@ import { getCategories } from "../../packages/game-engine/src/scoring";
 
 const require = createRequire(import.meta.url);
 const origin = "http://127.0.0.1:5187";
+const desktopApplications = new WeakMap<Page, ElectronApplication>();
 
 async function expectNoDocumentOverflow(page: Page) {
   const metrics = await page.evaluate(() => ({
@@ -54,11 +55,21 @@ async function expectMinimumWindowFallback(page: Page) {
   await page.setViewportSize({ width: 784, height: 535 });
   const shell = page.getByTestId("desktop-app-shell");
   expect(await shell.evaluate((element) => getComputedStyle(element).overflowY)).toBe("auto");
-  await page.keyboard.press("Control+=");
+  const application = desktopApplications.get(page);
+  expect(application).toBeDefined();
+  await application!.evaluate(({ BrowserWindow }, level) => {
+    const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    if (!window) throw new Error("Desktop window is unavailable");
+    window.webContents.setZoomLevel(level);
+  }, 1);
   await expect.poll(async () => shell.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
   await page.getByRole("row", { name: /Grand Total/ }).scrollIntoViewIfNeeded();
   await expect(page.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
-  await page.keyboard.press("Control+0");
+  await application!.evaluate(({ BrowserWindow }) => {
+    const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    if (!window) throw new Error("Desktop window is unavailable");
+    window.webContents.setZoomLevel(0);
+  });
   await page.setViewportSize({ width: 944, height: 685 });
 }
 
@@ -91,6 +102,7 @@ const test = base.extend<{ client: Page }>({
         });
         try {
           const page = await app.firstWindow();
+          desktopApplications.set(page, app);
           await app.context().tracing.start({ screenshots: true, snapshots: true });
           try {
             await page.waitForLoadState();
