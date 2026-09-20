@@ -51,7 +51,7 @@ const rootLayoutByScreen: Record<Screen, React.CSSProperties> = {
     height: "100vh",
     maxWidth: "100vw",
     boxSizing: "border-box",
-    overflow: "hidden",
+    overflow: "hidden auto",
   },
 };
 const standardHeadingLayout: React.CSSProperties = { textAlign: "center", margin: "0 0 1.5rem" };
@@ -135,7 +135,7 @@ export function App() {
 
   return (
     <ThemeProvider value={theme}>
-    <div style={{ ...rootLayoutByScreen[screen], background: theme.bg, color: theme.text }}>
+    <div data-testid="desktop-app-shell" style={{ ...rootLayoutByScreen[screen], background: theme.bg, color: theme.text }}>
       <ThemeToggle onToggle={toggleTheme} />
       <h1 style={{ ...headingLayoutByScreen[screen], color: theme.text }}>🎲 Yahtzee</h1>
 
@@ -159,7 +159,7 @@ export function App() {
 
       {screen === "playing" && game && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
             <button
               onClick={handleCancelGame}
               style={{

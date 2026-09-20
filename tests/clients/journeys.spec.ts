@@ -20,6 +20,14 @@ async function expectNoDocumentOverflow(page: Page) {
   }));
   expect(metrics.scrollHeight, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.clientHeight);
   expect(metrics.scrollWidth, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.clientWidth);
+  const shellMetrics = await page.getByTestId("desktop-app-shell").evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    clientWidth: element.clientWidth,
+    scrollHeight: element.scrollHeight,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(shellMetrics.scrollHeight, JSON.stringify(shellMetrics)).toBeLessThanOrEqual(shellMetrics.clientHeight);
+  expect(shellMetrics.scrollWidth, JSON.stringify(shellMetrics)).toBeLessThanOrEqual(shellMetrics.clientWidth);
 }
 
 async function expectNoScorecardOverflow(page: Page) {
@@ -30,6 +38,30 @@ async function expectNoScorecardOverflow(page: Page) {
   }));
   expect(metrics.scrollHeight - metrics.clientHeight, JSON.stringify(metrics)).toBeLessThanOrEqual(1);
   expect(metrics.overflowY, JSON.stringify(metrics)).toBe("hidden");
+}
+
+async function expectPlayingControlsDoNotOverlap(page: Page) {
+  const theme = await page.getByRole("button", { name: /Switch to .* mode/ }).boundingBox();
+  const quit = await page.getByRole("button", { name: "✕ Quit Game", exact: true }).boundingBox();
+  expect(theme).not.toBeNull();
+  expect(quit).not.toBeNull();
+  const overlapWidth = Math.max(0, Math.min(theme!.x + theme!.width, quit!.x + quit!.width) - Math.max(theme!.x, quit!.x));
+  const overlapHeight = Math.max(0, Math.min(theme!.y + theme!.height, quit!.y + quit!.height) - Math.max(theme!.y, quit!.y));
+  expect(overlapWidth * overlapHeight).toBe(0);
+}
+
+async function expectMinimumWindowFallback(page: Page) {
+  await page.setViewportSize({ width: 784, height: 535 });
+  const metrics = await page.getByTestId("desktop-app-shell").evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    overflowY: getComputedStyle(element).overflowY,
+    scrollHeight: element.scrollHeight,
+  }));
+  expect(metrics.overflowY, JSON.stringify(metrics)).toBe("auto");
+  expect(metrics.scrollHeight, JSON.stringify(metrics)).toBeGreaterThan(metrics.clientHeight);
+  await page.getByRole("row", { name: /Grand Total/ }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
+  await page.setViewportSize({ width: 944, height: 685 });
 }
 
 async function saveCoverage(page: Page, info: TestInfo) {
@@ -114,8 +146,11 @@ for (const diceCount of [5, 6]) {
     if (info.project.name === "desktop") {
       await expectNoDocumentOverflow(client);
       await expectNoScorecardOverflow(client);
+      await expectPlayingControlsDoNotOverlap(client);
       await expect(client.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
       await client.screenshot({ path: info.outputPath("initial.png") });
+      await expectMinimumWindowFallback(client);
+      await expectNoDocumentOverflow(client);
     }
     const firstDie = client.getByRole("button", { name: /^Die showing / }).first();
     const heldValue = await firstDie.textContent();
