@@ -35,6 +35,32 @@ function saveRecentName(name: string) {
 
 type Screen = "setup" | "playing" | "finished";
 
+const standardRootLayout: React.CSSProperties = {
+  padding: "2rem 2rem 3rem",
+  minHeight: "100vh",
+  maxWidth: "100vw",
+  boxSizing: "border-box",
+  overflow: "hidden auto",
+};
+const rootLayoutByScreen: Record<Screen, React.CSSProperties> = {
+  setup: standardRootLayout,
+  finished: standardRootLayout,
+  playing: {
+    padding: "0.25rem 1rem",
+    minHeight: "100vh",
+    height: "100vh",
+    maxWidth: "100vw",
+    boxSizing: "border-box",
+    overflow: "hidden",
+  },
+};
+const standardHeadingLayout: React.CSSProperties = { textAlign: "center", margin: "0 0 1.5rem" };
+const headingLayoutByScreen: Record<Screen, React.CSSProperties> = {
+  setup: standardHeadingLayout,
+  finished: standardHeadingLayout,
+  playing: { textAlign: "center", margin: "0 0 0.2rem", fontSize: "1.45rem" },
+};
+
 export function App() {
   const [screenState, setScreen] = useState<Screen>("setup");
   const [playerName, setPlayerName] = useState(() => loadRecentNames()[0] ?? "");
@@ -109,23 +135,9 @@ export function App() {
 
   return (
     <ThemeProvider value={theme}>
-    <div style={{
-      padding: screen === "playing" ? "0.25rem 1rem" : "2rem 2rem 3rem",
-      background: theme.bg,
-      color: theme.text,
-      minHeight: "100vh",
-      height: screen === "playing" ? "100vh" : undefined,
-      maxWidth: "100vw",
-      boxSizing: "border-box",
-      overflow: screen === "playing" ? "hidden" : "hidden auto",
-    }}>
+    <div style={{ ...rootLayoutByScreen[screen], background: theme.bg, color: theme.text }}>
       <ThemeToggle onToggle={toggleTheme} />
-      <h1 style={{
-        textAlign: "center",
-        margin: screen === "playing" ? "0 0 0.2rem" : "0 0 1.5rem",
-        fontSize: screen === "playing" ? "1.45rem" : undefined,
-        color: theme.text,
-      }}>🎲 Yahtzee</h1>
+      <h1 style={{ ...headingLayoutByScreen[screen], color: theme.text }}>🎲 Yahtzee</h1>
 
       {busy && <p role="status">{game ? "Saving move..." : "Starting guest game..."}</p>}
       {error && <div role="alert"><p>{error}</p>{canRetry && <button onClick={retry} disabled={busy}>Retry move</button>}</div>}
