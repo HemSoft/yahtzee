@@ -43,7 +43,7 @@
     "@types/bun": "1.4.2",
     "@types/istanbul-lib-coverage": "2.0.6",
     "@types/istanbul-lib-instrument": "1.7.8",
-    "@types/node": "24",
+    "@types/node": "26",
     "@types/react": "19",
     "@types/react-dom": "19",
     "convex-test": "0.0.59",
