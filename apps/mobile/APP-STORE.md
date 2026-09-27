@@ -23,8 +23,8 @@ The release scope and rights decision remains [#39](https://github.com/HemSoft/y
 From the repository root:
 
 ```sh
-node --test apps/mobile/scripts/release-check.test.mjs
-node apps/mobile/scripts/release-check.mjs
+node --test scripts/ios-release/*.test.mjs
+node scripts/ios-release/check.mjs
 ```
 
 Draft mode validates the record and source-file structure, prints every remaining release blocker, and never uploads anything. `consistent: false` is expected now. It is not a release pass.
@@ -32,11 +32,14 @@ Draft mode validates the record and source-file structure, prints every remainin
 For a real candidate, configure the accepted native version/build first. Compare the proposed build number against the latest App Store Connect build and every prior local archive; increment it and never reuse an uploaded number. Commit the approved source and metadata. Copy the record to an ignored `reports/ios-candidate.json` and fill its exact source SHA and artifact/evidence references there. Do not try to embed a commit's own SHA inside itself.
 
 ```sh
-node apps/mobile/scripts/release-check.mjs --release \
-  --record reports/ios-candidate.json --archive reports/accepted.ipa
+node scripts/ios-release/check.mjs --release \
+  --record reports/ios-candidate.json --archive reports/accepted.ipa \
+  --screenshots reports/ios-captures/manifest.json
 ```
 
-The release check fails on an incomplete record, dirty source, mismatched native identity/version/build, wrong source SHA or archive checksum, draft copy, absent listing fields or screenshot provenance mismatch. This is a consistency guard, not a signing validator or proof that cited owner/device evidence is genuine. Review those receipts separately. If dynamic Expo configuration replaces app.json, update the checker to consume the resolved configuration before using it for release.
+The release check fails on an incomplete record, dirty source, mismatched native identity/version/build, wrong source SHA or archive checksum, draft copy, absent listing fields or screenshot provenance mismatch. All referenced copy and planning files must be tracked and match HEAD byte-for-byte. Ignored, absolute and untracked source paths are rejected.
+
+The tracked screenshot JSON is a scene plan, not a capture receipt. Generate the accepted capture manifest beside the images after freezing the source commit, then store its SHA-256 in the external candidate record. Give it status `accepted`, matching sourceCommit/version/buildNumber, and a nonempty captures array. Each capture needs filename relative to that artifact folder, sourceCommit, deviceFamily `iphone` or `ipad`, locale, appearance `light` or `dark`, pixel width/height, and SHA-256. The checker verifies each file's PNG signature, dimensions and hash; capture paths and symlinks cannot escape that folder. This does not replace visual review or Apple's current device-size requirements. Set listing status to `approved` only after the owner approves the copy, and remove explicit draft banners from the accepted test and store notes. This is a consistency guard, not a signing validator or proof that cited owner/device evidence is genuine. Review those receipts separately. If dynamic Expo configuration replaces app.json, update the checker to consume the resolved configuration before using it for release.
 
 Retain the accepted JSON beside the archive and sanitized QA receipts. Its iOS tag must point to the source SHA. On public release, verify the matching GitHub tag/release, public App Store version and dated changelog entry. No automatic release/changelog workflow currently publishes these files; do not duplicate Unreleased entries in generated notes if one is introduced.
 

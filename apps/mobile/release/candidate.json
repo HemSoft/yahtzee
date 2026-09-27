@@ -9,6 +9,7 @@
   "appStoreId": null,
   "bundleIdentifier": null,
   "archiveSha256": null,
+  "screenshotManifestSha256": null,
   "testFlightBuildId": null,
   "ownerApprovalEvidence": null,
   "nativeQualificationEvidence": null,

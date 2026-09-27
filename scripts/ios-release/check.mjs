@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { sha256, readSource, copyBlockers, screenshotBlockers, artifactImageReader } from "./evidence.mjs";
 
 export function draftErrors(record) {
   if (!record || typeof record !== "object" || Array.isArray(record)) return ["Record must be an object"];
@@ -33,45 +33,40 @@ export function releaseBlockers(record, context) {
   return blockers;
 }
 
-function sourceFiles(record, mobile) {
+function sourceFiles(record, mobile, committedBytes) {
   const paths = [record.changelog, record.testNotes, record.screenshots];
   const metadata = record.metadataDirectory;
   for (const name of ["listing.json", "description.txt", "review_notes.txt", "release_notes.txt"]) paths.push(`${metadata}/${name}`);
-  return paths.map((path) => {
-    if (typeof path !== "string" || path.includes("..") || !/^[A-Za-z0-9_./-]+$/.test(path)) throw new Error("Invalid release source path");
-    const text = readFileSync(resolve(mobile, path), "utf8");
-    if (!text.trim()) throw new Error(`Empty release source: ${path}`);
-    return { path, text };
-  });
+  return paths.map((path) => readSource(mobile, path, committedBytes));
 }
 
 function run() {
-  const mobile = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  const mobile = resolve(dirname(fileURLToPath(import.meta.url)), "../../apps/mobile");
   const args = process.argv.slice(2);
   const release = args.includes("--release");
   const option = (key) => args.includes(key) ? args[args.indexOf(key) + 1] : undefined;
   const record = JSON.parse(readFileSync(resolve(option("--record") ?? resolve(mobile, "release/candidate.json")), "utf8"));
   const errors = draftErrors(record);
   if (errors.length) throw new Error(errors.join("; "));
-  const files = sourceFiles(record, mobile);
-  const git = (...parts) => execFileSync("git", parts, { cwd: mobile, encoding: "utf8" }).trim();
+  const root = resolve(mobile, "../..");
+  const git = (...parts) => execFileSync("git", parts, { cwd: root, encoding: "utf8" }).trim();
+  const committedBytes = (path) => execFileSync("git", ["show", `HEAD:${path}`], { cwd: root });
+  const files = sourceFiles(record, mobile, release ? committedBytes : undefined);
   const archive = option("--archive");
   const context = {
     commit: git("rev-parse", "HEAD"), dirty: Boolean(git("status", "--porcelain")),
     expo: JSON.parse(readFileSync(resolve(mobile, "app.json"), "utf8")).expo,
-    archiveSha256: archive ? createHash("sha256").update(readFileSync(resolve(archive))).digest("hex") : null,
+    archiveSha256: archive ? sha256(readFileSync(resolve(archive))) : null,
   };
   const blockers = releaseBlockers(record, context);
-  for (const file of files) {
-    if (/DRAFT, NOT APPROVED/.test(file.text)) blockers.push(`Unapproved copy: ${file.path}`);
-  }
-  const screenshots = JSON.parse(files.find((file) => file.path === record.screenshots).text);
-  if (screenshots.sourceCommit !== record.sourceCommit || screenshots.version !== record.version || screenshots.buildNumber !== record.buildNumber) blockers.push("Screenshot provenance mismatch");
-  if (!Array.isArray(screenshots.captures) || screenshots.captures.length === 0) blockers.push("No native screenshot captures recorded");
   const listing = JSON.parse(files.find((file) => file.path.endsWith("listing.json")).text);
-  for (const key of ["name", "subtitle", "copyright", "supportUrl", "marketingUrl", "privacyUrl"]) {
-    if (!listing[key]) blockers.push(`Listing field missing: ${key}`);
-  }
+  blockers.push(...copyBlockers(files, listing));
+  const screenshotPath = option("--screenshots");
+  if (screenshotPath) {
+    const bytes = readFileSync(resolve(screenshotPath));
+    if (sha256(bytes) !== record.screenshotManifestSha256) blockers.push("Screenshot manifest checksum mismatch");
+    blockers.push(...screenshotBlockers(JSON.parse(bytes.toString("utf8")), record, artifactImageReader(dirname(resolve(screenshotPath)))));
+  } else blockers.push("Accepted screenshot artifact manifest missing");
   console.log(JSON.stringify({ mode: release ? "release" : "draft", version: record.version, build: record.buildNumber, consistent: blockers.length === 0, blockers, note: "Consistency only. This command does not validate signing, grant approval, upload, submit or publish." }, null, 2));
   if (release && blockers.length) process.exitCode = 1;
 }

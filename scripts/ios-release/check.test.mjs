@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { draftErrors, releaseBlockers } from "./release-check.mjs";
+import { draftErrors, releaseBlockers } from "./check.mjs";
 
 const commit = "a".repeat(40);
 const archiveSha256 = "b".repeat(64);
