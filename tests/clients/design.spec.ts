@@ -42,6 +42,11 @@ test("desktop and responsive web presentation", async ({ page, request }, info) 
   const compactHeight = await page.locator(".app-frame").evaluate((element) => element.getBoundingClientRect().height);
   expect(compactHeight).toBeLessThanOrEqual(685);
   await expect(page.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
+  await page.setViewportSize({ width: 934, height: 655 });
+  const hostedHeight = await page.locator(".app-frame").evaluate((element) => element.getBoundingClientRect().height);
+  expect(hostedHeight).toBeLessThanOrEqual(655);
+  await expect(page.getByRole("row", { name: /Grand Total/ })).toBeInViewport();
+  await page.setViewportSize({ width: 944, height: 685 });
   await page.getByRole("button", { name: "Quit Game", exact: true }).click();
   await page.getByRole("textbox").fill("WWWWWWWWWWWWWWWWWWWW");
   await page.getByRole("button", { name: "3 AI", exact: true }).click();

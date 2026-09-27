@@ -290,6 +290,14 @@
   .totals-table strong { font-size: 20px; }
   .bonus-note { margin-top: 18px; font-size: 10px; }
 }
+/* Windows window chrome can leave only 655px of usable height. Keep targets
+   unchanged and recover that space from headings and panel padding. */
+@media (min-width: 900px) and (max-height: 700px) {
+  .app-header { min-height: 60px; }
+  .scorecard { padding-block: 12px; }
+  .scorecard-heading { margin-bottom: 8px; }
+  .scorecard .totals-table { margin-top: 6px; }
+}
 @media (min-width: 900px) and (max-width: 1100px) {
   .play-layout { grid-template-columns: 280px minmax(0, 1fr); gap: 16px; }
   .header-context { margin-left: 0; }
