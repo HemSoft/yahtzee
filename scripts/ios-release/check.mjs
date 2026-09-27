@@ -41,6 +41,10 @@ function sourceFiles(record, mobile, committedBytes) {
   return Object.entries(sources).map(([role, path]) => ({ ...readSource(mobile, path, committedBytes), role }));
 }
 
+export function listingRecord(files) {
+  return JSON.parse(files.find((file) => file.role === "listing").text);
+}
+
 function run() {
   const mobile = resolve(dirname(fileURLToPath(import.meta.url)), "../../apps/mobile");
   const args = process.argv.slice(2);
@@ -60,7 +64,7 @@ function run() {
     archiveSha256: archive ? sha256(readFileSync(resolve(archive))) : null,
   };
   const blockers = releaseBlockers(record, context);
-  const listing = JSON.parse(files.find((file) => file.path.endsWith("listing.json")).text);
+  const listing = listingRecord(files);
   blockers.push(...copyBlockers(files, listing));
   const screenshotPath = option("--screenshots");
   if (screenshotPath) {

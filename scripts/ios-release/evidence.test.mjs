@@ -27,10 +27,11 @@ test("release source must exist in the commit and match its bytes", () => {
   } finally { rmSync(root, { recursive: true }); }
 });
 test("mixed-case draft notes and structured draft statuses cannot pass", () => {
-  const listing = { status: "approved", name: "Game", subtitle: "Dice", copyright: "Owner", supportUrl: "https://example.test/support", marketingUrl: "https://example.test", privacyUrl: "https://example.test/privacy" };
+  const listing = { status: "approved", name: "Game", subtitle: "Dice", keywords: "dice", primaryCategory: "GAMES", copyright: "Owner", supportUrl: "https://example.test/support", marketingUrl: "https://example.test", privacyUrl: "https://example.test/privacy" };
   const files = ["description", "reviewNotes", "releaseNotes", "testNotes"].map((role) => ({ path: role, role, text: "Accepted copy" }));
   listing.sourceReviews = Object.fromEntries(files.map((file) => [file.role, { status: "approved", sha256: sha256(Buffer.from(file.text)) }]));
   assert.deepEqual(copyBlockers(files, listing), []);
+  for (const key of ["primaryCategory", "keywords"]) assert.ok(copyBlockers(files, { ...listing, [key]: null }).length);
   assert.ok(copyBlockers([{ ...files[0], text: "Changed after review" }, ...files.slice(1)], listing).length);
   for (const text of ["Draft only. No signed candidate", "draft, not approved for upload", "NOT APPROVED FOR SUBMISSION", "Do not publish this placeholder", "pending implementation", "After native qualification, describe...", "replacing this draft with tester-facing copy"]) assert.ok(copyBlockers([{ ...files[0], text }, ...files.slice(1)], listing).length);
   assert.ok(copyBlockers([], { ...listing, status: "draft" }).length);

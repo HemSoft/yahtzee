@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { draftErrors, releaseBlockers } from "./check.mjs";
+import { draftErrors, releaseBlockers, listingRecord } from "./check.mjs";
 
 const commit = "a".repeat(40);
 const archiveSha256 = "b".repeat(64);
@@ -10,6 +10,14 @@ function candidate() {
 function context() {
   return { commit, dirty: false, archiveSha256, expo: { version: "1.0.0", ios: { buildNumber: "1", bundleIdentifier: "example.originalgame" } } };
 }
+
+test("listing selection uses the assigned role, not another source's filename", () => {
+  const files = [
+    { role: "changelog", path: "misleading/listing.json", text: '{"status":"approved"}' },
+    { role: "listing", path: "metadata/listing.json", text: '{"status":"draft"}' },
+  ];
+  assert.equal(listingRecord(files).status, "draft");
+});
 
 test("draft shape accepts an explicitly incomplete proposal without asserting readiness", () => {
   const draft = { ...candidate(), status: "draft", sourceCommit: null, archiveSha256: null, ownerApprovalEvidence: null };

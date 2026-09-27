@@ -30,7 +30,7 @@ export function copyBlockers(files, listing) {
     const review = listing.sourceReviews?.[role];
     if (!source || review?.status !== "approved" || review.sha256 !== sha256(Buffer.from(source.text.replaceAll("\r\n", "\n")))) blockers.push(`Source review missing or stale: ${role}`);
   }
-  for (const key of ["name", "subtitle", "copyright", "supportUrl", "marketingUrl", "privacyUrl"]) {
+  for (const key of ["name", "subtitle", "keywords", "primaryCategory", "copyright", "supportUrl", "marketingUrl", "privacyUrl"]) {
     if (typeof listing[key] !== "string" || !listing[key].trim()) blockers.push(`Listing field missing: ${key}`);
   }
   return blockers;
