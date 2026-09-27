@@ -1,13 +1,26 @@
 import React from "react";
+import { Icon } from "./Icons";
 import {
-  getCategories,
-  getUpperBonusThreshold,
-  getUpperBonusValue,
-  type CategoryId,
-  type PlayerState,
+  getCategories, getUpperBonusThreshold, getUpperBonusValue, calculateTotal, calculateMaxPossibleScore,
+  type CategoryId, type PlayerState,
 } from "@yahtzee/game-engine";
-import { calculateTotal, calculateMaxPossibleScore } from "@yahtzee/game-engine";
-import { useTheme } from "./theme";
+
+// Presentation order only: engine order also decides AI tie-breaking.
+const DISPLAY_AFTER: Partial<Record<CategoryId, CategoryId>> = {
+  "two-pairs": "three-pairs",
+  "four-of-a-kind": "five-of-a-kind",
+  "full-house": "castle",
+  "large-straight": "full-straight",
+};
+
+function getScorecardCategories(diceCount: number) {
+  const categories = getCategories(diceCount);
+  const moved = new Set(Object.values(DISPLAY_AFTER));
+  return categories.filter((category) => !moved.has(category.id)).flatMap((category) => {
+    const extra = categories.find((candidate) => candidate.id === DISPLAY_AFTER[category.id]);
+    return extra ? [category, extra] : [category];
+  });
+}
 
 interface ScorecardProps {
   players: PlayerState[];
@@ -23,231 +36,65 @@ interface ScorecardProps {
   compact?: boolean;
 }
 
-export function Scorecard({
-  players,
-  currentPlayerIndex,
-  currentDice,
-  availableCategories,
-  onSelectCategory,
-  canInteract,
-  hasRolled,
-  diceCount = 5,
-  suggestedCategory,
-  leaderboardScores = [],
-  compact = false,
-}: ScorecardProps) {
-  const cats = getCategories(diceCount);
-  const upperCats = cats.filter((c) => c.section === "upper");
-  const lowerCats = cats.filter((c) => c.section === "lower");
-  const bonusThreshold = getUpperBonusThreshold(diceCount);
-  const bonusValue = getUpperBonusValue(diceCount);
-
+export function Scorecard({ players, currentPlayerIndex, currentDice, availableCategories, onSelectCategory,
+  canInteract, hasRolled, diceCount = 5, suggestedCategory, leaderboardScores = [], compact = false }: ScorecardProps) {
+  const categories = getScorecardCategories(diceCount);
+  const totals = players.map((player) => calculateTotal(player, diceCount));
+  const ranks = totals.map((total) => 1 + totals.filter((other) => other.grandTotal > total.grandTotal).length);
+  const threshold = getUpperBonusThreshold(diceCount);
+  const bonus = getUpperBonusValue(diceCount);
   const canSelect = canInteract && hasRolled;
+  const sections = [{ id: "upper", label: "Numbers" }, { id: "lower", label: "Combinations" }] as const;
 
-  const playerTotals = players.map((p) => calculateTotal(p, diceCount));
-
-  // Current game ranks (handle ties)
-  const gameRanks = computeRanks(playerTotals.map((t) => t.grandTotal));
-
-  // Max possible score per player + best leaderboard rank
-  const maxScores = players.map((p) => calculateMaxPossibleScore(p, diceCount));
-  const bestLeaderboardRanks = maxScores.map((max) => {
-    let rank = 1;
-    for (const s of leaderboardScores) {
-      if (s > max) rank++;
-      else break;
-    }
-    return rank;
-  });
-
-  const theme = useTheme();
-  const thStyle: React.CSSProperties = {
-    textAlign: "left",
-    padding: compact ? "1px 6px" : "4px 8px",
-    borderBottom: `2px solid ${theme.borderStrong}`,
-    color: theme.text,
-  };
-  const tdStyle: React.CSSProperties = {
-    padding: compact ? "0 6px" : "4px 8px",
-    borderBottom: `1px solid ${theme.border}`,
-    color: theme.text,
-  };
-
-  return (
-    <div data-testid="scorecard-scroll-container" style={{ overflowX: "auto", overflowY: compact ? "hidden" : undefined }}>
-      <style>{`
-        .yahtzee-score-action:focus-visible { outline: 3px solid ${theme.primary}; outline-offset: 2px; }
-        ${compact ? ".yahtzee-score-action { padding: 1px 4px !important; line-height: 1.05; }" : ""}
-      `}</style>
-      {canSelect && (
-        <p style={{ textAlign: "center", color: theme.textMuted, fontSize: compact ? "0.75rem" : "0.85rem", margin: compact ? 0 : "0 0 0.5rem" }}>
-          Choose a highlighted category to place your score
-        </p>
-      )}
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: compact ? "0.8rem" : "0.9rem", lineHeight: compact ? "1.05" : undefined }}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Category</th>
-            {players.map((p, i) => (
-              <th
-                key={p.id}
-                style={{
-                  ...thStyle,
-                  textAlign: "center",
-                  minWidth: "80px",
-                  background: i === currentPlayerIndex ? theme.currentPlayerBg : undefined,
-                  borderBottom: i === currentPlayerIndex ? `3px solid ${theme.currentPlayerBorder}` : `2px solid ${theme.borderStrong}`,
-                  lineHeight: "1.3",
-                }}
-              >
-                <div style={{ fontSize: compact ? "0.9rem" : "1.1rem", fontWeight: "bold" }}>
-                  {playerTotals[i].grandTotal} pts
-                </div>
-                <div style={{ fontSize: compact ? "0.65rem" : "0.75rem", color: theme.textMuted, fontWeight: "normal" }}>
-                  #{gameRanks[i]} in game · best: #{bestLeaderboardRanks[i]}
-                </div>
-                <div>{p.name}{p.isAi ? " 🤖" : ""}</div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Upper section */}
-          {upperCats.map((cat) => {
-            const isSuggested = suggestedCategory === cat.id;
-            const isAvailable = canSelect && availableCategories.includes(cat.id);
-            return (
-              <tr
-                key={cat.id}
-                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
-                style={{
-                  cursor: isAvailable ? "pointer" : "default",
-                  background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
-                  fontWeight: isSuggested && isAvailable ? "bold" : "normal",
-                  borderLeft: isAvailable ? `3px solid ${theme.availableBorder}` : "3px solid transparent",
-                }}
-              >
-                <td style={tdStyle}>
-                  <button
-                    className="yahtzee-score-action"
-                    type="button"
-                    disabled={!isAvailable}
-                    onClick={(event) => { event.stopPropagation(); onSelectCategory(cat.id); }}
-                    aria-label={`Score ${cat.label}`}
-                    style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
-                  >
-                    {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
-                  </button>
-                </td>
-                {players.map((p, i) => (
-                  <td
-                    key={p.id}
-                    style={{
-                      ...tdStyle,
-                      textAlign: "center",
-                      background: i === currentPlayerIndex ? `${theme.currentPlayerBorder}0a` : undefined,
-                    }}
-                  >
-                    <ScoreCell
-                      scored={p.scores[cat.id]}
-                      potential={i === currentPlayerIndex && isAvailable ? cat.score(currentDice) : undefined}
-                      potentialColor={theme.scorePotential}
-                    />
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-
-          {/* Upper subtotal + bonus */}
-          <tr style={{ fontWeight: "bold", background: theme.subtotalBg, color: theme.text }}>
-            <td style={tdStyle}>Upper Subtotal</td>
-            {playerTotals.map((t, i) => (
-              <td key={i} style={{ ...tdStyle, textAlign: "center" }}>{t.upperSubtotal} / {bonusThreshold}</td>
-            ))}
-          </tr>
-          <tr style={{ fontWeight: "bold", background: theme.subtotalBg, color: theme.text }}>
-            <td style={tdStyle}>Upper Bonus</td>
-            {playerTotals.map((t, i) => (
-              <td key={i} style={{ ...tdStyle, textAlign: "center" }}>{t.upperBonus > 0 ? `+${bonusValue}` : "—"}</td>
-            ))}
-          </tr>
-
-          {/* Lower section */}
-          {lowerCats.map((cat) => {
-            const isSuggested = suggestedCategory === cat.id;
-            const isAvailable = canSelect && availableCategories.includes(cat.id);
-            return (
-              <tr
-                key={cat.id}
-                onClick={isAvailable ? () => onSelectCategory(cat.id) : undefined}
-                style={{
-                  cursor: isAvailable ? "pointer" : "default",
-                  background: isSuggested && isAvailable ? theme.suggestionBg : isAvailable ? theme.availableBg : "transparent",
-                  fontWeight: isSuggested && isAvailable ? "bold" : "normal",
-                  borderLeft: isAvailable ? `3px solid ${theme.availableBorder}` : "3px solid transparent",
-                }}
-              >
-                <td style={tdStyle}>
-                  <button
-                    className="yahtzee-score-action"
-                    type="button"
-                    disabled={!isAvailable}
-                    onClick={(event) => { event.stopPropagation(); onSelectCategory(cat.id); }}
-                    aria-label={`Score ${cat.label}`}
-                    style={{ font: "inherit", color: "inherit", background: "transparent", border: 0, padding: "4px", textAlign: "left", cursor: isAvailable ? "pointer" : "default" }}
-                  >
-                    {isSuggested && isAvailable ? "⭐ " : isAvailable ? "► " : ""}{cat.label}
-                  </button>
-                </td>
-                {players.map((p, i) => (
-                  <td
-                    key={p.id}
-                    style={{
-                      ...tdStyle,
-                      textAlign: "center",
-                      background: i === currentPlayerIndex ? `${theme.currentPlayerBorder}0a` : undefined,
-                    }}
-                  >
-                    <ScoreCell
-                      scored={p.scores[cat.id]}
-                      potential={i === currentPlayerIndex && isAvailable ? cat.score(currentDice) : undefined}
-                      potentialColor={theme.scorePotential}
-                    />
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-
-          {/* Grand total */}
-          <tr style={{ fontWeight: "bold", background: theme.grandTotalBg, color: theme.text }}>
-            <td style={tdStyle}>Grand Total</td>
-            {playerTotals.map((t, i) => (
-              <td key={i} style={{ ...tdStyle, textAlign: "center", fontSize: compact ? "0.85rem" : "1rem" }}>{t.grandTotal}</td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+  return <section className={`scorecard${compact ? " scorecard-compact" : ""}${players.length > 2 ? " with-opponents" : ""}`} aria-label="Scorecard">
+    <div className="scorecard-heading"><h2>Scorecard</h2><span>{canSelect ? "Choose a category to score" : "Your scores, one turn at a time"}</span></div>
+    <div className="scorecard-scroll" data-testid="scorecard-scroll-container">
+      <div className="scorecard-sections">
+        {sections.map((section) => <div className={`score-section ${section.id}`} key={section.id}>
+          <table>
+            <caption>{section.label}</caption>
+            <thead><tr><th scope="col">Category</th>{players.map((player, index) => <th scope="col" key={player.id}
+              className={index === currentPlayerIndex ? "current-player" : undefined} title={player.name}>
+              <span className="player-name">{player.name}</span><span className="player-kind">{player.isAi ? "AI" : "You"}</span>
+            </th>)}</tr></thead>
+            <tbody>
+              {categories.filter((category) => category.section === section.id).map((category) => {
+                const available = canSelect && availableCategories.includes(category.id);
+                const suggested = available && suggestedCategory === category.id;
+                return <tr key={category.id} className={`${available ? "available" : ""}${suggested ? " suggested" : ""}`}
+                  onClick={available ? () => onSelectCategory(category.id) : undefined}>
+                  <td><button type="button" className="yahtzee-score-action" disabled={!available} aria-label={`Score ${category.label}`}
+                    onClick={(event) => { event.stopPropagation(); onSelectCategory(category.id); }}>
+                    <span>{category.label}</span>{suggested && <span className="suggested-mark" title="Suggested category" aria-label="Suggested"><Icon name="arrow" size={12} /></span>}
+                  </button></td>
+                  {players.map((player, index) => {
+                    const scored = player.scores[category.id];
+                    const potential = index === currentPlayerIndex && available ? category.score(currentDice) : undefined;
+                    return <td key={player.id} className={`score-value${scored !== undefined ? " scored" : ""}${potential !== undefined ? " potential" : ""}`}>
+                      <span>{scored ?? potential ?? "—"}</span>
+                    </td>;
+                  })}
+                </tr>;
+              })}
+              {section.id === "upper" && <>
+                <tr className="subtotal"><th scope="row">Upper Subtotal</th>{totals.map((total, index) => <td className="score-value" key={players[index].id}>{total.upperSubtotal}<span className="threshold"> / {threshold}</span></td>)}</tr>
+                <tr className="subtotal"><th scope="row">Upper Bonus</th>{totals.map((total, index) => <td className="score-value" key={players[index].id}>{total.upperBonus > 0 ? `+${bonus}` : "—"}</td>)}</tr>
+              </>}
+            </tbody>
+          </table>
+          {section.id === "upper" && <div className="bonus-note">
+            <div><span>Bonus target</span><strong>{totals[currentPlayerIndex]?.upperSubtotal ?? 0} / {threshold}</strong></div>
+            <progress max={threshold} value={Math.min(totals[currentPlayerIndex]?.upperSubtotal ?? 0, threshold)} aria-label="Upper bonus progress" />
+            <p>Reach {threshold} in Numbers for a {bonus}-point bonus.</p>
+            {canSelect && <p className="score-legend"><span className="legend-swatch" /> Suggested pick. Other available scores are outlined.</p>}
+          </div>}
+        </div>)}
+      </div>
+      <table className="totals-table"><tbody><tr><th scope="row">Grand Total</th>{players.map((player, index) => {
+        const bestRank = 1 + leaderboardScores.filter((score) => score > calculateMaxPossibleScore(player, diceCount)).length;
+        return <td key={player.id}><span className="total-name">{player.name}</span><strong>{totals[index].grandTotal}<small> pts</small></strong>
+          <span className="rank-note">#{ranks[index]} in game · best: #{bestRank}</span></td>;
+      })}</tr></tbody></table>
     </div>
-  );
-}
-
-// ─── Sub-components ───────────────────────────────────────
-
-function ScoreCell({ scored, potential, potentialColor }: { scored: number | undefined; potential: number | undefined; potentialColor: string }) {
-  if (scored !== undefined) return <>{scored}</>;
-  if (potential !== undefined) return <span style={{ color: potentialColor, fontStyle: "italic" }}>{potential}</span>;
-  return <>—</>;
-}
-
-function computeRanks(scores: number[]): number[] {
-  const indexed = scores.map((s, i) => ({ i, s })).sort((a, b) => b.s - a.s);
-  const ranks = new Array<number>(scores.length);
-  let rank = 1;
-  for (let j = 0; j < indexed.length; j++) {
-    if (j > 0 && indexed[j].s < indexed[j - 1].s) rank = j + 1;
-    ranks[indexed[j].i] = rank;
-  }
-  return ranks;
+  </section>;
 }

@@ -30,6 +30,8 @@ CI runs the client journeys and exports on both Linux and Windows. macOS and nat
 
 Each interactive target runs complete five- and six-dice games with one AI. The journeys exercise setup, holding, rerolls, keyboard scoring, every category, AI progression, completion, history-backed rankings, play-again and cancellation. Five-dice screenshots use light mode and six-dice screenshots use dark mode.
 
+The shared desktop/web presentation also has a dedicated browser check at 1440, 1073, 944, and 390 pixels wide. It covers both appearances, semantic held state, reduced motion, six-dice default-window fit, and a 20-dice/four-player boundary with a long name. The boundary verifies that scrolling still reaches the roll control and total. Captures go to `.impeccable/review/`; this additional test runs only in the web project, so its desktop and native-adapter duplicates are intentionally skipped. The six gameplay journeys still run on all three clients.
+
 An offline move must show a pending retry. Reconnection and retry must resume the same game. The fixture also drops the final move's response *after* the real completion transaction commits. Retrying must reveal the finished game while leaving exactly one log and two player receipts/rankings. A delayed move from a cancelled game must not replace a new game's state.
 
 To prove the suite cannot pass a permanently rejected completion, run this negative control from Bash:

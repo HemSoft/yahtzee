@@ -1,4 +1,4 @@
-import type { CategoryId } from "./scoring";
+import type { Category, CategoryId } from "./scoring";
 import { getCategories, getUpperBonusThreshold, getUpperBonusValue } from "./scoring";
 import { rollDice } from "./dice";
 
@@ -110,7 +110,7 @@ const MAX_SCORE_TABLE: Record<CategoryId, MaxScoreEntry> = {
   "chance": (d) => d * 6,
   "three-pairs": (d) => d * 6 - 6,
   "five-of-a-kind": 30,
-  "full-straight": 21,
+  "full-straight": 50,
   "castle": (d) => d * 6 - 3,
   "tower": (d) => d * 6 - 2,
   "maxi-yahtzee": 100,
@@ -154,7 +154,20 @@ export function getAvailableCategories(player: PlayerState, diceCount: number = 
 
 // ─── AI Logic ─────────────────────────────────────────────
 
-/** Pick the best available category for the AI (greedy: highest score, Chance as last resort). */
+function isPreferredPick(category: Category, score: number, diceCount: number, bonusGain: number): boolean {
+  if (score <= 0 || category.id === "chance") return false;
+  if (category.section === "lower") return true;
+  const face = getMaxCategoryScore(category.id, diceCount) / diceCount;
+  const bonusPace = face * getUpperBonusThreshold(diceCount) / 21;
+  return bonusGain > 0 || score >= bonusPace;
+}
+
+/**
+ * Shared suggestion/AI heuristic: save Chance while a made combination or an
+ * on-pace upper score is available. Rank those picks by points plus any bonus
+ * secured now. Otherwise take points rather than scratch just to save Chance.
+ * This evaluates the current dice, not future rolls or an optimal whole game.
+ */
 export function pickAiCategory(
   dice: number[],
   player: PlayerState,
@@ -162,13 +175,22 @@ export function pickAiCategory(
 ): CategoryId {
   const available = getAvailableCategories(player, diceCount);
   const catMap = new Map(getCategories(diceCount).map((c) => [c.id, c]));
+  const { upperSubtotal, upperBonus } = calculateTotal(player, diceCount);
   let bestId = available[0];
   let bestScore = -1;
+  let bestPriority = -1;
 
   for (const id of available) {
-    const s = catMap.get(id)!.score(dice);
-    if (s > bestScore || (s === bestScore && bestId === "chance")) {
-      bestScore = s;
+    const category = catMap.get(id)!;
+    const score = category.score(dice);
+    const bonusGain = category.section === "upper"
+      ? getUpperBonus(upperSubtotal + score, diceCount) - upperBonus : 0;
+    const priority = Number(isPreferredPick(category, score, diceCount, bonusGain));
+    const value = score + bonusGain;
+    if (priority > bestPriority || (priority === bestPriority &&
+      (value > bestScore || (value === bestScore && bestId === "chance")))) {
+      bestScore = value;
+      bestPriority = priority;
       bestId = id;
     }
   }

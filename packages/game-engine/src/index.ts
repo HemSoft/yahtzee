@@ -1,3 +1,4 @@
+export { createOfflineBackend } from "./offline";
 export { rollDie, rollDice, reroll } from "./dice";
 export {
   upperScore,

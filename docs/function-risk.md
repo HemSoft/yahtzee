@@ -40,6 +40,8 @@ Initial source baseline is commit `dc1978768479bd3c37555619d681d40f82fd479f`. No
 | Web App | 34 | 51/54 | 34.19821673525377 | Same constraint as desktop |
 | Mobile Index | 40 | 61/65 | 40.37287209831589 | Preserve measured risk until screen extraction lowers it |
 
+The desktop/web redesign now shares separate setup, play, and results components. Both app entry components fall below the new-function gate, so their obsolete legacy exceptions were removed. The mobile exception remains unchanged. Current measurements are in `reports/quality/report.md`; the table above records the original baseline, not current desktop/web complexity.
+
 Better coverage alone cannot put complexity 34 or 40 below CRAP 30. These are visible legacy limits, not claims that the components are low-risk.
 
 Two other initial functions fall in the review band. The [upper scorecard row callback](../packages/ui/src/Scorecard.tsx) measures 16.4087 from complexity 14 and 20/26 branch arms. It combines preview, assigned-score and human/AI presentation cases. The [server applyMove function](../convex/lib/sessionGame.ts) measures 15.0144 from complexity 15 and 24/25 arms. Capability and illegal-move regressions plus complete guest games cover that path. Both remain visible in the report; neither receives an exception.

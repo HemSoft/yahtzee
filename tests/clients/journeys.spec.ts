@@ -43,7 +43,7 @@ async function expectNoScorecardOverflow(page: Page) {
 
 async function expectPlayingControlsDoNotOverlap(page: Page) {
   const theme = await page.getByRole("button", { name: /Switch to .* mode/ }).boundingBox();
-  const quit = await page.getByRole("button", { name: "✕ Quit Game", exact: true }).boundingBox();
+  const quit = await page.getByRole("button", { name: "Quit Game", exact: true }).boundingBox();
   expect(theme).not.toBeNull();
   expect(quit).not.toBeNull();
   const overlapWidth = Math.max(0, Math.min(theme!.x + theme!.width, quit!.x + quit!.width) - Math.max(theme!.x, quit!.x));
@@ -162,13 +162,20 @@ for (const diceCount of [5, 6]) {
       await expectMinimumWindowFallback(client);
       await expectNoDocumentOverflow(client);
     }
+    if (!mobile) {
+      const lowerOrder = diceCount === 5
+        ? ["One Pair", "Two Pairs", "Three of a Kind", "Four of a Kind", "Full House", "Small Straight", "Large Straight", "Yahtzee", "Chance"]
+        : ["One Pair", "Two Pairs", "Three Pairs", "Three of a Kind", "Four of a Kind", "Five of a Kind", "Full House", "Castle", "Small Straight", "Large Straight", "Full Straight", "Chance", "Tower", "Maxi Yahtzee"];
+      await expect(client.locator(".score-section.lower .yahtzee-score-action")).toHaveText(lowerOrder);
+    }
     const firstDie = client.getByRole("button", { name: /^Die showing / }).first();
-    const heldValue = await firstDie.textContent();
+    const heldValue = await firstDie.getAttribute("aria-label");
     await firstDie.click();
     await expect(client.getByRole("button", { name: "Re-roll (2)", exact: true })).toBeEnabled();
     await client.getByRole("button", { name: "Re-roll (2)", exact: true }).click();
     await expect(client.getByRole("button", { name: "Re-roll (1)", exact: true })).toBeEnabled();
-    expect(await firstDie.textContent()).toBe(heldValue);
+    expect(await firstDie.getAttribute("aria-label")).toBe(`${heldValue}, held`);
+    if (!mobile) await expect(firstDie).toHaveAttribute("aria-pressed", "true");
 
     await client.context().setOffline(true);
     await client.getByRole("button", { name: "Re-roll (1)", exact: true }).click();
@@ -195,7 +202,7 @@ for (const diceCount of [5, 6]) {
     expect(committed.logs).toHaveLength(1); expect(committed.receiptCount).toBe(2);
     await client.getByRole("button", { name: "Retry move", exact: true }).click();
     await expect(client.getByText("Game Over!", { exact: true })).toBeVisible();
-    await expect(client.getByText(`🏅 High Scores (${diceCount} dice)`, { exact: true })).toBeVisible();
+    await expect(client.getByText(`${mobile ? "🏅 " : ""}High Scores (${diceCount} dice)`, { exact: true })).toBeVisible();
     for (const player of committed.logs[0].players) {
       await expect(client.getByText(`${player.score} pts`, { exact: false }).first()).toBeVisible();
     }
@@ -211,7 +218,7 @@ for (const diceCount of [5, 6]) {
     await request.post("/control", { data: { delay: 600 } });
     const delayed = client.waitForResponse((response) => response.url().endsWith("/rpc") && response.request().postDataJSON()?.name === "games:move");
     await client.getByRole("button", { name: "Re-roll (2)", exact: true }).click();
-    await client.getByRole("button", { name: "✕ Quit Game", exact: true }).click();
+    await client.getByRole("button", { name: mobile ? "✕ Quit Game" : "Quit Game", exact: true }).click();
     await textbox.fill("Replacement guest");
     await client.getByRole("button", { name: "Start Game", exact: true }).click();
     await expect(client.getByText(/Replacement guest's turn/)).toBeVisible();

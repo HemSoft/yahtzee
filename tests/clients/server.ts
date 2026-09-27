@@ -1,6 +1,6 @@
 import { convexTest } from "convex-test";
 import { createRequire } from "node:module";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import schema from "../../convex/schema";
 import { api } from "../../convex/_generated/api";
 import type { FunctionArgs } from "convex/server";
@@ -26,6 +26,7 @@ const outputs = new Map<string, Blob>();
 for (const client of ["web", "desktop", "mobile"]) {
   const result = await Bun.build({
     entrypoints: [resolve(`tests/clients/${client}.tsx`)], target: "browser",
+    loader: { ".ttf": "file" }, publicPath: "/",
     define: { "process.env.NODE_ENV": JSON.stringify("test"), __DEV__: "true" },
     plugins: [{ name: "isolated-client-backend", setup(build) {
       if (process.env.TEST_COVERAGE === "1") build.onLoad({ filter: productionLoadFilter }, async ({ path }) => {
@@ -39,7 +40,11 @@ for (const client of ["web", "desktop", "mobile"]) {
     } }],
   });
   if (!result.success) throw new Error(result.logs.join("\n"));
-  outputs.set(`/${client}.js`, result.outputs[0]);
+  for (const output of result.outputs) {
+    const extension = output.path.split(".").at(-1);
+    const key = extension === "js" || extension === "css" ? `/${client}.${extension}` : `/${basename(output.path)}`;
+    outputs.set(key, output);
+  }
 }
 const html = await Bun.file("apps/web/index.html").text();
 Bun.serve({
@@ -51,9 +56,10 @@ Bun.serve({
       return Response.json((globalThis as typeof globalThis & { __coverage__?: unknown }).__coverage__ ?? {});
     }
     if (path === "/favicon.ico") return new Response(null, { status: 204 });
-    if (outputs.has(path)) return new Response(outputs.get(path), { headers: { "content-type": "text/javascript" } });
+    if (outputs.has(path)) return new Response(outputs.get(path));
     if (["/web", "/desktop", "/mobile"].includes(path)) {
-      return new Response(html.replace('/src/main.tsx', `${path}.js`), { headers: { "content-type": "text/html" } });
+      const style = outputs.has(`${path}.css`) ? `<link rel="stylesheet" href="${path}.css">` : "";
+      return new Response(html.replace('/src/main.tsx', `${path}.js`).replace("</head>", `${style}</head>`), { headers: { "content-type": "text/html" } });
     }
     if (path === "/control" && request.method === "POST") {
       const control = await request.json() as { reset?: boolean; loseResponse?: boolean; delay?: number };

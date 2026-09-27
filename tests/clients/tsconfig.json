@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "noEmit": true, "rootDir": "../..", "types": ["bun", "node"] },
-  "include": ["./**/*.ts", "./**/*.tsx", "../../playwright.config.ts"]
+  "include": ["./**/*.ts", "./**/*.tsx", "../offline/**/*.ts", "../../playwright.config.ts"]
 }
