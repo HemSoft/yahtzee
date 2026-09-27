@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Development dice mark</title>
+  <rect id="background" width="1024" height="1024" fill="#1e453a"/>
+  <g transform="rotate(-8 512 512)">
+    <rect x="216" y="216" width="592" height="592" rx="112" fill="#f5f4e9"/>
+    <g fill="#244033">
+      <circle cx="360" cy="360" r="46"/>
+      <circle cx="664" cy="360" r="46"/>
+      <circle cx="360" cy="664" r="46"/>
+      <circle cx="664" cy="664" r="46"/>
+    </g>
+    <circle cx="512" cy="512" r="46" fill="#92431f"/>
+  </g>
+</svg>

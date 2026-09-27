@@ -44,7 +44,7 @@ jobs:
       - name: iOS release-record consistency tests and draft check
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
-          node --test scripts/ios-release/*.test.mjs
+          node --test scripts/ios-release/*.test.mjs scripts/ios-assets/*.test.mjs scripts/ios-native/*.test.mjs
           node scripts/ios-release/check.mjs
       - name: Unit and backend tests
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
@@ -60,7 +60,6 @@ jobs:
         env:
           EXPO_OFFLINE: '1'
           EXPO_NO_TELEMETRY: '1'
-          EXPO_PUBLIC_CONVEX_URL: https://fixture.invalid
         run: bun run build:mobile
       - name: Install client-test browser and host dependencies
         id: browsers
@@ -121,10 +120,50 @@ jobs:
           retention-days: 3
           if-no-files-found: warn
 
+  native:
+    name: Unsigned iPhone and iPad qualification
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.12.0'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+      - name: Install locked dependencies without lifecycle scripts
+        run: bun install --frozen-lockfile --ignore-scripts
+      - name: Install hash-verified local Maestro CLI
+        shell: bash
+        run: |
+          curl --fail --location --retry 2 https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.10.0/maestro.zip -o "$RUNNER_TEMP/maestro.zip"
+          printf '%s  %s\n' '29b675e10cc12080e445e9bfb2e2b4e4dfb9c0f2e30d5884120d258b5e1cd991' "$RUNNER_TEMP/maestro.zip" | shasum -a 256 -c -
+          unzip -q "$RUNNER_TEMP/maestro.zip" -d "$RUNNER_TEMP/maestro-tool"
+          test -x "$RUNNER_TEMP/maestro-tool/maestro/bin/maestro"
+          echo "$RUNNER_TEMP/maestro-tool/maestro/bin" >> "$GITHUB_PATH"
+          echo "JAVA_HOME=$(/usr/libexec/java_home -v 17)" >> "$GITHUB_ENV"
+      - name: Build a Release simulator app and exercise native screens and saves
+        run: bun scripts/ios-native/run.mjs
+      - name: Require the reviewed CocoaPods lock after bootstrap
+        run: test -f apps/mobile/native/Podfile.lock
+      - name: Retain unsigned native evidence, including failed-run diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-native-${{ github.event.pull_request.head.sha || github.sha }}
+          path: reports/native/
+          retention-days: 1
+          compression-level: 9
+          if-no-files-found: warn
+
   quality-gate:
     name: quality-gate
     if: ${{ always() }}
-    needs: [validate, mutation]
+    needs: [validate, mutation, native]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -132,8 +171,9 @@ jobs:
         env:
           VALIDATION_RESULT: ${{ needs.validate.result }}
           MUTATION_RESULT: ${{ needs.mutation.result }}
+          NATIVE_RESULT: ${{ needs.native.result }}
         run: |
-          if [ "$VALIDATION_RESULT" != success ] || [ "$MUTATION_RESULT" != success ]; then
-            echo "Qualification did not succeed: validation=$VALIDATION_RESULT mutation=$MUTATION_RESULT"
+          if [ "$VALIDATION_RESULT" != success ] || [ "$MUTATION_RESULT" != success ] || [ "$NATIVE_RESULT" != success ]; then
+            echo "Qualification did not succeed: validation=$VALIDATION_RESULT mutation=$MUTATION_RESULT native=$NATIVE_RESULT"
             exit 1
           fi

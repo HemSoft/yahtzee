@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "origin": "Repository-authored SVG geometry, adapted from the game's pip controls",
+  "source": "icon-source.svg",
+  "sourceSha256": "06a8d30e14dd58aae688027a93986c5590003b30179e6e7281e95f83befb5b4b",
+  "sourceNormalization": "LF",
+  "renderer": "Version: ImageMagick 7.1.2-13 Q16-HDRI x64 dd991e2:20260119 https://imagemagick.org",
+  "generator": "scripts/ios-assets/generate.mjs",
+  "publicIdentityApproved": false,
+  "externalArtwork": [],
+  "fonts": [],
+  "sound": [],
+  "exports": [
+    {
+      "file": "icon.png",
+      "role": "ios-light-and-app-store",
+      "width": 1024,
+      "height": 1024,
+      "transparencyAllowed": false,
+      "sha256": "de1789f6e47e87e562c318e188556cb2d460b6b871060da922214ea1ee449368"
+    },
+    {
+      "file": "icon-dark.png",
+      "role": "ios-dark",
+      "width": 1024,
+      "height": 1024,
+      "transparencyAllowed": false,
+      "sha256": "17b53cf5c0aa3074097a95ee73a5b3e8a9eb3855c64235c7b4f0bbb4ac6fd26d"
+    },
+    {
+      "file": "icon-tinted.png",
+      "role": "ios-tinted",
+      "width": 1024,
+      "height": 1024,
+      "transparencyAllowed": false,
+      "sha256": "ede85d00f61af5e6664929f7d2715c322f809e9af6c9b352c00ebfd6a0d92073"
+    },
+    {
+      "file": "launch-mark.png",
+      "role": "launch-and-android-foreground",
+      "width": 1024,
+      "height": 1024,
+      "transparencyAllowed": true,
+      "sha256": "d86c7aff5fa70b48c3b020de1e851a73222cfced15e77bfb766bb39236231bdd"
+    }
+  ]
+}

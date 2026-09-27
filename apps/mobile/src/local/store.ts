@@ -5,6 +5,8 @@ export interface StoragePort {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
   removeItem(key: string): Promise<void>;
+  /** Remove only this app's dedicated storage after the UI confirms Reset All. */
+  reset?(): Promise<void>;
 }
 export interface LocalView {
   /** Reload/reset replaces unsaved UI drafts as well as the document. Not persisted. */
@@ -60,7 +62,10 @@ export function createLocalStore(storage: StoragePort, newId = () => `${Date.now
   const writePending = async () => {
     if (!pending) throw new Error("No save is waiting to be retried.");
     const transaction = pending;
-    if (transaction.reset) for (const key of LEGACY_KEYS) await storage.removeItem(key);
+    if (transaction.reset) {
+      await storage.reset?.();
+      for (const key of LEGACY_KEYS) await storage.removeItem(key);
+    }
     await storage.setItem(SAVE_KEY, transaction.bytes);
     pending = null;
     publish({ data: transaction.data, error: null, canRetry: false, generation: view.generation + Number(transaction.reset) });

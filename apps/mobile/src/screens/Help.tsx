@@ -35,7 +35,7 @@ export function Help() {
       {rules.map(([title, body]) => <Section key={title} title={title}><View style={styles.row}><Label>{body}</Label></View></Section>)}
       <Section title="Your data">
         <View style={styles.row}><Label>Acknowledged moves, names, appearance and results are saved locally. Pause keeps your active game. Resume restores it; Discard removes only that active game. Completed history keeps the last 500 games, with separate all-time top tens.</Label></View>
-        <View style={styles.row}><Label>Local scores are not server-verified or uploaded. No game-server connection is required. Uninstalling removes app-local data. Device-backup behavior and final privacy declarations still need native release verification.</Label></View>
+        <View style={styles.row}><Label>Local scores are not server-verified or uploaded. No game-server connection is required. Deleting the app removes local data; offloading can retain it. The iOS data folder is eligible for device backup, so a restore may bring back earlier data. Reset does not erase existing device backups. Restore testing and final privacy declarations remain pending.</Label></View>
       </Section>
       <Section title="About this development build">
         <View style={styles.row}><Label>Version {appConfig.expo.version}. Public branding, support/private-contact links and the App Store review destination await owner approval.</Label></View>

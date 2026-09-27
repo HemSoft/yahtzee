@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Appearance, Platform, useColorScheme } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createPlatformStorage } from "./platformStorage";
 import { createLocalStore, type LocalStore, type LocalView } from "./store";
 import { nativeColors } from "../ui/colors";
 import type { NativeColors } from "../ui/palette";
@@ -9,7 +9,7 @@ interface LocalContext { store: LocalStore; view: LocalView; dark: boolean; colo
 const Context = createContext<LocalContext | null>(null);
 
 export function LocalProvider({ children }: { children: ReactNode }) {
-  const [store] = useState(() => createLocalStore(AsyncStorage));
+  const [store] = useState(() => createLocalStore(createPlatformStorage()));
   const view = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const system = useColorScheme();
   const preference = view.data?.preferences.appearance ?? "system";
