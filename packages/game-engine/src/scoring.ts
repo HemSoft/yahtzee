@@ -122,10 +122,10 @@ export function fiveOfAKind(dice: number[]): number {
   return highestNOfAKind(dice, 5);
 }
 
-/** Full straight: 1-2-3-4-5-6 all present — 21 points. */
+/** Full straight: 1-2-3-4-5-6 all present, worth 50 points. */
 export function fullStraight(dice: number[]): number {
   const unique = new Set(dice);
-  return [1, 2, 3, 4, 5, 6].every((v) => unique.has(v)) ? 21 : 0;
+  return [1, 2, 3, 4, 5, 6].every((v) => unique.has(v)) ? 50 : 0;
 }
 
 /** Castle/Villa: two sets of three same dice — sum of all dice. */
@@ -223,10 +223,12 @@ export function getCategories(diceCount: number): Category[] {
   });
 }
 
-/** Get the upper bonus threshold for a dice count. 5→63, 6→84, 8→126, etc. */
+/** Upper bonus target: 5 dice need 63, 6–8 need 84, 10 need 105. */
 export function getUpperBonusThreshold(diceCount: number): number {
-  // Formula: (diceCount - 2) * sum(1..6) = (diceCount - 2) * 21
-  return Math.max(diceCount - 2, 3) * 21;
+  if (diceCount <= 5) return 63;
+  // Preserve the six-dice target; larger games need half the dice per face,
+  // rounded up, rather than matching all but two dice in every number category.
+  return Math.max(4, Math.ceil(diceCount / 2)) * 21;
 }
 
 /** Get the upper bonus value for a dice count. 5→35, 6+→100. */

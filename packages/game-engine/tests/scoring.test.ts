@@ -222,7 +222,7 @@ describe("fiveOfAKind", () => {
 
 describe("fullStraight", () => {
   test("scores 1-2-3-4-5-6", () => {
-    expect(fullStraight([1, 2, 3, 4, 5, 6])).toBe(21);
+    expect(fullStraight([1, 2, 3, 4, 5, 6])).toBe(50);
   });
 
   test("returns 0 when missing a number", () => {
@@ -230,7 +230,7 @@ describe("fullStraight", () => {
   });
 
   test("scores when extra dice present", () => {
-    expect(fullStraight([1, 2, 3, 4, 5, 6, 6])).toBe(21);
+    expect(fullStraight([1, 2, 3, 4, 5, 6, 6])).toBe(50);
   });
 });
 
@@ -277,6 +277,18 @@ describe("maxiYahtzee", () => {
 });
 
 describe("getCategories", () => {
+  test("extended games expose Full Straight for 50 and two triples as Castle", () => {
+    for (const diceCount of [6, 8, 20]) {
+      const categories = getCategories(diceCount);
+      const straight = categories.find((category) => category.id === "full-straight");
+      const twoTriples = categories.find((category) => category.id === "castle");
+      expect(straight?.score([1, 2, 3, 4, 5, 6])).toBe(50);
+      expect(twoTriples?.label).toBe("Castle");
+      expect(twoTriples?.score([3, 3, 3, 5, 5, 5])).toBe(24);
+      expect(twoTriples?.score([3, 3, 3, 3, 3, 3])).toBe(0);
+    }
+  });
+
   test("returns 15 categories for 5 dice", () => {
     expect(getCategories(5).length).toBe(15);
   });
@@ -327,6 +339,12 @@ describe("dynamic bonus", () => {
 
   test("6-dice threshold is 84", () => {
     expect(getUpperBonusThreshold(6)).toBe(84);
+  });
+
+  test("larger games target half the dice, rounded up, with a four-match minimum", () => {
+    for (const [diceCount, threshold] of [[7, 84], [8, 84], [9, 105], [10, 105], [20, 210]]) {
+      expect(getUpperBonusThreshold(diceCount)).toBe(threshold);
+    }
   });
 
   test("5-dice bonus value is 35", () => {

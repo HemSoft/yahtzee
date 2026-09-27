@@ -153,7 +153,7 @@ describe("pickAiCategory", () => {
   test("prefers a matching maxi category over Chance at the same score", () => {
     const player = { id: "ai", name: "Bot", scores: {} };
     expect(pickAiCategory([1, 1, 2, 2, 3, 3], player, 6)).toBe("three-pairs");
-    expect(pickAiCategory([1, 1, 1, 2, 4, 6], player, 6)).toBe("chance");
+    expect(pickAiCategory([1, 1, 1, 2, 4, 6], player, 6)).toBe("three-of-a-kind");
   });
   test("picks highest-scoring available category", () => {
     const player = { id: "ai", name: "Bot", scores: {} as Record<string, number>, isAi: true };
@@ -210,6 +210,19 @@ describe("executeAiTurn", () => {
 });
 
 describe("calculateMaxPossibleScore", () => {
+  test("eight-dice totals and maximums award the bonus at 84, not below", () => {
+    const scores = Object.fromEntries(getCategories(8).map((category) => [category.id, 0]));
+    Object.assign(scores, { ones: 4, twos: 8, threes: 12, fours: 16, fives: 20, sixes: 24 });
+    const player = { id: "p", name: "Player", scores };
+    expect(calculateTotal(player, 8).upperBonus).toBe(100);
+    expect(calculateTotal(player, 8).grandTotal).toBe(184);
+    expect(calculateMaxPossibleScore(player, 8)).toBe(184);
+
+    scores.ones = 3;
+    expect(calculateTotal(player, 8).upperBonus).toBe(0);
+    expect(calculateTotal(player, 8).grandTotal).toBe(83);
+    expect(calculateMaxPossibleScore(player, 8)).toBe(83);
+  });
   test("lower points cannot earn an upper bonus on a completed card", () => {
     const scores = Object.fromEntries(CATEGORIES.map((category) => [category.id, 0]));
     Object.assign(scores, { ones: 2, twos: 6, threes: 9, fours: 12, fives: 15, sixes: 18, yahtzee: 50, chance: 20 });
@@ -250,8 +263,8 @@ describe("calculateMaxPossibleScore", () => {
   test("works with 6-dice maxi variant", () => {
     const player = { id: "p1", name: "A", scores: {} };
     // Upper: 6+12+18+24+30+36=126, bonus=100 (threshold=84)
-    // Lower (14 cats): 12+22+18+24+25+30+40+36+30+30+21+33+34+100=455
-    expect(calculateMaxPossibleScore(player, 6)).toBe(681);
+    // Lower (14 cats): 12+22+18+24+25+30+40+36+30+30+50+33+34+100=484
+    expect(calculateMaxPossibleScore(player, 6)).toBe(710);
   });
 
   test("fully scored player returns actual total", () => {
@@ -269,6 +282,13 @@ describe("calculateMaxPossibleScore", () => {
 });
 
 describe("getUpperBonus", () => {
+  test("awards extended-game bonuses at and above the revised thresholds", () => {
+    for (const [diceCount, threshold] of [[8, 84], [10, 105], [20, 210]]) {
+      expect(getUpperBonus(threshold - 1, diceCount)).toBe(0);
+      expect(getUpperBonus(threshold, diceCount)).toBe(100);
+      expect(getUpperBonus(threshold + 1, diceCount)).toBe(100);
+    }
+  });
   test("returns bonus when threshold met for 5 dice", () => {
     expect(getUpperBonus(63, 5)).toBe(35);
   });

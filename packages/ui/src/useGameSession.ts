@@ -14,8 +14,10 @@ interface Backend<I extends string> {
 function localGame(game: RemoteGame): GameState { return { ...game, held: new Set(game.held) }; }
 
 /** Shared web/desktop/native request lifecycle. Capabilities stay in memory. */
-export function useGameSession<I extends string>(backend: Backend<I>) {
+export function useGameSession<I extends string>(backend: Backend<I>, messages: { startError?: string; moveError?: string } = {}) {
   const { start: startRequest, move: moveRequest } = backend;
+  const startError = messages.startError ?? "Could not start the guest game. Check your connection and try again.";
+  const moveError = messages.moveError ?? "Could not confirm the move. Retry to check whether it was saved. Quit if the game has expired.";
   const [game, setGame] = useState<GameState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,12 +43,12 @@ export function useGameSession<I extends string>(backend: Backend<I>) {
       credentials.current = { gameId: result.gameId, secret: result.secret, revision: result.revision };
       const next = localGame(result.game); setGame(next); return next;
     } catch {
-      if (attempt === generation.current) setError("Could not start the guest game. Check your connection and try again.");
+      if (attempt === generation.current) setError(startError);
       return null;
     } finally {
       if (attempt === generation.current) { locked.current = false; setBusy(false); }
     }
-  }, [startRequest]);
+  }, [startRequest, startError]);
 
   const perform = useCallback(async (request: Request<I>) => {
     if (locked.current) return;
@@ -60,12 +62,12 @@ export function useGameSession<I extends string>(backend: Backend<I>) {
     } catch {
       if (attempt === generation.current) {
         setCanRetry(true);
-        setError("Could not confirm the move. Retry to check whether it was saved. Quit if the game has expired.");
+        setError(moveError);
       }
     } finally {
       if (attempt === generation.current) { locked.current = false; setBusy(false); }
     }
-  }, [moveRequest]);
+  }, [moveRequest, moveError]);
 
   const send = useCallback((move: Move) => {
     if (credentials.current && !pending.current) void perform({ ...credentials.current, move });

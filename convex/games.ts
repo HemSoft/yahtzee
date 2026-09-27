@@ -5,6 +5,7 @@ import { internal } from "./_generated/api";
 import { diceMode, guestName, snapshotValue, type Snapshot } from "./lib/gameModel";
 import { applyMove, newGuestGame } from "./lib/sessionGame";
 import { finishGame } from "./lib/finishGame";
+import { CURRENT_RULES_VERSION, requireCurrentRules } from "./lib/rules";
 
 const LIFETIME = 12 * 60 * 60 * 1000;
 const credentials = { gameId: v.id("games"), secret: v.string() };
@@ -20,6 +21,7 @@ async function authorize(ctx: QueryCtx | MutationCtx, gameId: Id<"games">, secre
   const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
   if (!session || hash !== session.tokenHash) throw new Error("Unauthorized game");
   if (Date.now() >= session.expiresAt) throw new Error("Guest game expired");
+  requireCurrentRules(session);
   return session;
 }
 
@@ -32,6 +34,7 @@ export const create = internalMutation({
     const startedAt = Date.now();
     const gameId = await ctx.db.insert("games", {
       tokenHash: args.tokenHash, startedAt, expiresAt: startedAt + LIFETIME, revision: 0, game,
+      rulesVersion: CURRENT_RULES_VERSION,
     });
     game.id = gameId;
     await ctx.db.patch(gameId, { game });

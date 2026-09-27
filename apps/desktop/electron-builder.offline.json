@@ -1,0 +1,15 @@
+{
+  "appId": "com.hemsoft.yahtzee.offline",
+  "productName": "Yahtzee Offline",
+  "electronVersion": "44.4.3",
+  "directories": { "app": "out/offline", "output": "release" },
+  "files": ["main/**", "renderer/**", "licenses/**", "package.json", "!node_modules{,/**/*}"],
+  "asar": true,
+  "npmRebuild": false,
+  "win": {
+    "target": [{ "target": "portable", "arch": ["x64"] }],
+    "signAndEditExecutable": false,
+    "artifactName": "Yahtzee-Offline-${version}-win-x64.${ext}"
+  },
+  "portable": { "requestExecutionLevel": "user", "unpackDirName": false }
+}

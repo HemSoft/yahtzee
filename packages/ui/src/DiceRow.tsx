@@ -1,5 +1,14 @@
 import React from "react";
-import { useTheme } from "./theme";
+
+const PIPS: Record<number, number[]> = {
+  1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8],
+};
+
+export function PipFace({ value }: { value: number }) {
+  return <span className="pip-face" aria-hidden="true">
+    {PIPS[value] ? Array.from({ length: 9 }, (_, index) => <span key={index} className={PIPS[value].includes(index) ? "pip is-visible" : "pip"} />) : <span className="die-empty">?</span>}
+  </span>;
+}
 
 interface DieProps {
   value: number;
@@ -9,41 +18,12 @@ interface DieProps {
   compact?: boolean;
 }
 
-const DIE_FACES: Record<number, string> = {
-  1: "⚀",
-  2: "⚁",
-  3: "⚂",
-  4: "⚃",
-  5: "⚄",
-  6: "⚅",
-};
-
 export function Die({ value, held, onToggleHold, disabled, compact = false }: DieProps) {
-  const theme = useTheme();
-  return (
-    <button
-      onClick={onToggleHold}
-      disabled={disabled}
-      style={{
-        fontSize: compact ? "2rem" : "3rem",
-        padding: compact ? "0.2rem" : "0.5rem",
-        border: held ? `3px solid ${theme.heldBorder}` : "3px solid transparent",
-        borderRadius: "12px",
-        background: held ? theme.heldBg : theme.dieBg,
-        color: theme.text,
-        cursor: disabled ? "default" : "pointer",
-        transition: "all 0.15s ease",
-        minWidth: compact ? "3rem" : "4rem",
-        minHeight: compact ? "3rem" : "4rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-      aria-label={`Die showing ${value}${held ? ", held" : ""}`}
-    >
-      {value > 0 ? DIE_FACES[value] ?? value : "?"}
-    </button>
-  );
+  return <button type="button" onClick={onToggleHold} disabled={disabled}
+    className={`die${held ? " is-held" : ""}${compact ? " is-compact" : ""}`}
+    aria-pressed={held} aria-label={`Die showing ${value}${held ? ", held" : ""}`}>
+    <PipFace value={value} />
+  </button>;
 }
 
 interface DiceRowProps {
@@ -52,21 +32,17 @@ interface DiceRowProps {
   onToggleHold: (index: number) => void;
   disabled?: boolean;
   compact?: boolean;
+  rolling?: boolean;
+  rollKey?: number;
 }
 
-export function DiceRow({ dice, held, onToggleHold, disabled, compact = false }: DiceRowProps) {
-  return (
-    <div style={{ display: "flex", gap: compact ? "0.4rem" : "0.75rem", flexWrap: "wrap", justifyContent: "center" }}>
-      {dice.map((value, i) => (
-        <Die
-          key={i}
-          value={value}
-          held={held.has(i)}
-          onToggleHold={() => onToggleHold(i)}
-          disabled={disabled}
-          compact={compact}
-        />
-      ))}
-    </div>
-  );
+export function DiceRow({ dice, held, onToggleHold, disabled, compact = false, rolling = false, rollKey = 0 }: DiceRowProps) {
+  return <div className={`dice-row dice-count-${dice.length}${dice.length > 10 ? " many-dice" : ""}${rolling ? " is-rolling" : ""}`}>
+    {dice.map((value, index) => <div className="die-slot" key={index}>
+      <div className={!held.has(index) && rollKey > 0 ? "die-arrival" : undefined} key={held.has(index) ? "held" : rollKey}>
+        <Die value={value} held={held.has(index)} onToggleHold={() => onToggleHold(index)} disabled={disabled} compact={compact} />
+      </div>
+      <span className={`hold-label${held.has(index) ? " is-held" : ""}`} aria-hidden="true">{held.has(index) ? "Held" : "Hold"}</span>
+    </div>)}
+  </div>;
 }

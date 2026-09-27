@@ -4,9 +4,11 @@ import { calculateTotal, calculateMaxPossibleScore, isGameComplete } from "../..
 import { getCategories } from "../../packages/game-engine/src/scoring";
 import { fromWire, guestName, type WireGame } from "./gameModel";
 import { recordScore } from "./recordScore";
+import { CURRENT_RULES_VERSION, requireCurrentRules } from "./rules";
 
 /** Called only inside the authorized move transaction. No caller totals exist. */
 export async function finishGame(ctx: MutationCtx, session: Doc<"games">, wire: WireGame, now: number) {
+  requireCurrentRules(session);
   const game = fromWire(wire);
   if (game.status !== "finished" || !isGameComplete(game) || game.players.length < 1 || game.players.length > 4) {
     throw new Error("Incomplete game");
@@ -28,7 +30,7 @@ export async function finishGame(ctx: MutationCtx, session: Doc<"games">, wire: 
   if (previous) throw new Error("Game result already exists");
   const completedAt = new Date(now).toISOString();
   await ctx.db.insert("gameLogs", {
-    gameId: session._id, verified: true, diceCount: game.diceCount,
+    gameId: session._id, verified: true, diceCount: game.diceCount, rulesVersion: CURRENT_RULES_VERSION,
     startedAt: new Date(session.startedAt).toISOString(), completedAt,
     durationSeconds: Math.floor((now - session.startedAt) / 1000), players,
     winnerName: [...players].sort((a, b) => b.score - a.score)[0].name,

@@ -1,7 +1,8 @@
 import type { MutationCtx } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
+import { CURRENT_RULES_VERSION } from "./rules";
 
-export type ScoreSubmission = Omit<Doc<"highScores">, "_id" | "_creationTime" | "verified">;
+export type ScoreSubmission = Omit<Doc<"highScores">, "_id" | "_creationTime" | "verified" | "rulesVersion">;
 const LIMIT = 10;
 
 /** One game/player/dice-mode result, including non-qualifying results, is final.
@@ -24,7 +25,7 @@ export async function recordScore(ctx: MutationCtx, args: ScoreSubmission) {
     isAi: args.isAi, diceCount: args.diceCount,
   });
   const existing = await ctx.db.query("highScores")
-    .withIndex("by_diceCount_and_verified_and_score", (q) => q.eq("diceCount", args.diceCount).eq("verified", true))
+    .withIndex("by_rulesVersion_and_diceCount_and_verified_and_score", (q) => q.eq("rulesVersion", CURRENT_RULES_VERSION).eq("diceCount", args.diceCount).eq("verified", true))
     .order("desc").take(LIMIT);
   // Recognize a verified row even if its receipt is absent. Unverified legacy
   // rows are preserved, but cannot displace server-verified results.
@@ -32,6 +33,6 @@ export async function recordScore(ctx: MutationCtx, args: ScoreSubmission) {
     row.playerName === args.playerName && row.isAi === args.isAi)) return;
   if (existing.length === LIMIT && args.score <= existing[LIMIT - 1].score) return;
 
-  await ctx.db.insert("highScores", { ...args, verified: true });
+  await ctx.db.insert("highScores", { ...args, verified: true, rulesVersion: CURRENT_RULES_VERSION });
   if (existing.length === LIMIT) await ctx.db.delete(existing[LIMIT - 1]._id);
 }

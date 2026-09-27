@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "build:offline": "electron-vite build --config electron.offline.config.ts",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit"
   },
@@ -20,9 +21,10 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "electron": "44.4.3",
-    "electron-vite": "5.0.0",
     "@vitejs/plugin-react": "5.2.0",
+    "electron": "44.4.3",
+    "electron-builder": "26.15.3",
+    "electron-vite": "5.0.0",
     "typescript": "6.0.3",
     "vite": "7.3.6"
   }

@@ -1,0 +1,21 @@
+YAHTZEE OFFLINE
+
+For Windows 10 or 11, 64-bit.
+
+Extract the ZIP, then double-click the application. Nothing needs to be installed.
+You do not need internet, Convex, Node.js, or an account.
+
+Enter your name, choose a dice count and up to three AI opponents, and play.
+The first roll is automatic. Click dice to hold them, reroll, then choose a score.
+
+Completed scores are saved on this PC under your Windows user profile, in
+%APPDATA%\Yahtzee Offline. Copy that entire folder while the app is closed if
+you want to back it up. Moving the executable does not move or erase your scores.
+The top ten scores for each dice count are kept, along with your last 500 games.
+These scores are local only and are not shared with an online leaderboard.
+
+Keep the window open until you finish a game. Closing it or choosing Quit Game
+abandons the unfinished game. Completed scores remain saved.
+
+This private build is unsigned, so Windows may display a publisher warning.
+Only run a copy you trust. It does not need administrator permission.

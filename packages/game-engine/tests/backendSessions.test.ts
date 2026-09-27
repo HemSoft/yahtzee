@@ -49,6 +49,19 @@ describe("server-owned guest games", () => {
     expect("tokenHash" in read).toBe(false);
     const stored = await t.run((ctx) => ctx.db.get(a.gameId));
     expect(stored?.tokenHash).not.toBe(a.secret);
+    expect(stored?.rulesVersion).toBe(2);
+  });
+
+  test("pre-upgrade sessions fail explicitly without applying new scoring or deleting state", async () => {
+    const t = backend();
+    const game = await t.action(api.gameSessions.start, startOptions);
+    await t.run((ctx) => ctx.db.patch(game.gameId, { rulesVersion: undefined }));
+    const before = await t.run((ctx) => ctx.db.get(game.gameId));
+    const credentials = { gameId: game.gameId, secret: game.secret };
+    await expect(t.query(api.games.read, credentials)).rejects.toThrow("Start a new game");
+    await expect(t.mutation(api.games.move, { ...credentials, revision: 0, move: { kind: "score", category: "chance" } })).rejects.toThrow("Start a new game");
+    expect(await t.run((ctx) => ctx.db.get(game.gameId))).toEqual(before);
+    expect(await t.query(api.gameLogs.list, {})).toHaveLength(0);
   });
 
   test("move payloads cannot supply scores, dice or completion metadata", async () => {
@@ -100,6 +113,7 @@ describe("server-owned guest games", () => {
       expect(completions.every((entry) => entry.game.status === "finished")).toBe(true);
       const logs = await t.query(api.gameLogs.list, { diceCount });
       expect(logs).toHaveLength(1); expect(logs[0].verified).toBe(true);
+      expect(logs[0].rulesVersion).toBe(2);
       expect(logs[0].players).toHaveLength(4); expect(logs[0].durationSeconds).toBeGreaterThanOrEqual(0);
       for (const [index, player] of completions[0].game.players.entries()) {
         expect(logs[0].players[index].score).toBe(calculateTotal(player, diceCount).grandTotal);
@@ -117,6 +131,29 @@ describe("server-owned guest games", () => {
       expect(await t.query(api.highScores.top, { diceCount })).toHaveLength(4);
     });
   }
+
+  test("verified historical rankings and history stay separate from current scoring", async () => {
+    const t = backend();
+    await t.run(async (ctx) => {
+      for (const rulesVersion of [undefined, 2]) {
+        const gameId = rulesVersion === undefined ? "historical" : "current";
+        await ctx.db.insert("highScores", { gameId, rulesVersion, verified: true, score: 100, diceCount: 6, playerName: "Guest", isAi: false, dateRecorded: "2026-01-01" });
+        await ctx.db.insert("gameLogs", { gameId, rulesVersion, verified: true, diceCount: 6, startedAt: "2026-01-01", completedAt: "2026-01-01", durationSeconds: 1, players: [], winnerName: "Guest" });
+      }
+    });
+    for (const version of [undefined, 2, 1] as const) {
+      const expected = version === 1 ? "historical" : "current";
+      const board = await t.query(api.highScores.top, { diceCount: 6, rulesVersion: version });
+      expect(board.map((row) => row.gameId)).toEqual([expected]);
+      expect(board[0].rankCurrent).toBe(1);
+      for (const diceCount of [undefined, 6]) {
+        expect((await t.query(api.gameLogs.list, { diceCount, rulesVersion: version })).map((row) => row.gameId)).toEqual([expected]);
+      }
+    }
+    await expect(t.query(api.highScores.top, { diceCount: 6, rulesVersion: 3 } as never)).rejects.toThrow();
+    expect(await t.run((ctx) => ctx.db.query("highScores").take(10))).toHaveLength(2);
+    expect(await t.run((ctx) => ctx.db.query("gameLogs").take(10))).toHaveLength(2);
+  });
 
   test("unverified historical results stay stored but cannot appear as trusted rankings", async () => {
     const t = backend();

@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { checkedDiceCount, diceMode } from "./lib/gameModel";
+import { rulesVersion, rulesPartition } from "./lib/rules";
 
 export const submit = mutation({
   args: {
@@ -17,11 +18,11 @@ export const submit = mutation({
 });
 
 export const top = query({
-  args: { diceCount: diceMode },
+  args: { diceCount: diceMode, rulesVersion },
   handler: async (ctx, args) => {
     checkedDiceCount(args.diceCount);
     const entries = await ctx.db.query("highScores")
-      .withIndex("by_diceCount_and_verified_and_score", (q) => q.eq("diceCount", args.diceCount).eq("verified", true))
+      .withIndex("by_rulesVersion_and_diceCount_and_verified_and_score", (q) => q.eq("rulesVersion", rulesPartition(args.rulesVersion)).eq("diceCount", args.diceCount).eq("verified", true))
       .order("desc").take(10);
     return entries.map((entry, i) => ({ ...entry, rankCurrent: i + 1 }));
   },
