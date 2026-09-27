@@ -1,4 +1,4 @@
-import { SAVE_KEY } from "./save";
+import { SAVE_KEY } from "./keys";
 import type { StoragePort } from "./store";
 
 export const DATABASE_NAME = "hemsoft-local-dice.db";

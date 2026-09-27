@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Linking, Platform, ScrollView, Share, View } from "react-native";
+import { Linking, Platform, ScrollView, Share, View, useWindowDimensions } from "react-native";
 import appConfig from "../../app.json";
 import { useLocalGame } from "../local/LocalProvider";
+import { diagnosticText } from "../local/diagnostics";
 import { Action, Label, Section, styles } from "../ui/controls";
 import { useConfirmation } from "../ui/useConfirmation";
 
@@ -17,9 +18,13 @@ export function Help() {
   const { store, view, colors } = useLocalGame();
   const { confirm, dialog } = useConfirmation();
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState(false);
+  const { width } = useWindowDimensions();
+  const diagnostics = diagnosticText({ version: appConfig.expo.version, build: appConfig.expo.ios.buildNumber,
+    platform: Platform.OS, osVersion: String(Platform.Version), windowClass: width >= 820 ? "expanded" : "compact" });
   const share = async () => {
     try {
-      await Share.share({ message: `Dice game ${appConfig.expo.version}\nPlatform: ${Platform.OS} ${String(Platform.Version)}\nStorage schema: 1; scoring rules: 2\nNo names, scores, game IDs or saved data are included.` });
+      await Share.share({ message: diagnostics });
       setError(null);
     } catch { setError("Could not open the system share sheet. The app version is shown below."); }
   };
@@ -38,9 +43,16 @@ export function Help() {
         <View style={styles.row}><Label>Local scores are not server-verified or uploaded. No game-server connection is required. Deleting the app removes local data; offloading can retain it. The iOS data folder is eligible for device backup, so a restore may bring back earlier data. Reset does not erase existing device backups. Restore testing and final privacy declarations remain pending.</Label></View>
       </Section>
       <Section title="About this development build">
-        <View style={styles.row}><Label>Version {appConfig.expo.version}. Public branding, support/private-contact links and the App Store review destination await owner approval.</Label></View>
+        <View style={styles.row}><Label>Version {appConfig.expo.version}, build {appConfig.expo.ios.buildNumber}. Public branding, support/private-contact links and the App Store review destination await owner approval.</Label></View>
         <View style={styles.row}><Label kind="caption" muted>Project code is MIT licensed. That license does not grant third-party trademark rights. No App Store accessibility labels or physical-device qualification are claimed yet.</Label></View>
-        <Action label="Share diagnostics" onPress={() => { void share(); }} />
+        <Action label="Preview diagnostics" onPress={() => setPreview(true)} />
+        {preview && <View style={styles.row}>
+          <Label selectable testID="diagnostics-preview">{diagnostics}</Label>
+          <Label kind="caption" muted>Only the text above is shared. Sending through another app may use its service and the network. Nothing is sent automatically.</Label>
+          <Action label="Share these diagnostics" onPress={() => { void share(); }} />
+          <Action label="Cancel preview" onPress={() => setPreview(false)} />
+        </View>}
+        <View style={styles.row}><Label kind="caption" muted>Opening the source repository uses your browser and connects to GitHub. Do not post private game data in a public issue.</Label></View>
         <Action label="Open source repository" onPress={() => { void source(); }} />
       </Section>
       {error && <Label accessibilityRole="alert" color={colors.error}>{error}</Label>}

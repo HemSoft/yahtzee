@@ -1,6 +1,6 @@
 import { calculateTotal, calculateMaxPossibleScore, getCategories, getMaxCategoryScore, type CategoryId, type GameLog, type HighScores, type WireGame } from "@yahtzee/game-engine";
 
-export const SAVE_KEY = "hemsoft-local-dice-v1";
+export { SAVE_KEY } from "./keys";
 export const MODES = [5, 6, 8, 10] as const;
 export interface Preferences {
   name: string;

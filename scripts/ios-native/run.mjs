@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { appendFileSync, closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
@@ -10,8 +10,11 @@ import { decodeSave } from "../../apps/mobile/src/local/save.ts";
 import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios } from "./flows.mjs";
 
 assert.equal(process.platform, "darwin", "Native qualification requires macOS, Xcode and iOS simulators.");
+assert(["arm64", "x64"].includes(process.arch), "Unsupported simulator host architecture.");
+const architecture = process.arch === "arm64" ? "arm64" : "x86_64";
 const root = resolve(import.meta.dirname, "../..");
 const output = join(root, "reports/native");
+assert(!existsSync(output), "Use a fresh checkout. Existing native evidence was not overwritten.");
 mkdirSync(output, { recursive: true });
 const env = { ...process.env, DEVELOPER_DIR: "/Applications/Xcode_26.6.app/Contents/Developer", EXPO_NO_TELEMETRY: "1",
   MAESTRO_CLI_NO_ANALYTICS: "true", MAESTRO_DISABLE_UPDATE_CHECK: "true", MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: "true", MAESTRO_DRIVER_STARTUP_TIMEOUT: "120000" };
@@ -23,15 +26,16 @@ function run(executable, args, { cwd = root, capture = false, timeout = 1800000,
   let result;
   try { result = spawnSync(executable, args, { cwd, env, encoding: "utf8", timeout, maxBuffer: 16 * 1024 * 1024, stdio: ["ignore", capture ? "pipe" : fd, fd] }); }
   finally { closeSync(fd); }
+  if (capture && result.stdout) appendFileSync(join(output, log), result.stdout);
   if (result.error) throw result.error;
   assert.equal(result.status, 0, `${executable} failed with ${result.status}; see ${log}`);
   return result.stdout?.trim() ?? "";
 }
-const sim = (...args) => run("xcrun", ["simctl", ...args], { capture: true, timeout: 180000 });
+const sim = (...args) => run("xcrun", ["simctl", ...args], { capture: true, timeout: args[0] === "bootstatus" ? 600000 : 180000 });
 const plist = (file, key) => run("/usr/libexec/PlistBuddy", ["-c", `Print :${key}`, file], { capture: true });
 const receipt = { schemaVersion: 1, kind: "unsigned-ios-simulator", status: "running", source: run("git", ["rev-parse", "HEAD"], { capture: true }),
   startedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null,
-  runnerImage: process.env.ImageVersion ?? null, scenarios: [], limits: ["Not a signed device archive", "Not TestFlight or physical-device evidence", "No airplane-mode or VoiceOver acceptance claim", "Public identity and release approvals remain unset"] };
+  runnerImage: process.env.ImageVersion ?? null, architecture, scenarios: [], limits: ["Not a signed device archive", "Not TestFlight or physical-device evidence", "No airplane-mode or VoiceOver acceptance claim", "Public identity and release approvals remain unset"] };
 json(join(output, "manifest.json"), receipt);
 const appRoot = join(root, "apps/mobile");
 const ownedDevices = [];
@@ -85,15 +89,17 @@ try {
   run("node", ["node_modules/expo/bin/cli", "prebuild", "--platform", "ios", "--no-install"], { cwd: appRoot, log: "prebuild.log" });
   const ios = join(appRoot, "ios"); const sourceLock = join(appRoot, "native/Podfile.lock");
   receipt.bootstrapPodLock = !existsSync(sourceLock);
+  const refreshPodLock = process.argv.includes("--refresh-pods");
   if (!receipt.bootstrapPodLock) copyFileSync(sourceLock, join(ios, "Podfile.lock"));
-  run("pod", ["install", ...(receipt.bootstrapPodLock ? [] : ["--deployment"])], { cwd: ios, log: "pods.log" });
+  run("pod", ["install", ...(receipt.bootstrapPodLock || refreshPodLock ? [] : ["--deployment"])], { cwd: ios, log: "pods.log" });
   copyFileSync(join(ios, "Podfile.lock"), join(output, "Podfile.lock"));
+  receipt.podLockNeedsReview = receipt.bootstrapPodLock || !readFileSync(sourceLock).equals(readFileSync(join(ios, "Podfile.lock")));
   copyFileSync(join(ios, "Podfile.properties.json"), join(output, "Podfile.properties.json"));
   const workspaces = readdirSync(ios).filter((name) => name.endsWith(".xcworkspace")); assert.equal(workspaces.length, 1);
   const scheme = workspaces[0].slice(0, -".xcworkspace".length);
   const derived = join(tmpdir(), `dice-derived-${process.pid}`);
   run("xcodebuild", ["-workspace", join(ios, workspaces[0]), "-scheme", scheme, "-configuration", "Release", "-sdk", "iphonesimulator",
-    "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", derived, "CODE_SIGNING_ALLOWED=NO", "build"], { log: "build.log", timeout: 2400000 });
+    "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", derived, `ARCHS=${architecture}`, "ONLY_ACTIVE_ARCH=YES", "CODE_SIGNING_ALLOWED=NO", "build"], { log: "build.log", timeout: 2400000 });
   const products = join(derived, "Build/Products/Release-iphonesimulator");
   const apps = readdirSync(products).filter((name) => name.endsWith(".app")); assert.equal(apps.length, 1);
   const app = join(products, apps[0]); const info = join(app, "Info.plist");
@@ -137,7 +143,7 @@ try {
     const after = saved(device, bundleId, directory, "after-relaunch"); assert.equal(after.bytes, before.bytes);
     await stopRecording();
     if (!scenario.largeText) {
-      flow(device, directory, "complete", completeFlow(bundleId, getScorecardCategories(scenario.dice).map((category) => category.id)));
+      flow(device, directory, "complete", completeFlow(bundleId, getScorecardCategories(scenario.dice).map((category) => category.id), index === 0 || index === 4));
       const completed = saved(device, bundleId, directory, "completed");
       assert.equal(completed.data.active, null); assert.equal(completed.data.history.entries.length, 1);
       assert.equal(completed.data.highScores.entries.length, scenario.ai + 1);
@@ -162,7 +168,8 @@ try {
   flow(device, directory, "reset-database", corruptFlow(bundleId, true));
   assert.equal(saved(device, bundleId, directory, "after-database-reset").data.history.entries.length, 0);
   receipt.nativeCorruptionAndReset = "passed";
-  receipt.status = receipt.bootstrapPodLock ? "bootstrap-lock-needs-review" : "passed";
+  receipt.status = receipt.podLockNeedsReview ? "pod-lock-needs-review" : "passed";
+  if (receipt.podLockNeedsReview) process.exitCode = 1;
 } catch (error) {
   receipt.status = "failed"; receipt.error = error instanceof Error ? error.message : String(error); process.exitCode = 1;
   console.error(receipt.error);

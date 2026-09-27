@@ -1,7 +1,8 @@
 import type { Page } from "playwright";
 import { test, expect, origin, saveCoverage } from "./fixtures";
 import { getScorecardCategories, calculateTotal } from "../../packages/game-engine/src";
-import { SAVE_KEY, type LocalSave } from "../../apps/mobile/src/local/save";
+import { SAVE_KEY } from "../../apps/mobile/src/local/keys";
+import type { LocalSave } from "../../apps/mobile/src/local/save";
 import type { StorageFaults } from "./native-storage";
 
 async function saved(page: Page): Promise<LocalSave> {
@@ -131,6 +132,12 @@ test("native adapter recovery does not silently replace damaged data; reset clea
   await choose(client, "Appearance", "Light");
   await expect(client.getByRole("textbox", { name: "Your name" })).toHaveValue("Unsaved private name");
   await client.getByRole("button", { name: "Help", exact: true }).click();
+  await expect(client.getByTestId("diagnostics-preview")).toHaveCount(0);
+  await client.getByRole("button", { name: "Preview diagnostics", exact: true }).click();
+  await expect(client.getByTestId("diagnostics-preview")).toContainText("build 1");
+  await expect(client.getByTestId("diagnostics-preview")).not.toContainText("Unsaved private name");
+  await client.getByRole("button", { name: "Cancel preview", exact: true }).click();
+  await expect(client.getByTestId("diagnostics-preview")).toHaveCount(0);
   await confirm(client, "Delete all local data");
   await client.getByRole("button", { name: "Done", exact: true }).click();
   await expect(client.getByRole("textbox", { name: "Your name" })).toHaveValue("");

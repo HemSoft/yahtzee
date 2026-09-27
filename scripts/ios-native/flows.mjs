@@ -18,12 +18,14 @@ export function resumeFlow(bundleId) {
   return header(bundleId, [command("launchApp", { permissions: { all: "deny" } }),
     scroll({ text: "Resume Game" }), tap("Resume Game"), visible("Re-roll \\(1\\)"), shot("resumed")]);
 }
-export function completeFlow(bundleId, categories) {
+export function completeFlow(bundleId, categories, previewDiagnostics = false) {
   return header(bundleId, [
     ...categories.flatMap((id) => [scroll({ id: `score-${id}` }), command("tapOn", { id: `score-${id}` })]),
     visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),
     command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Review saved result" }), tap("Review saved result"),
-    visible("Game Over!"), tap("Help"), visible("How to play"), shot("help"), tap("Done"),
+    visible("Game Over!"), tap("Help"), visible("How to play"), shot("help"),
+    ...(previewDiagnostics ? [scroll({ text: "Preview diagnostics" }), tap("Preview diagnostics"), scroll({ id: "diagnostics-preview" }),
+      command("assertVisible", { id: "diagnostics-preview" }), shot("diagnostics-preview"), tap("Cancel preview")] : []), tap("Done"),
     scroll({ text: "Play Again" }), tap("Play Again"), scroll({ text: "Start Game" }), shot("play-again")]);
 }
 export function corruptFlow(bundleId, reset = false) {

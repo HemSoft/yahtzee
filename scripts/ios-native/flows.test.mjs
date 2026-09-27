@@ -32,6 +32,9 @@ test("generated flows use valid JSON-in-YAML commands and real semantic controls
   const completed = parse(completeFlow("com.hemsoft.yahtzee", ["ones", "chance"]));
   assert.equal(completed.filter((step) => step.command === "tapOn" && step.value?.id?.startsWith("score-")).length, 2);
   assert(completed.some((step) => step.command === "assertVisible" && step.value === "Game Over!"));
+  const preview = parse(completeFlow("com.hemsoft.yahtzee", ["ones"], true));
+  assert(preview.some((step) => step.command === "assertVisible" && step.value?.id === "diagnostics-preview"));
+  assert(preview.some((step) => step.value === "Cancel preview"));
 });
 test("corruption flow never clears state and reset includes cancellation first", () => {
   for (const reset of [false, true]) {
