@@ -13,8 +13,8 @@ export function readSource(mobile, path, committedBytes) {
   relativeSource(path);
   const bytes = readFileSync(resolve(mobile, path));
   // git show fails for ignored/untracked files, and bytes must match that commit.
-  if (committedBytes && !bytes.equals(committedBytes(`apps/mobile/${path}`))) throw new Error(`Source differs from committed bytes: ${path}`);
-  const text = bytes.toString("utf8");
+  const text = bytes.toString("utf8").replaceAll("\r\n", "\n");
+  if (committedBytes && text !== committedBytes(`apps/mobile/${path}`).toString("utf8").replaceAll("\r\n", "\n")) throw new Error(`Source differs from committed text: ${path}`);
   if (!text.trim()) throw new Error(`Empty release source: ${path}`);
   return { path, text };
 }
@@ -22,9 +22,14 @@ export function readSource(mobile, path, committedBytes) {
 export function copyBlockers(files, listing) {
   const blockers = [];
   for (const file of files) {
-    if (/DRAFT, NOT APPROVED|\bDraft only\b|\bNOT APPROVED FOR (?:UPLOAD|SUBMISSION)\b/i.test(file.text)) blockers.push(`Unapproved copy: ${file.path}`);
+    if (/DRAFT, NOT APPROVED|\bDraft only\b|\bNOT APPROVED FOR (?:UPLOAD|SUBMISSION)\b|Do not publish this placeholder|pending implementation|After native qualification, describe|replacing this draft with tester-facing copy/i.test(file.text)) blockers.push(`Unapproved copy: ${file.path}`);
   }
   if (listing.status !== "approved") blockers.push("Listing status is not approved");
+  for (const role of ["description", "reviewNotes", "releaseNotes", "testNotes"]) {
+    const source = files.find((file) => file.role === role);
+    const review = listing.sourceReviews?.[role];
+    if (!source || review?.status !== "approved" || review.sha256 !== sha256(Buffer.from(source.text.replaceAll("\r\n", "\n")))) blockers.push(`Source review missing or stale: ${role}`);
+  }
   for (const key of ["name", "subtitle", "copyright", "supportUrl", "marketingUrl", "privacyUrl"]) {
     if (typeof listing[key] !== "string" || !listing[key].trim()) blockers.push(`Listing field missing: ${key}`);
   }

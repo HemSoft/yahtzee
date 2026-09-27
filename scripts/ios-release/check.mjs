@@ -34,10 +34,11 @@ export function releaseBlockers(record, context) {
 }
 
 function sourceFiles(record, mobile, committedBytes) {
-  const paths = [record.changelog, record.testNotes, record.screenshots];
   const metadata = record.metadataDirectory;
-  for (const name of ["listing.json", "description.txt", "review_notes.txt", "release_notes.txt"]) paths.push(`${metadata}/${name}`);
-  return paths.map((path) => readSource(mobile, path, committedBytes));
+  const sources = { changelog: record.changelog, testNotes: record.testNotes, screenshots: record.screenshots,
+    listing: `${metadata}/listing.json`, description: `${metadata}/description.txt`,
+    reviewNotes: `${metadata}/review_notes.txt`, releaseNotes: `${metadata}/release_notes.txt` };
+  return Object.entries(sources).map(([role, path]) => ({ ...readSource(mobile, path, committedBytes), role }));
 }
 
 function run() {

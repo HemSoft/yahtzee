@@ -20,14 +20,19 @@ test("release source must exist in the commit and match its bytes", () => {
     writeFileSync(join(root, "copy.txt"), "approved copy");
     assert.equal(readSource(root, "copy.txt", () => Buffer.from("approved copy")).text, "approved copy");
     assert.throws(() => readSource(root, "copy.txt", () => Buffer.from("other copy")), /differs/);
+    writeFileSync(join(root, "copy.txt"), "approved\r\ncopy\r\n");
+    assert.equal(readSource(root, "copy.txt", () => Buffer.from("approved\ncopy\n")).text, "approved\ncopy\n");
     mkdirSync(join(root, "reports")); writeFileSync(join(root, "reports", "untracked.txt"), "ignored draft");
     assert.throws(() => readSource(root, "reports/untracked.txt", () => { throw new Error("not in commit"); }), /not in commit/);
   } finally { rmSync(root, { recursive: true }); }
 });
 test("mixed-case draft notes and structured draft statuses cannot pass", () => {
   const listing = { status: "approved", name: "Game", subtitle: "Dice", copyright: "Owner", supportUrl: "https://example.test/support", marketingUrl: "https://example.test", privacyUrl: "https://example.test/privacy" };
-  assert.deepEqual(copyBlockers([], listing), []);
-  for (const text of ["Draft only. No signed candidate", "draft, not approved for upload", "NOT APPROVED FOR SUBMISSION"]) assert.ok(copyBlockers([{ path: "notes", text }], listing).length);
+  const files = ["description", "reviewNotes", "releaseNotes", "testNotes"].map((role) => ({ path: role, role, text: "Accepted copy" }));
+  listing.sourceReviews = Object.fromEntries(files.map((file) => [file.role, { status: "approved", sha256: sha256(Buffer.from(file.text)) }]));
+  assert.deepEqual(copyBlockers(files, listing), []);
+  assert.ok(copyBlockers([{ ...files[0], text: "Changed after review" }, ...files.slice(1)], listing).length);
+  for (const text of ["Draft only. No signed candidate", "draft, not approved for upload", "NOT APPROVED FOR SUBMISSION", "Do not publish this placeholder", "pending implementation", "After native qualification, describe...", "replacing this draft with tester-facing copy"]) assert.ok(copyBlockers([{ ...files[0], text }, ...files.slice(1)], listing).length);
   assert.ok(copyBlockers([], { ...listing, status: "draft" }).length);
   assert.ok(screenshotBlockers({ ...manifest, status: "not-captured" }, record, () => png).length);
 });

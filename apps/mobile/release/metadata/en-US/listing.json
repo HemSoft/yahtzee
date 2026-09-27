@@ -1,5 +1,11 @@
 {
   "status": "draft",
+  "sourceReviews": {
+    "description": { "status": "draft", "sha256": null },
+    "reviewNotes": { "status": "draft", "sha256": null },
+    "releaseNotes": { "status": "draft", "sha256": null },
+    "testNotes": { "status": "draft", "sha256": null }
+  },
   "name": null,
   "subtitle": null,
   "promotionalText": null,
