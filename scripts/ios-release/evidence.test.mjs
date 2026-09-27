@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { relativeSource, readSource, copyBlockers, screenshotBlockers, sha256, artifactImageReader } from "./evidence.mjs";
 
-const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aH1cAAAAASUVORK5CYII=", "base64");
+import { PNG } from "pngjs";
+
+const png = PNG.sync.write(new PNG({ width: 1, height: 1 }));
 const record = { sourceCommit: "a".repeat(40), version: "1.0.0", buildNumber: "1" };
 const capture = { filename: "iphone.png", sourceCommit: record.sourceCommit, deviceFamily: "iphone", locale: "en-US", appearance: "light", width: 1, height: 1, sha256: sha256(png) };
 const manifest = { ...record, status: "accepted", captures: [capture] };
@@ -48,6 +50,15 @@ test("each capture requires provenance, device, locale, appearance, dimensions a
   assert.ok(screenshotBlockers(manifest, record, () => Buffer.from("not an image")).length);
   assert.ok(screenshotBlockers({ ...manifest, buildNumber: "2" }, record, () => png).length);
 });
+test("a matching checksum cannot bless a truncated PNG, bad CRC, or oversized decode", () => {
+  const corrupt = Buffer.from(png); corrupt[29] ^= 1;
+  const oversized = Buffer.from(png); oversized.writeUInt32BE(100_000, 16);
+  for (const bytes of [png.subarray(0, 33), png.subarray(0, -12), corrupt, oversized]) {
+    const captures = [{ ...capture, sha256: sha256(bytes) }];
+    assert.ok(screenshotBlockers({ ...manifest, captures }, record, () => bytes).length);
+  }
+});
+
 test("artifact reader resolves only files inside its own directory", () => {
   const root = mkdtempSync(join(tmpdir(), "ios-images-"));
   try {

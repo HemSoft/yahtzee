@@ -1,6 +1,7 @@
 import { readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, resolve, relative, sep } from "node:path";
 import { createHash } from "node:crypto";
+import { PNG } from "pngjs";
 
 export const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
@@ -47,10 +48,14 @@ export function captureBlockers(capture, record, readImage) {
   try {
     const bytes = readImage(relativeSource(capture.filename));
     const png = bytes.length >= 33 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) && bytes.toString("ascii", 12, 16) === "IHDR";
-    if (!png) blockers.push("Capture is not a PNG");
-    else if (bytes.readUInt32BE(16) !== capture.width || bytes.readUInt32BE(20) !== capture.height) blockers.push("Capture dimensions do not match PNG");
+    if (!png) throw new Error("Invalid PNG header");
+    // Bound decode allocation before trusting any dimensions in the artifact.
+    const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
+    if (bytes.length > 64 * 1024 * 1024 || width > 8192 || height > 8192 || width * height > 32_000_000) throw new Error("PNG exceeds capture limits");
+    const image = PNG.sync.read(bytes);
+    if (image.width !== capture.width || image.height !== capture.height) blockers.push("Capture dimensions do not match PNG");
     if (sha256(bytes) !== capture.sha256) blockers.push("Capture checksum mismatch");
-  } catch { blockers.push("Capture file missing or outside artifact directory"); }
+  } catch { blockers.push("Capture file missing, invalid PNG, or outside artifact directory"); }
   return blockers;
 }
 
