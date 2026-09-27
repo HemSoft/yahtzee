@@ -6,9 +6,11 @@ export default defineSchema({
   // Temporary server-owned state. Arrays are bounded to 4 players and 20 dice.
   games: defineTable({
     tokenHash: v.string(), startedAt: v.number(), expiresAt: v.number(),
-    revision: v.number(), game: gameValue,
+    revision: v.number(), game: gameValue, rulesVersion: v.optional(v.number()),
   }),
   gameLogs: defineTable({
+    // Missing rulesVersion denotes historical scoring. Never backfill it to current.
+    rulesVersion: v.optional(v.number()),
     // Legacy client-authored rows remain stored but are not trusted results.
     verified: v.optional(v.boolean()),
     gameId: v.string(),
@@ -29,7 +31,9 @@ export default defineSchema({
     .index("by_diceCount", ["diceCount"])
     .index("by_gameId", ["gameId"])
     .index("by_verified", ["verified"])
-    .index("by_verified_and_diceCount", ["verified", "diceCount"]),
+    .index("by_verified_and_diceCount", ["verified", "diceCount"])
+    .index("by_rulesVersion_and_verified", ["rulesVersion", "verified"])
+    .index("by_rulesVersion_and_verified_and_diceCount", ["rulesVersion", "verified", "diceCount"]),
 
   // Durable receipts prevent replay even after a score leaves the top ten.
   // Additive schema change; existing scores are recognized on their first replay.
@@ -41,6 +45,7 @@ export default defineSchema({
   }).index("by_gameId_and_playerName_and_isAi_and_diceCount", ["gameId", "playerName", "isAi", "diceCount"]),
 
   highScores: defineTable({
+    rulesVersion: v.optional(v.number()),
     verified: v.optional(v.boolean()),
     diceCount: v.number(),
     dateRecorded: v.string(),
@@ -49,5 +54,6 @@ export default defineSchema({
     isAi: v.boolean(),
     gameId: v.string(),
   }).index("by_diceCount_score", ["diceCount", "score"])
-    .index("by_diceCount_and_verified_and_score", ["diceCount", "verified", "score"]),
+    .index("by_diceCount_and_verified_and_score", ["diceCount", "verified", "score"])
+    .index("by_rulesVersion_and_diceCount_and_verified_and_score", ["rulesVersion", "diceCount", "verified", "score"]),
 });

@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { checkedDiceCount, diceMode } from "./lib/gameModel";
+import { rulesVersion, rulesPartition } from "./lib/rules";
 
 export const add = mutation({
   args: {
@@ -25,15 +26,15 @@ export const add = mutation({
 });
 
 export const list = query({
-  args: { diceCount: v.optional(diceMode) },
+  args: { diceCount: v.optional(diceMode), rulesVersion },
   handler: async (ctx, args) => {
     if (args.diceCount !== undefined) {
       checkedDiceCount(args.diceCount);
       return await ctx.db
         .query("gameLogs")
-        .withIndex("by_verified_and_diceCount", (q) => q.eq("verified", true).eq("diceCount", args.diceCount!))
+        .withIndex("by_rulesVersion_and_verified_and_diceCount", (q) => q.eq("rulesVersion", rulesPartition(args.rulesVersion)).eq("verified", true).eq("diceCount", args.diceCount!))
         .order("desc").take(200);
     }
-    return await ctx.db.query("gameLogs").withIndex("by_verified", (q) => q.eq("verified", true)).order("desc").take(200);
+    return await ctx.db.query("gameLogs").withIndex("by_rulesVersion_and_verified", (q) => q.eq("rulesVersion", rulesPartition(args.rulesVersion)).eq("verified", true)).order("desc").take(200);
   },
 });

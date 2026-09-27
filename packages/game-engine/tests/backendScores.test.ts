@@ -52,6 +52,13 @@ describe("backend high-score receipts", () => {
       await expect(t.query(api.highScores.top, { diceCount })).rejects.toThrow();
     }
   });
+  test("old-rule verified scores cannot occupy or be evicted from the current top ten", async () => {
+    const { ctx, tables } = fixture();
+    tables.highScores.push({ ...result("old", 999), verified: true, _id: "historical" });
+    for (let i = 0; i < 12; i++) await recordScore(ctx, result(String(i), i));
+    expect(tables.highScores.filter((row) => row.rulesVersion === 2)).toHaveLength(10);
+    expect(tables.highScores.find((row) => row._id === "historical")?.score).toBe(999);
+  });
   test("invalid numeric scores cannot evict results or consume a receipt", async () => {
     const { ctx, tables } = fixture();
     for (let i = 0; i < 10; i++) await recordScore(ctx, result(String(i)));
@@ -116,7 +123,7 @@ describe("backend high-score receipts", () => {
   });
   test("recognizes an existing verified leaderboard entry without a receipt", async () => {
     const { ctx, tables } = fixture();
-    tables.highScores.push({ ...result(), verified: true, _id: "legacy" });
+    tables.highScores.push({ ...result(), verified: true, rulesVersion: 2, _id: "current-without-receipt" });
     await recordScore(ctx, result());
     expect(tables.highScores).toHaveLength(1);
     expect(tables.highScoreReceipts).toHaveLength(1);
