@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "testRunner": "command",
   "commandRunner": {
-    "command": "bun test packages/game-engine/tests/scoring.test.ts packages/game-engine/tests/game.test.ts packages/game-engine/tests/storage.test.ts packages/game-engine/tests/dice.test.ts packages/game-engine/tests/backendScores.test.ts packages/game-engine/tests/backendSessions.test.ts"
+    "command": "bun test packages/game-engine/tests/scoring.test.ts packages/game-engine/tests/game.test.ts packages/game-engine/tests/storage.test.ts packages/game-engine/tests/dice.test.ts packages/game-engine/tests/backendScores.test.ts packages/game-engine/tests/backendSessions.test.ts packages/game-engine/tests/suggestions.test.ts packages/game-engine/tests/offline.test.ts"
   },
   "coverageAnalysis": "off",
   "concurrency": 4,
