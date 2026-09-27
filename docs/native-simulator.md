@@ -21,9 +21,15 @@ Expo prebuild generates `apps/mobile/ios` from source configuration. This direct
 bun scripts/ios-native/run.mjs
 ```
 
-The initial bootstrap retains its generated Podfile.lock as an artifact and remains non-passing until that lock is reviewed and committed at `apps/mobile/native/Podfile.lock`. Subsequent builds copy it into the generated project and use `pod install --deployment`; dependency drift fails the job. For an intentional update, `--refresh-pods` generates a replacement in a fresh checkout. A changed lock remains non-passing until source matches. Do not bypass that check or call a bootstrap a qualified release.
+The initial bootstrap retains its generated Podfile.lock as an artifact and remains non-passing until that lock is reviewed and committed at `apps/mobile/native/Podfile.lock`. Subsequent builds copy it into the generated project and use `pod install --deployment`; dependency drift fails the job. For an intentional update, `--refresh-pods` generates a replacement in a fresh checkout. A missing or changed lock stops before compilation and remains non-passing until source matches. Refresh-only mode always stops before compilation, even if the lock did not change.
+
+For hosted regeneration, apply the `native-pods-refresh` PR label before pushing the dependency change. Download its retained lock, inspect and commit the change, remove the label, then repeat normal qualification. Adding a label alone does not start this workflow, and reruns retain the original event's label snapshot. The refresh job intentionally fails and cannot satisfy the required quality gate. Do not bypass that check or call a bootstrap a qualified release.
 
 Build configuration is Release, `CODE_SIGNING_ALLOWED=NO`, with an embedded Hermes/JavaScript bundle. The simulator app targets the current host architecture, recorded in the manifest, rather than compiling an unused second simulator slice. It is not a universal Mac distribution. No Metro server is started. The compiled bundle identifier, version, build and minimum iOS 17.0 must match source. The proposed 1.0.0/build 1 and existing development identifiers are not approved public identity or an App Store reservation.
+
+## Packaged privacy resources
+
+The runner inspects the actual app's privacy manifests, purpose strings, update configuration and encryption-declaration field. It requires Expo FileSystem's bundled manifest to match the locked SDK source and its API reasons to appear in the aggregate. Only Expo FileSystem opts into source compilation because the inspected SDK 57 precompiled package omitted that resource. See the [engineering inventory](mobile-privacy-audit.md) for the reproduced finding and evidence limits. This check does not approve privacy answers, SDK signatures or export classification.
 
 ## Native interaction matrix
 
@@ -39,6 +45,6 @@ This is not airplane-mode, hardware durability, VoiceOver, Switch Control, iPad 
 
 `reports/native/manifest.json` records the exact checked-out source commit, toolchain, runner, device/runtime, scenarios, timestamps and SHA-256 hashes of retained artifacts. Pull requests check out their exact head for native captures. Logs and partial receipts survive failures; the required quality gate includes the native job. A screenshot file's existence alone is not visual review or release approval.
 
-The artifact includes the unsigned simulator app, native dependency lock, compiled Info.plist, screenshots, recording, test reports and synthetic database snapshots. DerivedData and installed Pods are not uploaded. Retention is one day to keep storage bounded. Download current-head evidence before it expires, inspect it, and attach the selected images and recording to the PR's Validation section.
+The artifact includes the unsigned simulator app, native dependency lock, compiled Info.plist, privacy inspection, screenshots, recording, test reports and synthetic database snapshots. DerivedData and installed Pods are not uploaded. Retention is one day to keep storage bounded. Download current-head evidence before it expires, inspect it, and attach the selected images and recording to the PR's Validation section.
 
 References: [GitHub macOS 26 runner inventory](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md), [Maestro local CLI](https://docs.maestro.dev/maestro-cli/maestro-cli-commands-and-options.md), [Expo SQLite](https://docs.expo.dev/versions/v57.0.0/sdk/sqlite/).

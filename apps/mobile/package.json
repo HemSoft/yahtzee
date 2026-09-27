@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
+  "expo": {
+    "autolinking": {
+      "ios": {
+        "buildFromSource": ["expo-file-system"]
+      }
+    }
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",

@@ -8,6 +8,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { getScorecardCategories } from "../../packages/game-engine/src/presentation.ts";
 import { decodeSave } from "../../apps/mobile/src/local/save.ts";
 import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios } from "./flows.mjs";
+import { inspectNativePrivacy } from "./privacy.mjs";
 
 assert.equal(process.platform, "darwin", "Native qualification requires macOS, Xcode and iOS simulators.");
 assert(["arm64", "x64"].includes(process.arch), "Unsupported simulator host architecture.");
@@ -90,11 +91,13 @@ try {
   const ios = join(appRoot, "ios"); const sourceLock = join(appRoot, "native/Podfile.lock");
   receipt.bootstrapPodLock = !existsSync(sourceLock);
   const refreshPodLock = process.argv.includes("--refresh-pods");
+  receipt.podInstallMode = refreshPodLock ? "refresh-only" : receipt.bootstrapPodLock ? "bootstrap" : "deployment";
   if (!receipt.bootstrapPodLock) copyFileSync(sourceLock, join(ios, "Podfile.lock"));
   run("pod", ["install", ...(receipt.bootstrapPodLock || refreshPodLock ? [] : ["--deployment"])], { cwd: ios, log: "pods.log" });
   copyFileSync(join(ios, "Podfile.lock"), join(output, "Podfile.lock"));
   receipt.podLockNeedsReview = receipt.bootstrapPodLock || !readFileSync(sourceLock).equals(readFileSync(join(ios, "Podfile.lock")));
   copyFileSync(join(ios, "Podfile.properties.json"), join(output, "Podfile.properties.json"));
+  assert(!refreshPodLock && !receipt.podLockNeedsReview, "Dependency-only run: review reports/native/Podfile.lock, commit changes to apps/mobile/native, then run normal qualification.");
   const workspaces = readdirSync(ios).filter((name) => name.endsWith(".xcworkspace")); assert.equal(workspaces.length, 1);
   const scheme = workspaces[0].slice(0, -".xcworkspace".length);
   const derived = join(tmpdir(), `dice-derived-${process.pid}`);
@@ -110,6 +113,9 @@ try {
   receipt.app = { bundleId, version: config.version, build: config.ios.buildNumber, minimumOS: "17.0", jsBundleSha256: hash(readFileSync(join(app, "main.jsbundle"))) };
   run("tar", ["-czf", join(output, "unsigned-simulator.app.tar.gz"), "-C", products, apps[0]], { log: "package.log" });
   copyFileSync(info, join(output, "built-Info.plist"));
+  receipt.privacy = inspectNativePrivacy(app, appRoot, output);
+  assert.deepEqual(receipt.privacy.errors, [], "Native SDK privacy resources or aggregate declarations are incomplete.");
+  json(join(output, "manifest.json"), receipt);
   assert.equal(run("git", ["status", "--porcelain"], { capture: true }), "", "Prebuild changed tracked source. Review it before qualification.");
   const runtime = "com.apple.CoreSimulator.SimRuntime.iOS-26-5";
   const types = JSON.parse(sim("list", "devicetypes", "--json")).devicetypes;
@@ -168,8 +174,7 @@ try {
   flow(device, directory, "reset-database", corruptFlow(bundleId, true));
   assert.equal(saved(device, bundleId, directory, "after-database-reset").data.history.entries.length, 0);
   receipt.nativeCorruptionAndReset = "passed";
-  receipt.status = receipt.podLockNeedsReview ? "pod-lock-needs-review" : "passed";
-  if (receipt.podLockNeedsReview) process.exitCode = 1;
+  receipt.status = "passed";
 } catch (error) {
   receipt.status = "failed"; receipt.error = error instanceof Error ? error.message : String(error); process.exitCode = 1;
   console.error(receipt.error);
@@ -177,8 +182,8 @@ try {
   try { await stopRecording(); } catch (error) { receipt.recordingError = String(error); receipt.status = "failed"; process.exitCode = 1; }
   for (const device of ownedDevices) {
     // Only devices created by this process are shut down or deleted.
-    spawnSync("xcrun", ["simctl", "shutdown", device], { env, stdio: "ignore" });
-    const removed = spawnSync("xcrun", ["simctl", "delete", device], { env, stdio: "ignore" });
+    spawnSync("xcrun", ["simctl", "shutdown", device], { env, stdio: "ignore", timeout: 60000, killSignal: "SIGKILL" });
+    const removed = spawnSync("xcrun", ["simctl", "delete", device], { env, stdio: "ignore", timeout: 60000, killSignal: "SIGKILL" });
     if (removed.status !== 0) { (receipt.cleanupErrors ??= []).push(device); receipt.status = "failed"; process.exitCode = 1; }
   }
   receipt.finishedAt = new Date().toISOString(); receipt.artifacts = artifactFiles(output); json(join(output, "manifest.json"), receipt);

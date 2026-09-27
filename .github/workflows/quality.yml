@@ -147,7 +147,14 @@ jobs:
           echo "$RUNNER_TEMP/maestro-tool/maestro/bin" >> "$GITHUB_PATH"
           echo "JAVA_HOME=$(/usr/libexec/java_home -v 17)" >> "$GITHUB_ENV"
       - name: Build a Release simulator app and exercise native screens and saves
-        run: bun scripts/ios-native/run.mjs
+        env:
+          REFRESH_PODS: ${{ contains(github.event.pull_request.labels.*.name, 'native-pods-refresh') }}
+        run: |
+          if [ "$REFRESH_PODS" = true ]; then
+            bun scripts/ios-native/run.mjs --refresh-pods
+          else
+            bun scripts/ios-native/run.mjs
+          fi
       - name: Require the reviewed CocoaPods lock after bootstrap
         run: test -f apps/mobile/native/Podfile.lock
       - name: Retain unsigned native evidence, including failed-run diagnostics
