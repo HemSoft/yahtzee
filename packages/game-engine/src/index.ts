@@ -1,4 +1,5 @@
 export { createOfflineBackend } from "./offline";
+export { getScorecardCategories } from "./presentation";
 export { newSessionGame, applySessionMove, fromWire, toWire, type WireGame, type Move } from "./session";
 export { rollDie, rollDice, reroll } from "./dice";
 export {

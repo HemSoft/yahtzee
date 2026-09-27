@@ -1,15 +1,20 @@
 import React from "react";
 import { Stack } from "expo-router";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { StatusBar } from "expo-status-bar";
+import { LocalProvider, useLocalGame } from "../src/local/LocalProvider";
 
-const url = process.env.EXPO_PUBLIC_CONVEX_URL;
-if (!url) throw new Error("Missing EXPO_PUBLIC_CONVEX_URL environment variable");
-const convex = new ConvexReactClient(url);
-
+function Navigation() {
+  const { colors, dark } = useLocalGame();
+  return <>
+    <StatusBar style={dark ? "light" : "dark"} />
+    <Stack screenOptions={{ headerLargeTitle: true, headerStyle: { backgroundColor: colors.page }, headerTintColor: colors.text,
+      contentStyle: { backgroundColor: colors.page }, freezeOnBlur: true }}>
+      <Stack.Screen name="index" options={{ title: "Yahtzee" }} />
+      <Stack.Screen name="history" options={{ title: "Local history" }} />
+      <Stack.Screen name="help" options={{ title: "Help", presentation: "modal" }} />
+    </Stack>
+  </>;
+}
 export default function Layout() {
-  return (
-    <ConvexProvider client={convex}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ConvexProvider>
-  );
+  return <LocalProvider><Navigation /></LocalProvider>;
 }

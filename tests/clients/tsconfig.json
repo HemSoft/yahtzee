@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "noEmit": true, "rootDir": "../..", "types": ["bun", "node"] },
+  "compilerOptions": { "noEmit": true, "rootDir": "../..", "types": ["bun", "node"], "paths": { "react-native": ["../../apps/mobile/node_modules/react-native"] } },
   "include": ["./**/*.ts", "./**/*.tsx", "../offline/**/*.ts", "../../playwright.config.ts"]
 }

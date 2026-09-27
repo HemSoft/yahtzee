@@ -143,6 +143,24 @@ describe("durable native storage boundary, without a native-runtime claim", () =
     expect(f.store.getSnapshot().data).toEqual(emptySave());
   });
 
+  test("UI draft generations change on reload and only acknowledged resets", async () => {
+    const f = fixture();
+    expect(f.store.getSnapshot().generation).toBe(0);
+    await f.store.load();
+    expect(f.store.getSnapshot().generation).toBe(1);
+    await f.store.preferences({ appearance: "dark" });
+    expect(f.store.getSnapshot().generation).toBe(1);
+    f.state.fail = "after";
+    expect(await f.store.resetAll()).toBe(false);
+    expect(f.store.getSnapshot().generation).toBe(1);
+    f.state.fail = null;
+    expect(await f.store.retry()).toBe(true);
+    expect(f.store.getSnapshot().generation).toBe(2);
+    expect(JSON.parse(f.values.get(SAVE_KEY)!)).not.toHaveProperty("generation");
+    await f.store.load();
+    expect(f.store.getSnapshot().generation).toBe(3);
+  });
+
   test("explicit reload abandons only the unacknowledged move and honors the actual saved document", async () => {
     const f = fixture(); await f.store.load(); await f.store.start(options);
     const before = f.values.get(SAVE_KEY);

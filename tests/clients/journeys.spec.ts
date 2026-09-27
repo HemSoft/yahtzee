@@ -1,16 +1,6 @@
-import { test as base, expect, type TestInfo } from "playwright/test";
-import type { ElectronApplication, Page } from "playwright";
-import { createRequire } from "node:module";
-import { join, resolve } from "node:path";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { createHash } from "node:crypto";
-import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
+import type { Page } from "playwright";
+import { test, expect, origin, desktopApplications } from "./fixtures";
 import { getCategories } from "../../packages/game-engine/src/scoring";
-
-const require = createRequire(import.meta.url);
-const origin = "http://127.0.0.1:5187";
-const desktopApplications = new WeakMap<Page, ElectronApplication>();
 
 async function expectNoDocumentOverflow(page: Page) {
   const metrics = await page.evaluate(() => ({
@@ -73,73 +63,9 @@ async function expectMinimumWindowFallback(page: Page) {
   await page.setViewportSize({ width: 944, height: 685 });
 }
 
-async function saveCoverage(page: Page, info: TestInfo) {
-  if (process.env.TEST_COVERAGE !== "1") return;
-  const data = await page.evaluate(() => (globalThis as typeof globalThis & { __coverage__?: object }).__coverage__);
-  if (!data || !Object.keys(data).length) throw new Error("Client coverage collection is empty");
-  const folder = resolve("reports/quality/raw"); mkdirSync(folder, { recursive: true });
-  const id = createHash("sha256").update(info.testId).digest("hex").slice(0, 16);
-  writeFileSync(resolve(folder, `client-${id}.json`), JSON.stringify(data));
-  const response = await fetch(`${origin}/coverage`);
-  if (!response.ok) throw new Error("Backend coverage collection failed");
-  writeFileSync(resolve(folder, "backend.json"), JSON.stringify(await response.json()));
-}
-const test = base.extend<{ client: Page }>({
-  client: async ({ playwright }, runWithPage, info) => {
-    info.annotations.push({ type: "commit", description: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() });
-    info.annotations.push({ type: "dirty", description: String(!!execFileSync("git", ["status", "--porcelain"], { encoding: "utf8" }).trim()) });
-    if (info.project.name === "desktop") {
-      const env: Record<string, string> = Object.fromEntries(Object.entries(process.env)
-        .filter((entry): entry is [string, string] => entry[1] !== undefined));
-      env.ELECTRON_RENDERER_URL = `${origin}/desktop`;
-      delete env.ELECTRON_RUN_AS_NODE;
-      const profile = mkdtempSync(join(tmpdir(), "yahtzee-client-"));
-      try {
-        const app = await playwright._electron.launch({
-          executablePath: require("../../apps/desktop/node_modules/electron"),
-          args: [resolve("apps/desktop"), `--user-data-dir=${profile}`], env,
-          recordVideo: { dir: info.outputPath("videos") },
-        });
-        try {
-          const page = await app.firstWindow();
-          desktopApplications.set(page, app);
-          await app.context().tracing.start({ screenshots: true, snapshots: true });
-          try {
-            await page.waitForLoadState();
-            expect(await app.evaluate(({ app: application }) => application.getPath("userData"))).toBe(profile);
-            expect(await page.evaluate(() => (window as Window & { platform?: { name: string } }).platform?.name)).toBe("electron");
-            await runWithPage(page);
-          } finally {
-            try { await saveCoverage(page, info); }
-            finally { await app.context().tracing.stop({ path: info.outputPath("trace.zip") }); }
-          }
-        } finally { await app.close(); }
-      } finally { rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
-    } else {
-      const browser = await playwright.chromium.launch();
-      try {
-        const context = await browser.newContext({
-          viewport: info.project.name === "web" ? { width: 1280, height: 900 } : { width: 390, height: 844 },
-          recordVideo: { dir: info.outputPath("videos") },
-        });
-        try {
-          await context.tracing.start({ screenshots: true, snapshots: true });
-          const page = await context.newPage();
-          try { await runWithPage(page); }
-          finally {
-            try { await saveCoverage(page, info); }
-            finally { await context.tracing.stop({ path: info.outputPath("trace.zip") }); }
-          }
-        } finally { await context.close(); }
-      } finally { await browser.close(); }
-    }
-  },
-});
-
 for (const diceCount of [5, 6]) {
   test(`${diceCount} dice: complete, retry, reconnect, play again and cancel`, async ({ client, request }, info) => {
-    const mobile = info.project.name === "mobile-web-adapter";
-    const route = mobile ? "mobile" : info.project.name;
+    const route = info.project.name;
     const errors: string[] = []; client.on("pageerror", (error) => errors.push(error.message));
     await request.post("/control", { data: { reset: true } });
     await client.goto(`${origin}/${route}`);
@@ -147,7 +73,7 @@ for (const diceCount of [5, 6]) {
     const textbox = client.getByRole("textbox");
     await textbox.fill(name);
     await client.getByRole("button", { name: "1 AI", exact: true }).click();
-    await client.getByRole("button", { name: mobile ? String(diceCount) : diceCount === 5 ? "Classic (5)" : "Extended (6)", exact: true }).click();
+    await client.getByRole("button", { name: diceCount === 5 ? "Classic (5)" : "Extended (6)", exact: true }).click();
     if (diceCount === 6) await client.getByRole("button", { name: "Switch to dark mode" }).click();
     if (info.project.name === "desktop") await expectNoDocumentOverflow(client);
     await client.screenshot({ path: info.outputPath("setup.png"), fullPage: true });
@@ -162,12 +88,10 @@ for (const diceCount of [5, 6]) {
       await expectMinimumWindowFallback(client);
       await expectNoDocumentOverflow(client);
     }
-    if (!mobile) {
-      const lowerOrder = diceCount === 5
-        ? ["One Pair", "Two Pairs", "Three of a Kind", "Four of a Kind", "Full House", "Small Straight", "Large Straight", "Yahtzee", "Chance"]
-        : ["One Pair", "Two Pairs", "Three Pairs", "Three of a Kind", "Four of a Kind", "Five of a Kind", "Full House", "Castle", "Small Straight", "Large Straight", "Full Straight", "Chance", "Tower", "Maxi Yahtzee"];
-      await expect(client.locator(".score-section.lower .yahtzee-score-action")).toHaveText(lowerOrder);
-    }
+    const lowerOrder = diceCount === 5
+      ? ["One Pair", "Two Pairs", "Three of a Kind", "Four of a Kind", "Full House", "Small Straight", "Large Straight", "Yahtzee", "Chance"]
+      : ["One Pair", "Two Pairs", "Three Pairs", "Three of a Kind", "Four of a Kind", "Five of a Kind", "Full House", "Castle", "Small Straight", "Large Straight", "Full Straight", "Chance", "Tower", "Maxi Yahtzee"];
+    await expect(client.locator(".score-section.lower .yahtzee-score-action")).toHaveText(lowerOrder);
     const firstDie = client.getByRole("button", { name: /^Die showing / }).first();
     const heldValue = await firstDie.getAttribute("aria-label");
     await firstDie.click();
@@ -175,7 +99,7 @@ for (const diceCount of [5, 6]) {
     await client.getByRole("button", { name: "Re-roll (2)", exact: true }).click();
     await expect(client.getByRole("button", { name: "Re-roll (1)", exact: true })).toBeEnabled();
     expect(await firstDie.getAttribute("aria-label")).toBe(`${heldValue}, held`);
-    if (!mobile) await expect(firstDie).toHaveAttribute("aria-pressed", "true");
+    await expect(firstDie).toHaveAttribute("aria-pressed", "true");
 
     await client.context().setOffline(true);
     await client.getByRole("button", { name: "Re-roll (1)", exact: true }).click();
@@ -202,7 +126,7 @@ for (const diceCount of [5, 6]) {
     expect(committed.logs).toHaveLength(1); expect(committed.receiptCount).toBe(2);
     await client.getByRole("button", { name: "Retry move", exact: true }).click();
     await expect(client.getByText("Game Over!", { exact: true })).toBeVisible();
-    await expect(client.getByText(`${mobile ? "🏅 " : ""}High Scores (${diceCount} dice)`, { exact: true })).toBeVisible();
+    await expect(client.getByText(`High Scores (${diceCount} dice)`, { exact: true })).toBeVisible();
     for (const player of committed.logs[0].players) {
       await expect(client.getByText(`${player.score} pts`, { exact: false }).first()).toBeVisible();
     }
@@ -218,7 +142,7 @@ for (const diceCount of [5, 6]) {
     await request.post("/control", { data: { delay: 600 } });
     const delayed = client.waitForResponse((response) => response.url().endsWith("/rpc") && response.request().postDataJSON()?.name === "games:move");
     await client.getByRole("button", { name: "Re-roll (2)", exact: true }).click();
-    await client.getByRole("button", { name: mobile ? "✕ Quit Game" : "Quit Game", exact: true }).click();
+    await client.getByRole("button", { name: "Quit Game", exact: true }).click();
     await textbox.fill("Replacement guest");
     await client.getByRole("button", { name: "Start Game", exact: true }).click();
     await expect(client.getByText(/Replacement guest's turn/)).toBeVisible();

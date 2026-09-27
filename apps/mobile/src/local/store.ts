@@ -7,6 +7,8 @@ export interface StoragePort {
   removeItem(key: string): Promise<void>;
 }
 export interface LocalView {
+  /** Reload/reset replaces unsaved UI drafts as well as the document. Not persisted. */
+  generation: number;
   data: LocalSave | null;
   busy: boolean;
   error: string | null;
@@ -44,7 +46,7 @@ function nextMove(data: LocalSave, move: Move): LocalSave {
 
 /** Acknowledgment follows one complete document write. Failed writes retain exact bytes for retry. */
 export function createLocalStore(storage: StoragePort, newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`) {
-  let view: LocalView = { data: null, busy: false, error: null, canRetry: false };
+  let view: LocalView = { generation: 0, data: null, busy: false, error: null, canRetry: false };
   let pending: Pending | null = null;
   const listeners = new Set<() => void>();
   const publish = (patch: Partial<LocalView>) => {
@@ -61,7 +63,7 @@ export function createLocalStore(storage: StoragePort, newId = () => `${Date.now
     if (transaction.reset) for (const key of LEGACY_KEYS) await storage.removeItem(key);
     await storage.setItem(SAVE_KEY, transaction.bytes);
     pending = null;
-    publish({ data: transaction.data, error: null, canRetry: false });
+    publish({ data: transaction.data, error: null, canRetry: false, generation: view.generation + Number(transaction.reset) });
   };
   const attempt = async (operation: () => Promise<void>): Promise<boolean> => {
     if (view.busy) return false;
@@ -83,7 +85,7 @@ export function createLocalStore(storage: StoragePort, newId = () => `${Date.now
   const load = () => attempt(async () => {
     // Explicit reload abandons an unacknowledged in-memory move, never the saved document.
     pending = null;
-    publish({ data: null, canRetry: false });
+    publish({ data: null, canRetry: false, generation: view.generation + 1 });
     const raw = await storage.getItem(SAVE_KEY);
     if (raw !== null) {
       const data = decodeSave(raw);

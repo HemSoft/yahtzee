@@ -36,6 +36,7 @@ for (const client of ["web", "desktop", "mobile"]) {
       });
       build.onResolve({ filter: /^convex\/react$/ }, () => ({ path: resolve("tests/clients/backend-client.tsx") }));
       build.onResolve({ filter: /^react-native$/ }, () => ({ path: require.resolve("react-native-web") }));
+      build.onResolve({ filter: /^react-native-safe-area-context$/ }, () => ({ path: resolve("tests/clients/native-safe-area.tsx") }));
       build.onResolve({ filter: /^@react-native-async-storage\/async-storage$/ }, () => ({ path: resolve("tests/clients/native-storage.ts") }));
     } }],
   });
