@@ -1,0 +1,115 @@
+import { addGameLogEntry, applySessionMove, fromWire, newSessionGame, updateHighScores, type Move } from "@yahtzee/game-engine";
+import { decodeSave, emptySave, migratePreferences, MODES, SAVE_KEY, validPreferences, type LocalSave, type Preferences } from "./save";
+
+export interface StoragePort {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
+}
+export interface LocalView {
+  data: LocalSave | null;
+  busy: boolean;
+  error: string | null;
+  canRetry: boolean;
+}
+type Pending = { data: LocalSave; bytes: string; reset: boolean };
+type Start = { name: string; diceCount: number; aiOpponents: number };
+const LEGACY_KEYS = ["yahtzee-recent-names", "yahtzee-theme"];
+const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+function begin(data: LocalSave, options: Start, id: string): LocalSave {
+  const name = options.name.trim();
+  const preferences = { ...data.preferences, ...options, name,
+    recentNames: [name, ...data.preferences.recentNames.filter((entry) => entry !== name)].slice(0, 5) };
+  if (!name || !validPreferences(preferences) || !MODES.some((mode) => mode === options.diceCount)) throw new Error("Choose a supported mode and a name of 1 to 32 characters.");
+  if (data.active) throw new Error("Resume or discard the saved game before starting another.");
+  if (data.history.entries.some((entry) => entry.id === id) || data.highScores.entries.some((entry) => entry.gameId === id)) throw new Error("Could not create a unique game. Try again.");
+  const game = newSessionGame(name, options.diceCount, options.aiOpponents);
+  game.id = id;
+  return { ...data, preferences, active: { game, revision: 0, startedAt: new Date().toISOString() } };
+}
+function nextMove(data: LocalSave, move: Move): LocalSave {
+  if (!data.active) throw new Error("No saved game is active.");
+  const game = applySessionMove(data.active.game, move);
+  const active = { ...data.active, game, revision: data.active.revision + 1 };
+  if (game.status !== "finished") return { ...data, active };
+  if (data.history.entries.some((entry) => entry.id === game.id)) throw new Error("This result has already been saved.");
+  const state = fromWire(game);
+  const history = addGameLogEntry(data.history, state, active.startedAt);
+  history.entries = history.entries.slice(-500);
+  // A wall-clock correction must not make a valid result unreadable.
+  history.entries.at(-1)!.durationSeconds = Math.max(0, history.entries.at(-1)!.durationSeconds);
+  return { ...data, active, history, highScores: updateHighScores(data.highScores, state) };
+}
+
+/** Acknowledgment follows one complete document write. Failed writes retain exact bytes for retry. */
+export function createLocalStore(storage: StoragePort, newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`) {
+  let view: LocalView = { data: null, busy: false, error: null, canRetry: false };
+  let pending: Pending | null = null;
+  const listeners = new Set<() => void>();
+  const publish = (patch: Partial<LocalView>) => {
+    view = { ...view, ...patch };
+    for (const listener of listeners) listener();
+  };
+  const stage = (data: LocalSave, reset = false) => {
+    const bytes = JSON.stringify(data);
+    pending = { data: decodeSave(bytes), bytes, reset };
+  };
+  const writePending = async () => {
+    if (!pending) throw new Error("No save is waiting to be retried.");
+    const transaction = pending;
+    if (transaction.reset) for (const key of LEGACY_KEYS) await storage.removeItem(key);
+    await storage.setItem(SAVE_KEY, transaction.bytes);
+    pending = null;
+    publish({ data: transaction.data, error: null, canRetry: false });
+  };
+  const attempt = async (operation: () => Promise<void>): Promise<boolean> => {
+    if (view.busy) return false;
+    publish({ busy: true, error: null });
+    try {
+      await operation();
+      return true;
+    } catch (error) {
+      publish({ error: error instanceof Error ? error.message : "Local storage is unavailable.", canRetry: pending !== null });
+      return false;
+    } finally { publish({ busy: false }); }
+  };
+  const update = (build: (data: LocalSave) => LocalSave) => attempt(async () => {
+    if (pending) throw new Error("Retry the pending save or reload the last saved data first.");
+    if (!view.data) throw new Error("Saved data is not available. Retry loading or choose an explicit reset.");
+    stage(build(clone(view.data)));
+    await writePending();
+  });
+  const load = () => attempt(async () => {
+    // Explicit reload abandons an unacknowledged in-memory move, never the saved document.
+    pending = null;
+    publish({ data: null, canRetry: false });
+    const raw = await storage.getItem(SAVE_KEY);
+    if (raw !== null) {
+      const data = decodeSave(raw);
+      pending = null;
+      publish({ data, canRetry: false });
+      return;
+    }
+    const data = migratePreferences(await storage.getItem(LEGACY_KEYS[0]), await storage.getItem(LEGACY_KEYS[1]));
+    stage(data);
+    await writePending();
+  });
+  return {
+    load,
+    getSnapshot: () => view,
+    subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    start: (options: Start) => update((data) => begin(data, options, newId())),
+    move: (move: Move) => update((data) => nextMove(data, move)),
+    retry: () => attempt(writePending),
+    discard: () => update((data) => ({ ...data, active: null })),
+    preferences: (patch: Partial<Preferences>) => update((data) => {
+      const preferences = { ...data.preferences, ...patch };
+      if (!validPreferences(preferences)) throw new Error("Invalid local preferences.");
+      return { ...data, preferences };
+    }),
+    // The UI must confirm deletion of games, results, names and preferences first.
+    resetAll: () => attempt(async () => { stage(emptySave(), true); await writePending(); }),
+  };
+}
+export type LocalStore = ReturnType<typeof createLocalStore>;

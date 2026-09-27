@@ -1,4 +1,5 @@
 export { createOfflineBackend } from "./offline";
+export { newSessionGame, applySessionMove, fromWire, toWire, type WireGame, type Move } from "./session";
 export { rollDie, rollDice, reroll } from "./dice";
 export {
   upperScore,
@@ -31,6 +32,7 @@ export {
   createGame,
   calculateTotal,
   calculateMaxPossibleScore,
+  getMaxCategoryScore,
   getUpperBonus,
   isGameComplete,
   getAvailableCategories,
