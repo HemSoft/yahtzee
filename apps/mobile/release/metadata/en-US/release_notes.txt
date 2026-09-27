@@ -1,0 +1,3 @@
+DRAFT, NOT APPROVED FOR UPLOAD
+
+First iOS release, pending implementation, qualification and approval. Do not publish this placeholder. For the first submission, omit What's New if App Store Connect does not expose it. Later versions summarize only the user-visible changes in the corresponding dated iOS changelog entry.

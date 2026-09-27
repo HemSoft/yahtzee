@@ -1,0 +1,5 @@
+DRAFT, NOT APPROVED FOR SUBMISSION
+
+After native qualification, describe the actual offline access, account requirements, dice modes, house rules, computer opponents, persistence, reset and support paths. Provide numbered steps through the shipping app, not a fixture mode or developer server. Do not claim that Convex has been removed until the native release proves it.
+
+Enter review contact information privately in App Store Connect. Do not commit contact phone numbers, credentials, tester details or private review correspondence here.
