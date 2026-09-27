@@ -294,6 +294,7 @@
    unchanged and recover that space from headings and panel padding. */
 @media (min-width: 900px) and (max-height: 700px) {
   .app-header { min-height: 60px; }
+  .game-settings { padding-block: 20px; gap: 12px; }
   .scorecard { padding-block: 12px; }
   .scorecard-heading { margin-bottom: 8px; }
   .scorecard .totals-table { margin-top: 6px; }

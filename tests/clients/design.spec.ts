@@ -33,6 +33,9 @@ test("desktop and responsive web presentation", async ({ page, request }, info) 
   await page.screenshot({ path: `${folder}/setup-mobile.png`, fullPage: true, animations: "disabled" });
   await page.setViewportSize({ width: 944, height: 685 });
   await page.goto("/desktop");
+  await page.setViewportSize({ width: 934, height: 655 });
+  expect(await page.locator(".app-frame").evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(655);
+  await page.setViewportSize({ width: 944, height: 685 });
   await page.getByRole("textbox").fill("Franz");
   await page.getByRole("button", { name: "1 AI", exact: true }).click();
   await page.getByRole("button", { name: "Extended (6)", exact: true }).click();
