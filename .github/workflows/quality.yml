@@ -41,6 +41,11 @@ jobs:
       - name: Lint
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run lint
+      - name: iOS release-record consistency tests and draft check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          node --test scripts/ios-release/*.test.mjs
+          node scripts/ios-release/check.mjs
       - name: Unit and backend tests
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run test

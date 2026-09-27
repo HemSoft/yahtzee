@@ -1,0 +1,21 @@
+{
+  "status": "draft",
+  "sourceReviews": {
+    "description": { "status": "draft", "sha256": null },
+    "reviewNotes": { "status": "draft", "sha256": null },
+    "releaseNotes": { "status": "draft", "sha256": null },
+    "testNotes": { "status": "draft", "sha256": null }
+  },
+  "name": null,
+  "subtitle": null,
+  "promotionalText": null,
+  "keywords": null,
+  "copyright": null,
+  "supportUrl": null,
+  "marketingUrl": null,
+  "privacyUrl": null,
+  "accessibilityUrl": null,
+  "primaryCategory": null,
+  "secondaryCategory": null,
+  "notes": "Owner-approved identity, contact details, commercial/legal decisions and tested claims are required. Null is deliberately incomplete, not an upload value."
+}
