@@ -1,7 +1,7 @@
 const command = (name, value) => `- ${name}${value === undefined ? "" : `: ${JSON.stringify(value)}`}`;
 const visible = (text) => command("assertVisible", text);
 const tap = (text) => command("tapOn", { text, enabled: true });
-const scroll = (element) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100, centerElement: true });
+const scroll = (element) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100 });
 const shot = (name) => command("takeScreenshot", name);
 const header = (bundleId, commands) => `appId: ${JSON.stringify(bundleId)}\n---\n${commands.join("\n")}\n`;
 
@@ -9,7 +9,7 @@ export function startFlow(bundleId, scenario) {
   return header(bundleId, [command("launchApp", { clearState: true, permissions: { all: "deny" } }),
     command("setOrientation", scenario.orientation), visible("A little time for dice."),
     tap("Help"), visible("How to play"), tap("Done"), visible("A little time for dice."), shot("setup"),
-    scroll({ text: "Your name" }), tap("Your name"), command("eraseText"), command("inputText", "Local tester"), command("hideKeyboard"),
+    scroll({ text: "Your name" }), tap("Your name"), command("eraseText"), command("inputText", "Local tester"), command("pressKey", "enter"),
     scroll({ text: "AI opponents" }), tap("AI opponents"), tap(scenario.ai ? "3 AI" : "Solo"),
     scroll({ text: "Dice count" }), tap("Dice count"), tap(`${scenario.dice} dice`),
     scroll({ text: "Start Game" }), tap("Start Game"),
@@ -20,8 +20,9 @@ export function resumeFlow(bundleId) {
     scroll({ text: "Resume Game" }), tap("Resume Game"), visible("Re-roll \\(1\\)"), shot("resumed")]);
 }
 export function completeFlow(bundleId, categories, previewDiagnostics = false) {
-  return header(bundleId, [
-    ...categories.flatMap((id, index) => [scroll({ id: `score-${id}`, enabled: true }), command("tapOn", { id: `score-${id}`, enabled: true }),
+  return header(bundleId, [command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Resume Game" }), tap("Resume Game"),
+    ...categories.flatMap((id, index) => [scroll({ id: `score-${id}`, enabled: true }), command("waitForAnimationToEnd", { timeout: 5000 }),
+      command("tapOn", { id: `score-${id}`, enabled: true, retryTapIfNoChange: true }),
       ...(index < categories.length - 1 ? [command("extendedWaitUntil", { visible: { id: `score-${id}`, text: ".* points recorded.*" }, timeout: 15000 })] : [])]),
     visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),
     command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Review saved result" }), tap("Review saved result"),
@@ -29,6 +30,9 @@ export function completeFlow(bundleId, categories, previewDiagnostics = false) {
     ...(previewDiagnostics ? [scroll({ text: "Preview diagnostics" }), tap("Preview diagnostics"), scroll({ id: "diagnostics-preview" }),
       command("assertVisible", { id: "diagnostics-preview" }), shot("diagnostics-preview"), tap("Cancel preview")] : []), tap("Done"),
     scroll({ text: "Play Again" }), tap("Play Again"), scroll({ text: "Start Game" }), shot("play-again")]);
+}
+export function emptyRelaunchFlow(bundleId) {
+  return header(bundleId, [command("launchApp", { clearState: false, stopApp: true }), visible("A little time for dice."), shot("empty-after-reset-relaunch")]);
 }
 export function corruptFlow(bundleId, reset = false) {
   const commands = [command("launchApp", { permissions: { all: "deny" } }), visible("Your saved data has not been reset."), shot("recovery")];

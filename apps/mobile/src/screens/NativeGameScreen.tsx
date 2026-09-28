@@ -16,8 +16,8 @@ function SaveStatus({ confirm }: { confirm: Confirm }) {
     {view.busy && <View><ActivityIndicator accessibilityLabel="Saving on this device" color={colors.tint} /><Label kind="caption" accessibilityLiveRegion="polite">Reading or saving on this device...</Label></View>}
     {view.error && <>
       <Label accessibilityRole="alert" color={colors.error}>{view.error}</Label>
-      <Label kind="caption">{view.canRetry ? "The save was not confirmed. Retry writes the same state, without rerolling or repeating AI turns." : "Your saved data has not been reset."}</Label>
-      {view.canRetry && <Action label="Retry save" disabled={view.busy} onPress={() => { void store.retry(); }} />}
+      <Label kind="caption">{view.retryReset ? "The reset did not finish. Retry continues the confirmed deletion." : view.canRetry ? "The save was not confirmed. Retry writes the same state, without rerolling or repeating AI turns." : "Your saved data has not been reset."}</Label>
+      {view.canRetry && <Action label={view.retryReset ? "Retry reset" : "Retry save"} disabled={view.busy} onPress={() => { void store.retry(); }} />}
       <Action label={view.canRetry ? "Reload saved data" : "Try loading again"} disabled={view.busy} onPress={view.canRetry ? reload : () => { void store.load(); }} />
     </>}
   </View>;
@@ -40,7 +40,7 @@ export function NativeGameScreen({ onHistory, onHelp }: { onHistory: () => void;
     if (await store.start({ name, diceCount: preferences.diceCount, aiOpponents: preferences.aiOpponents })) setPlaying(true);
   };
   const again = async () => { if (await store.discard()) setPlaying(false); };
-  return <SafeAreaView edges={["top", "bottom", "left", "right"]} style={[styles.screen, { backgroundColor: colors.page }]}>
+  return <SafeAreaView edges={["bottom", "left", "right"]} style={[styles.screen, { backgroundColor: colors.page }]}>
     <View style={{ flexDirection: "row", paddingHorizontal: 12 }}>
       <View style={{ flex: 1 }}><Action label="History" disabled={!view.data} onPress={onHistory} /></View>
       <View style={{ flex: 1 }}><Action label="Help" onPress={onHelp} /></View>

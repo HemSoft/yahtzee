@@ -15,11 +15,11 @@ function fixture() {
   const path = join(directory, DATABASE_NAME);
   const connections: Database[] = [];
   const values = new Map<string, string>([["yahtzee-theme", "dark"], ["unrelated", "keep"]]);
-  const state = { openFailure: false, writeFailure: false, lostAck: false, closeFailure: false, removeFailure: false, deletes: 0, writes: [] as string[], integrity: undefined as string | null | undefined };
+  const state = { openFailure: false, writeFailure: false, lostAck: false, closeFailure: false, removeFailure: false, removeAckLost: false, legacyRemoveFailure: false, deletes: 0, writes: [] as string[], integrity: undefined as string | null | undefined };
   const legacy: StoragePort = {
     async getItem(key) { return values.get(key) ?? null; },
     async setItem(key, value) { values.set(key, value); },
-    async removeItem(key) { values.delete(key); },
+    async removeItem(key) { if (state.legacyRemoveFailure) throw new Error("Legacy storage unavailable"); values.delete(key); },
   };
   const factory = {
     async open(): Promise<SqlConnection> {
@@ -45,6 +45,7 @@ function fixture() {
       state.deletes++;
       if (state.removeFailure) throw new Error("Cannot remove database");
       for (const suffix of ["", "-wal", "-shm", "-journal"]) rmSync(path + suffix, { force: true });
+      if (state.removeAckLost) throw new Error("Reset acknowledgment lost");
     },
   };
   cleanups.push(() => { for (const db of connections) db.close(); rmSync(directory, { recursive: true, force: true }); });
@@ -136,6 +137,49 @@ describe("real SQLite persistence, without an Expo/iOS-runtime claim", () => {
     expect(await f.store.retry()).toBe(true);
     expect(f.store.getSnapshot().data).toEqual(emptySave());
     expect(f.store.getSnapshot().generation).toBe(generation + 1);
+  });
+
+  test("legacy cleanup failure happens before the only durable save is deleted", async () => {
+    const f = fixture(); await f.store.load(); await f.store.start(options);
+    const before = JSON.stringify(f.store.getSnapshot().data);
+    f.state.legacyRemoveFailure = true;
+    expect(await f.store.resetAll()).toBe(false);
+    expect(f.state.deletes).toBe(0);
+    expect(await f.port.getItem(SAVE_KEY)).toBe(before);
+    expect(JSON.stringify(f.store.getSnapshot().data)).toBe(before);
+    f.state.legacyRemoveFailure = false;
+    expect(await f.store.retry()).toBe(true);
+    expect(f.store.getSnapshot().data).toEqual(emptySave());
+  });
+
+  test("acknowledged database deletion commits empty state without a fallible replacement write", async () => {
+    const f = fixture(); await f.store.load(); await f.store.start(options);
+    const writes = f.state.writes.length;
+    f.state.writeFailure = true;
+    expect(await f.store.resetAll()).toBe(true);
+    expect(f.state.writes).toHaveLength(writes);
+    expect(f.store.getSnapshot().data).toEqual(emptySave());
+    f.state.writeFailure = false;
+    const restarted = createLocalStore(f.recreate());
+    expect(await restarted.load()).toBe(true);
+    expect(restarted.getSnapshot().data).toEqual(emptySave());
+  });
+
+  test("uncertain database deletion hides stale data until explicit retry or reload", async () => {
+    const f = fixture(); await f.store.load(); await f.store.start(options);
+    const generation = f.store.getSnapshot().generation;
+    f.state.removeAckLost = true;
+    expect(await f.store.resetAll()).toBe(false);
+    expect(f.store.getSnapshot().data).toBeNull();
+    expect(f.store.getSnapshot().error).toContain("may already have been deleted");
+    expect(f.store.getSnapshot().canRetry).toBe(true);
+    expect(f.store.getSnapshot().retryReset).toBe(true);
+    expect(f.store.getSnapshot().generation).toBe(generation);
+    f.state.removeAckLost = false;
+    expect(await f.store.retry()).toBe(true);
+    expect(f.store.getSnapshot().data).toEqual(emptySave());
+    expect(f.store.getSnapshot().generation).toBe(generation + 1);
+    expect(f.store.getSnapshot().retryReset).toBe(false);
   });
 
   test("rejects unknown database versions and unrecognized schemas without resetting them", async () => {

@@ -60,7 +60,7 @@ export function Help() {
         <View style={styles.row}><Label>Reset deletes this app's local game data and preferences, including damaged saves. Other apps are not affected.</Label></View>
         <Action label="Delete all local data" destructive disabled={view.busy} onPress={reset} />
         {view.error && <Label accessibilityRole="alert" color={colors.error}>{view.error}</Label>}
-        {view.canRetry && <Action label="Retry save" disabled={view.busy} onPress={() => { void store.retry(); }} />}
+        {view.canRetry && <Action label={view.retryReset ? "Retry reset" : "Retry save"} disabled={view.busy} onPress={() => { void store.retry(); }} />}
       </Section>
     </ScrollView>
     {dialog}

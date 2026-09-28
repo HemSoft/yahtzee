@@ -23,14 +23,16 @@ The installed `expo-file-system` 57.0.7 source does contain the manifest. Its po
 
 The source manifest declares file-timestamp reasons `0A2A.1` and `3B52.1`, and disk-space reasons `E174.1` and `85F4.1`. These are recorded as upstream SDK declarations, not independently approved reasons for this app.
 
-The proposed repair opts only `expo-file-system` into source compilation through the SDK 57 Apple autolinker's `buildFromSource` option. The installed autolinker resolves this option. Native qualification must still prove that the resource returns and its declarations reach the aggregate. [The inspection tool](../scripts/ios-native/privacy.mjs) compares the built resource with the locked SDK source and checks those aggregate reasons. It retains the observed manifests and purpose strings without supplying legal answers.
+The repair opts only `expo-file-system` into source compilation through the SDK 57 Apple autolinker's `buildFromSource` option. [Native build 36361758690](https://github.com/HemSoft/yahtzee/actions/runs/36361758690), source `bc040c05b0a36ca6e4d214bba7dee14ce939dc86`, passed deployment-mode installation and package inspection. Eleven manifests are present. The SDK resource matches upstream, and all four previously missing reasons appear in the aggregate. The retained build's ten artifact hashes verified after download.
+
+[The inspection tool](../scripts/ios-native/privacy.mjs) compares each new built resource with the locked SDK source and checks those aggregate reasons. It retains observed manifests and purpose strings without supplying legal answers. This passing simulator inspection does not establish signed-archive contents, SDK signatures or network behavior.
 
 ## Data-flow inventory
 
 | Data or behavior | Source behavior | Remaining evidence |
 | --- | --- | --- |
 | Player name and five recent names | Local preferences only | Device traffic measurement and reset/uninstall check |
-| Active game, dice, holds and opponents | One acknowledged SQLite document, retained for resume | Actual Expo runtime restart, interruption and airplane-mode checks |
+| Active game, dice, holds and opponents | One acknowledged SQLite document, retained for resume | iPhone simulator resume observed on `beff6ec`; physical interruption and airplane-mode checks remain |
 | Completed results and local rankings | Last 500 games; top ten entries per mode | Physical retention, backup and restore checks |
 | Appearance and game options | Local preferences | Device reset and restore checks |
 | Legacy preferences | Import only the two documented old preference keys | Device upgrade fixture if an older native build is distributed |

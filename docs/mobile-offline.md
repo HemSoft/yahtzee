@@ -18,7 +18,9 @@ Inspection of AsyncStorage 2.2.0's iOS implementation found two unsuitable behav
 
 ## Recovery and deletion
 
-Normal load and failed writes never call the database deletion API. The Help reset requires confirmation. Reset closes the connection, removes only the dedicated database and its WAL, shared-memory and rollback-journal files, removes the two owned legacy preference keys, then writes defaults. Missing database files are tolerated; permission and other deletion failures remain visible and retryable. Other keys and apps are untouched. A successful reset/reload also clears unsaved UI name drafts.
+Normal load and failed writes never call the database deletion API. The Help reset requires confirmation. Reset removes the two owned legacy preference keys first, then closes and removes only the dedicated database and its WAL, shared-memory and rollback-journal files. Acknowledged deletion commits an empty state. No fallible replacement write follows it; the next load or change creates a new document. A legacy cleanup error occurs before the durable game is deleted.
+
+Missing database files are tolerated. A database-deletion error may follow partial deletion, so the app hides the potentially stale game and requires retry or explicit reload. It does not present the old data as safely retained. Other keys and apps are untouched. Successful reset/reload clears unsaved UI name drafts; an uncertain explicit reset enters recovery instead of retaining those screens.
 
 SQLite transaction recovery is not a guarantee against device loss, arbitrary filesystem destruction or faulty storage hardware. The app has no remote backup service or recovery account. Keep damaged bytes available for diagnosis until the user chooses reset. Do not add a catch-and-recreate path for database errors.
 

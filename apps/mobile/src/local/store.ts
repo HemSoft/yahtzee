@@ -5,7 +5,7 @@ export interface StoragePort {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
   removeItem(key: string): Promise<void>;
-  /** Remove only this app's dedicated storage after the UI confirms Reset All. */
+  /** Confirm durable absence of dedicated storage. Failures may follow partial deletion. UI confirmation is required. */
   reset?(): Promise<void>;
 }
 export interface LocalView {
@@ -15,6 +15,7 @@ export interface LocalView {
   busy: boolean;
   error: string | null;
   canRetry: boolean;
+  retryReset: boolean;
 }
 type Pending = { data: LocalSave; bytes: string; reset: boolean };
 type Start = { name: string; diceCount: number; aiOpponents: number };
@@ -46,9 +47,9 @@ function nextMove(data: LocalSave, move: Move): LocalSave {
   return { ...data, active, history, highScores: updateHighScores(data.highScores, state) };
 }
 
-/** Acknowledgment follows one complete document write. Failed writes retain exact bytes for retry. */
+/** Acknowledgment follows a complete write or confirmed deletion. Failed writes retain exact bytes for retry. */
 export function createLocalStore(storage: StoragePort, newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`) {
-  let view: LocalView = { generation: 0, data: null, busy: false, error: null, canRetry: false };
+  let view: LocalView = { generation: 0, data: null, busy: false, error: null, canRetry: false, retryReset: false };
   let pending: Pending | null = null;
   const listeners = new Set<() => void>();
   const publish = (patch: Partial<LocalView>) => {
@@ -63,12 +64,20 @@ export function createLocalStore(storage: StoragePort, newId = () => `${Date.now
     if (!pending) throw new Error("No save is waiting to be retried.");
     const transaction = pending;
     if (transaction.reset) {
-      await storage.reset?.();
+      // Finish fallible legacy cleanup before deleting the only durable document.
       for (const key of LEGACY_KEYS) await storage.removeItem(key);
     }
-    await storage.setItem(SAVE_KEY, transaction.bytes);
+    if (transaction.reset && storage.reset) {
+      try { await storage.reset(); }
+      catch {
+        // A partial deletion cannot leave a stale game presented as saved.
+        publish({ data: null });
+        throw new Error("Reset did not finish. Some local data may already have been deleted. Retry reset or reload to check.");
+      }
+      // Absence is the committed empty state. Recreating it here adds an unsafe post-commit failure.
+    } else await storage.setItem(SAVE_KEY, transaction.bytes);
     pending = null;
-    publish({ data: transaction.data, error: null, canRetry: false, generation: view.generation + Number(transaction.reset) });
+    publish({ data: transaction.data, error: null, canRetry: false, retryReset: false, generation: view.generation + Number(transaction.reset) });
   };
   const attempt = async (operation: () => Promise<void>): Promise<boolean> => {
     if (view.busy) return false;
@@ -77,7 +86,7 @@ export function createLocalStore(storage: StoragePort, newId = () => `${Date.now
       await operation();
       return true;
     } catch (error) {
-      publish({ error: error instanceof Error ? error.message : "Local storage is unavailable.", canRetry: pending !== null });
+      publish({ error: error instanceof Error ? error.message : "Local storage is unavailable.", canRetry: pending !== null, retryReset: pending?.reset ?? false });
       return false;
     } finally { publish({ busy: false }); }
   };
@@ -90,7 +99,7 @@ export function createLocalStore(storage: StoragePort, newId = () => `${Date.now
   const load = () => attempt(async () => {
     // Explicit reload abandons an unacknowledged in-memory move, never the saved document.
     pending = null;
-    publish({ data: null, canRetry: false, generation: view.generation + 1 });
+    publish({ data: null, canRetry: false, retryReset: false, generation: view.generation + 1 });
     const raw = await storage.getItem(SAVE_KEY);
     if (raw !== null) {
       const data = decodeSave(raw);

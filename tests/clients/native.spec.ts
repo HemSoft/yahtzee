@@ -123,7 +123,11 @@ test("native adapter recovery does not silently replace damaged data; reset clea
   await faults(client, { removes: 1 });
   await confirm(client, "Delete all local data");
   await expect(client.getByRole("alert").last()).toContainText("Injected storage removes failure");
-  await client.getByRole("button", { name: "Retry save", exact: true }).last().click();
+  await expect(client.getByRole("button", { name: "Retry reset", exact: true }).last()).toBeVisible();
+  await client.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(client.getByText("The reset did not finish. Retry continues the confirmed deletion.")).toBeVisible();
+  await client.getByRole("button", { name: "Help", exact: true }).click();
+  await client.getByRole("button", { name: "Retry reset", exact: true }).last().click();
   await client.getByRole("button", { name: "Done", exact: true }).click();
   await expect(client.getByRole("textbox", { name: "Your name" })).toHaveValue("");
   expect(await client.evaluate(() => localStorage.getItem("unrelated"))).toBe("keep");

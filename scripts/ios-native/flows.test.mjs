@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
+import { startFlow, resumeFlow, completeFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
 
 function parse(flow) {
   const [header, body] = flow.trim().split("\n---\n");
@@ -47,17 +47,26 @@ test("generated flows use valid JSON-in-YAML commands and real semantic controls
   assert(preview.some((step) => step.command === "assertVisible" && step.value?.id === "diagnostics-preview"));
   assert(preview.some((step) => step.value?.text === "Cancel preview"));
 });
-test("scoring waits for an enabled centered target and acknowledged record before moving on", () => {
+test("native name entry submits the keyboard instead of issuing dismissal swipes", () => {
+  const steps = parse(startFlow("com.hemsoft.yahtzee", scenarios[0]));
+  assert(!steps.some((step) => step.command === "hideKeyboard"));
+  assert(steps.some((step) => step.command === "pressKey" && step.value === "enter"));
+});
+test("scoring waits for an enabled settled target and acknowledged record before moving on", () => {
   const steps = parse(completeFlow("com.hemsoft.yahtzee", ["full-house", "small-straight", "chance"]));
   for (const id of ["full-house", "small-straight"]) {
     const index = steps.findIndex((step) => step.command === "tapOn" && step.value?.id === `score-${id}`);
     assert.equal(steps[index].value.enabled, true);
-    assert.equal(steps[index - 1].value.centerElement, true);
+    assert.equal(steps[index].value.retryTapIfNoChange, true);
+    assert.equal(steps[index - 1].command, "waitForAnimationToEnd");
     assert.equal(steps[index + 1].command, "extendedWaitUntil");
     assert.deepEqual(steps[index + 1].value.visible, { id: `score-${id}`, text: ".* points recorded.*" });
   }
 });
 test("corruption flow never clears state and reset includes cancellation first", () => {
+  const relaunch = parse(emptyRelaunchFlow("com.hemsoft.yahtzee"));
+  assert.deepEqual(relaunch[0].value, { clearState: false, stopApp: true });
+  assert(relaunch.some((step) => step.command === "assertVisible" && step.value === "A little time for dice."));
   for (const reset of [false, true]) {
     const steps = parse(corruptFlow("com.hemsoft.yahtzee", reset));
     assert.equal(steps[0].value.clearState, undefined);

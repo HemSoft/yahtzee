@@ -6,9 +6,10 @@ import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { getScorecardCategories } from "../../packages/game-engine/src/presentation.ts";
 import { decodeSave } from "../../apps/mobile/src/local/save.ts";
-import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
+import { startFlow, resumeFlow, completeFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
 import { buildSimulator } from "./build.mjs";
 import { loadBuiltSimulator } from "./artifact.mjs";
+import { retainDriverLogs } from "./driverLogs.mjs";
 
 assert.equal(process.platform, "darwin", "Native qualification requires macOS, Xcode and iOS simulators.");
 assert(["arm64", "x64"].includes(process.arch), "Unsupported simulator host architecture.");
@@ -26,7 +27,7 @@ const output = join(root, "reports/native");
 assert(!existsSync(output), "Use a fresh checkout. Existing native evidence was not overwritten.");
 mkdirSync(output, { recursive: true });
 const env = { ...process.env, DEVELOPER_DIR: "/Applications/Xcode_26.6.app/Contents/Developer", EXPO_NO_TELEMETRY: "1",
-  MAESTRO_CLI_NO_ANALYTICS: "true", MAESTRO_DISABLE_UPDATE_CHECK: "true", MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: "true", MAESTRO_DRIVER_STARTUP_TIMEOUT: "120000" };
+  MAESTRO_CLI_NO_ANALYTICS: "true", MAESTRO_DISABLE_UPDATE_CHECK: "true", MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: "true", MAESTRO_DRIVER_STARTUP_TIMEOUT: "300000" };
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const json = (path, value) => writeFileSync(path, JSON.stringify(value, null, 2) + "\n");
 function run(executable, commandArgs, { cwd = root, capture = false, timeout = 1800000, log = "commands.log" } = {}) {
@@ -44,7 +45,7 @@ const sim = (...commandArgs) => run("xcrun", ["simctl", ...commandArgs], { captu
 const receipt = { schemaVersion: 1, kind: buildOnly ? "unsigned-ios-simulator-build" : "unsigned-ios-simulator-tests", status: "running", source: run("git", ["rev-parse", "HEAD"], { capture: true }),
   startedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null,
   runnerImage: process.env.ImageVersion ?? null, architecture, group: group ?? null, scenarios: [],
-  limits: ["Not a signed device archive", "Not TestFlight or physical-device evidence", "No airplane-mode or VoiceOver acceptance claim", "Public identity and release approvals remain unset", "Hidden Maestro debug logs are not uploaded"] };
+  limits: ["Not a signed device archive", "Not TestFlight or physical-device evidence", "No airplane-mode or VoiceOver acceptance claim", "Public identity and release approvals remain unset", "Raw hidden debug trees are excluded; selected driver logs are sanitized and retained"] };
 const checkpoint = () => json(join(output, "manifest.json"), receipt);
 checkpoint();
 const ownedDevices = [];
@@ -61,8 +62,11 @@ async function stopRecording() {
 }
 function flow(device, directory, name, content) {
   const file = join(directory, `${name}.yaml`); writeFileSync(file, content);
-  run("maestro", ["--device", device, "test", "--test-output-dir", join(directory, name), "--debug-output", join(directory, `${name}-debug`),
-    "--format", "JUNIT", "--output", join(directory, `${name}.xml`), file], { timeout: 600000, log: `${name}-${directory.split(/[\\/]/).at(-1)}.log` });
+  const debug = join(directory, `${name}-debug`);
+  try {
+    run("maestro", ["--device", device, "test", "--test-output-dir", join(directory, name), "--debug-output", debug,
+      "--format", "JUNIT", "--output", join(directory, `${name}.xml`), file], { timeout: 600000, log: `${name}-${directory.split(/[\\/]/).at(-1)}.log` });
+  } finally { retainDriverLogs(debug, directory, name, env); }
 }
 function saved(device, bundleId, directory, stage) {
   const container = sim("get_app_container", device, bundleId, "data");
@@ -90,6 +94,8 @@ function corruption(device, bundleId) {
   flow(device, directory, "corrupt", corruptFlow(bundleId));
   assert.equal(run("sqlite3", ["-readonly", current.database, "SELECT value FROM local_save"], { capture: true }), "damaged-save");
   flow(device, directory, "reset", corruptFlow(bundleId, true));
+  assert(!existsSync(current.database), "Confirmed reset must remove the damaged database.");
+  flow(device, directory, "reset-relaunch", emptyRelaunchFlow(bundleId));
   const reset = saved(device, bundleId, directory, "after-reset"); assert.equal(reset.data.active, null); assert.equal(reset.data.history.entries.length, 0);
   sim("terminate", device, bundleId);
   run("sqlite3", [reset.database, "PRAGMA wal_checkpoint(TRUNCATE)"], { capture: true });
@@ -98,6 +104,8 @@ function corruption(device, bundleId) {
   flow(device, directory, "corrupt-database", corruptFlow(bundleId));
   assert.deepEqual(readFileSync(reset.database), damaged);
   flow(device, directory, "reset-database", corruptFlow(bundleId, true));
+  assert(!existsSync(reset.database), "Confirmed reset must remove the damaged database.");
+  flow(device, directory, "reset-database-relaunch", emptyRelaunchFlow(bundleId));
   assert.equal(saved(device, bundleId, directory, "after-database-reset").data.history.entries.length, 0);
   receipt.nativeCorruptionAndReset = "passed";
 }
@@ -135,7 +143,6 @@ async function exercise(app, bundleId) {
     receipt.phase = `resume-${scenario.id}`; checkpoint();
     flow(device, directory, "resume", resumeFlow(bundleId));
     const after = saved(device, bundleId, directory, "after-relaunch"); assert.equal(after.bytes, before.bytes);
-    await stopRecording();
     if (!scenario.largeText) {
       receipt.phase = `complete-${scenario.id}`; checkpoint();
       const preview = ["phone-5-solo-light", "tablet-8-solo-light"].includes(scenario.id);
@@ -144,6 +151,7 @@ async function exercise(app, bundleId) {
       assert.equal(completed.data.active, null); assert.equal(completed.data.history.entries.length, 1);
       assert.equal(completed.data.highScores.entries.length, scenario.ai + 1);
     }
+    await stopRecording();
     result.status = "passed"; result.resumeDocumentSha256 = hash(before.bytes); checkpoint();
   }
   if (!group || group === "tablet-10") { receipt.phase = "corruption-and-reset"; checkpoint(); corruption(booted, bundleId); }
