@@ -54,10 +54,14 @@ test("native name entry submits the keyboard instead of issuing dismissal swipes
 });
 test("scoring waits for an enabled settled target and acknowledged record before moving on", () => {
   const steps = parse(completeFlow("com.hemsoft.yahtzee", ["full-house", "small-straight", "chance"]));
+  const ready = steps.findIndex((step) => step.command === "assertVisible" && step.value === "Re-roll \\(1\\)");
+  const firstScoreScroll = steps.findIndex((step) => step.command === "scrollUntilVisible" && step.value?.element?.id === "score-full-house");
+  assert(ready >= 0 && ready < firstScoreScroll, "Wait for the resumed game before scrolling for scores");
   for (const id of ["full-house", "small-straight"]) {
     const index = steps.findIndex((step) => step.command === "tapOn" && step.value?.id === `score-${id}`);
     assert.equal(steps[index].value.enabled, true);
     assert.equal(steps[index].value.retryTapIfNoChange, true);
+    assert.equal(steps[index - 2].value.centerElement, true, "Scores must clear the fixed roll footer, not merely the screen bounds");
     assert.equal(steps[index - 1].command, "waitForAnimationToEnd");
     assert.equal(steps[index + 1].command, "extendedWaitUntil");
     assert.deepEqual(steps[index + 1].value.visible, { id: `score-${id}`, text: ".* points recorded.*" });

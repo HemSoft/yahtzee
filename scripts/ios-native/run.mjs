@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { getScorecardCategories } from "../../packages/game-engine/src/presentation.ts";
@@ -10,6 +10,7 @@ import { startFlow, resumeFlow, completeFlow, corruptFlow, emptyRelaunchFlow, sc
 import { buildSimulator } from "./build.mjs";
 import { loadBuiltSimulator } from "./artifact.mjs";
 import { retainDriverLogs } from "./driverLogs.mjs";
+import { snapshotEvidence } from "./snapshot.mjs";
 
 assert.equal(process.platform, "darwin", "Native qualification requires macOS, Xcode and iOS simulators.");
 assert(["arm64", "x64"].includes(process.arch), "Unsupported simulator host architecture.");
@@ -24,7 +25,8 @@ assert(!(group && buildOnly), "Build and test-only modes cannot be combined.");
 const selectedScenarios = group ? scenariosForGroup(group) : scenarios;
 const root = resolve(import.meta.dirname, "../..");
 const output = join(root, "reports/native");
-assert(!existsSync(output), "Use a fresh checkout. Existing native evidence was not overwritten.");
+const publishedOutput = join(root, "reports/native-evidence");
+assert(!existsSync(output) && !existsSync(publishedOutput), "Use a fresh checkout. Existing native evidence was not overwritten.");
 mkdirSync(output, { recursive: true });
 const env = { ...process.env, DEVELOPER_DIR: "/Applications/Xcode_26.6.app/Contents/Developer", EXPO_NO_TELEMETRY: "1",
   MAESTRO_CLI_NO_ANALYTICS: "true", MAESTRO_DISABLE_UPDATE_CHECK: "true", MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: "true", MAESTRO_DRIVER_STARTUP_TIMEOUT: "300000" };
@@ -77,15 +79,6 @@ function saved(device, bundleId, directory, stage) {
   const data = decodeSave(bytes);
   writeFileSync(join(directory, `${stage}-save.json`), bytes + "\n");
   return { bytes, data, database };
-}
-function artifactFiles(directory, prefix = "") {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    if (entry.name.startsWith(".")) return [];
-    const relative = prefix + entry.name; const path = join(directory, entry.name);
-    if (entry.isDirectory()) return artifactFiles(path, relative + "/");
-    if (!entry.isFile() || relative === "manifest.json") return [];
-    return [{ path: relative, bytes: statSync(path).size, sha256: hash(readFileSync(path)) }];
-  });
 }
 function corruption(device, bundleId) {
   const directory = join(output, "corrupt-save"); mkdirSync(directory);
@@ -180,6 +173,11 @@ try {
 } catch (error) {
   receipt.status = "failed"; receipt.error = error instanceof Error ? error.message : String(error); process.exitCode = 1;
   for (const scenario of receipt.scenarios) if (scenario.status === "running") scenario.status = "failed";
+  const failed = receipt.scenarios.at(-1);
+  if (failed && receipt.app) {
+    try { saved(failed.udid, receipt.app.bundleId, join(output, failed.id), "failure"); }
+    catch (snapshotError) { receipt.failureSaveError = String(snapshotError); }
+  }
   console.error(receipt.error);
 } finally {
   try { await stopRecording(); } catch (error) { receipt.recordingError = String(error); receipt.status = "failed"; process.exitCode = 1; }
@@ -189,5 +187,6 @@ try {
     const removed = spawnSync("xcrun", ["simctl", "delete", device], { env, stdio: "ignore", timeout: 60000, killSignal: "SIGKILL" });
     if (removed.status !== 0) { (receipt.cleanupErrors ??= []).push(device); receipt.status = "failed"; process.exitCode = 1; }
   }
-  receipt.finishedAt = new Date().toISOString(); receipt.artifacts = artifactFiles(output); checkpoint();
+  receipt.finishedAt = new Date().toISOString(); checkpoint();
+  snapshotEvidence(output, publishedOutput, receipt);
 }

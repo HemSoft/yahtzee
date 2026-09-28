@@ -1,7 +1,7 @@
 const command = (name, value) => `- ${name}${value === undefined ? "" : `: ${JSON.stringify(value)}`}`;
 const visible = (text) => command("assertVisible", text);
 const tap = (text) => command("tapOn", { text, enabled: true });
-const scroll = (element) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100 });
+const scroll = (element, centerElement = false) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100, centerElement });
 const shot = (name) => command("takeScreenshot", name);
 const header = (bundleId, commands) => `appId: ${JSON.stringify(bundleId)}\n---\n${commands.join("\n")}\n`;
 
@@ -21,7 +21,8 @@ export function resumeFlow(bundleId) {
 }
 export function completeFlow(bundleId, categories, previewDiagnostics = false) {
   return header(bundleId, [command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Resume Game" }), tap("Resume Game"),
-    ...categories.flatMap((id, index) => [scroll({ id: `score-${id}`, enabled: true }), command("waitForAnimationToEnd", { timeout: 5000 }),
+    visible("Re-roll \\(1\\)"), command("waitForAnimationToEnd", { timeout: 5000 }), shot("ready-to-score"),
+    ...categories.flatMap((id, index) => [scroll({ id: `score-${id}`, enabled: true }, true), command("waitForAnimationToEnd", { timeout: 5000 }),
       command("tapOn", { id: `score-${id}`, enabled: true, retryTapIfNoChange: true }),
       ...(index < categories.length - 1 ? [command("extendedWaitUntil", { visible: { id: `score-${id}`, text: ".* points recorded.*" }, timeout: 15000 })] : [])]),
     visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),

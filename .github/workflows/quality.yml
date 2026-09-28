@@ -146,12 +146,15 @@ jobs:
           else
             bun scripts/ios-native/run.mjs --build-only
           fi
+      - name: Freeze partial evidence if native execution ended early
+        if: ${{ always() }}
+        run: node scripts/ios-native/snapshot.mjs
       - name: Retain native build or dependency-refresh evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ios-native-build-${{ github.event.pull_request.head.sha || github.sha }}
-          path: reports/native/
+          path: reports/native-evidence/
           retention-days: 1
           compression-level: 9
           if-no-files-found: warn
@@ -197,12 +200,15 @@ jobs:
         env:
           NATIVE_TEST_GROUP: ${{ matrix.group }}
         run: bun scripts/ios-native/run.mjs "--test-group=$NATIVE_TEST_GROUP"
+      - name: Freeze partial evidence if native execution ended early
+        if: ${{ always() }}
+        run: node scripts/ios-native/snapshot.mjs
       - name: Retain unsigned native evidence, including failed-run diagnostics
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ios-native-${{ matrix.group }}-${{ github.event.pull_request.head.sha || github.sha }}
-          path: reports/native/
+          path: reports/native-evidence/
           retention-days: 1
           compression-level: 9
           if-no-files-found: warn

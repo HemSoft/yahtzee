@@ -68,13 +68,13 @@ export function createSqliteStorage(factory: SqlFactory, legacy: StoragePort) {
   };
 }
 
-/** Expo's deleteDatabaseAsync rejects missing files. Reset is idempotent, including sidecars. */
-export async function removeDatabaseFiles(remove: (name: string) => Promise<void>) {
-  for (const suffix of ["", "-wal", "-shm", "-journal"]) {
-    try { await remove(DATABASE_NAME + suffix); }
-    catch (error) { if (!isMissingDatabase(error)) throw error; }
+/** Expo shares deletion error codes. Only a successful directory listing proves absence. */
+export async function removeDatabaseFiles(remove: (name: string) => Promise<void>, list: () => string[] | Promise<string[]>) {
+  const owned = ["", "-wal", "-shm", "-journal"].map((suffix) => DATABASE_NAME + suffix);
+  const present = await list();
+  for (const name of owned.filter((name) => present.includes(name))) {
+    try { await remove(name); }
+    catch (error) { if ((await list()).includes(name)) throw error; }
   }
-}
-function isMissingDatabase(error: unknown) {
-  return error instanceof Error && "code" in error && error.code === "ERR_DATABASE_NOT_FOUND";
+  if ((await list()).some((name) => owned.includes(name))) throw new Error("Local database deletion was not confirmed.");
 }

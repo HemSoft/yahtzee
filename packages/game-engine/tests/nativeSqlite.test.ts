@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createSqliteStorage, DATABASE_NAME, removeDatabaseFiles, type SqlConnection } from "../../../apps/mobile/src/local/sqliteStorage";
@@ -44,7 +44,7 @@ function fixture() {
     async remove() {
       state.deletes++;
       if (state.removeFailure) throw new Error("Cannot remove database");
-      for (const suffix of ["", "-wal", "-shm", "-journal"]) rmSync(path + suffix, { force: true });
+      await removeDatabaseFiles(async (name) => { rmSync(join(directory, name)); }, () => readdirSync(directory));
       if (state.removeAckLost) throw new Error("Reset acknowledgment lost");
     },
   };
@@ -214,13 +214,40 @@ describe("real SQLite persistence, without an Expo/iOS-runtime claim", () => {
     expect(await f.port.getItem(SAVE_KEY)).toBeNull();
   });
 
-  test("reset removes only the owned database family and ignores only confirmed missing files", async () => {
+  test("reset handles the iOS SDK's shared deletion error code without suppressing real failures", async () => {
+    const present = new Set([DATABASE_NAME]);
+    await removeDatabaseFiles(async (name) => {
+      if (!present.delete(name)) throw Object.assign(new Error(`Database ${name} not found`), { code: "E_SQLITE_DELETE_DATABASE" });
+    }, () => [...present]);
+    expect(present.size).toBe(0);
+  });
+
+  test("reset removes only the owned database family and verifies uncertain deletion", async () => {
     const names: string[] = [];
-    await removeDatabaseFiles(async (name) => { names.push(name); throw Object.assign(new Error("Missing"), { code: "ERR_DATABASE_NOT_FOUND" }); });
-    expect(names).toEqual([DATABASE_NAME, DATABASE_NAME + "-wal", DATABASE_NAME + "-shm", DATABASE_NAME + "-journal"]);
-    await removeDatabaseFiles(async () => {});
-    for (const error of [new Error("Permission denied"), { code: "ERR_DATABASE_NOT_FOUND" }, "unknown failure"]) {
-      await expect(removeDatabaseFiles(async () => { throw error; })).rejects.toEqual(error);
+    const owned = [DATABASE_NAME, DATABASE_NAME + "-wal", DATABASE_NAME + "-shm", DATABASE_NAME + "-journal"];
+    const present = new Set([...owned, "unrelated.db"]);
+    await removeDatabaseFiles(async (name) => {
+      names.push(name); present.delete(name);
+      throw Object.assign(new Error("Deletion acknowledgment lost"), { code: "E_SQLITE_DELETE_DATABASE" });
+    }, () => [...present]);
+    expect(names).toEqual(owned);
+    expect([...present]).toEqual(["unrelated.db"]);
+    await removeDatabaseFiles(async () => { throw new Error("Must not delete absent files"); }, () => [...present]);
+    for (const error of [Object.assign(new Error("Permission denied"), { code: "E_SQLITE_DELETE_DATABASE" }), new Error("Database is open"), "unknown failure"]) {
+      await expect(removeDatabaseFiles(async () => { throw error; }, () => [DATABASE_NAME])).rejects.toEqual(error);
     }
+  });
+
+  test("reset fails closed when directory inspection fails or deletion leaves files behind", async () => {
+    let attempts = 0;
+    const unavailable = new Error("Directory unavailable");
+    await expect(removeDatabaseFiles(async () => { attempts++; }, () => { throw unavailable; })).rejects.toEqual(unavailable);
+    expect(attempts).toBe(0);
+    let listings = 0;
+    await expect(removeDatabaseFiles(async () => { throw new Error("Delete failed"); }, () => {
+      if (listings++ === 0) return [DATABASE_NAME];
+      throw unavailable;
+    })).rejects.toEqual(unavailable);
+    await expect(removeDatabaseFiles(async () => {}, () => [DATABASE_NAME])).rejects.toThrow("deletion was not confirmed");
   });
 });
