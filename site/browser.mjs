@@ -60,6 +60,7 @@ try {
           const table = page.getByRole("region", { name: "Game mode comparison, horizontally scrollable" });
           await table.focus();
           for (let step = 0; step < 16; step++) await page.keyboard.press("ArrowRight");
+          await page.waitForFunction(() => document.querySelector(".table-scroll")?.scrollLeft > 0, undefined, { timeout: 2000 });
           assert(await table.evaluate((element) => element.scrollLeft > 0), "Mode table must support keyboard scrolling");
           await table.evaluate((element) => { element.scrollLeft = 0; });
         }
