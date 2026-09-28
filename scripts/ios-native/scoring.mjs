@@ -7,6 +7,7 @@ import { redactDriverLog } from "./driverLogs.mjs";
 
 export async function scoreCategories({ categories, inspect, run, capture, record }) {
   assert(categories.length > 0 && categories.length <= 20 && new Set(categories).size === categories.length);
+  await run([{ launchApp: { stopApp: false, clearState: false, permissions: { all: "deny" } } }]);
   for (const [index, id] of categories.entries()) {
     assert(/^[a-z][a-z0-9-]*$/.test(id), "Invalid score identifier.");
     let ready = false;

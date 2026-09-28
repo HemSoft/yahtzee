@@ -24,11 +24,13 @@ export function completeStartFlow(bundleId) {
     visible("Re-roll \\(1\\)"), command("waitForAnimationToEnd", { timeout: 5000 }), command("assertVisible", { id: "score-viewport" }), shot("ready-to-score")]);
 }
 export function completeEndFlow(bundleId, previewDiagnostics = false) {
-  return header(bundleId, [visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),
+  return header(bundleId, [command("launchApp", { stopApp: false, clearState: false, permissions: { all: "deny" } }),
+    visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),
     command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Review saved result" }), tap("Review saved result"),
     visible("Game Over!"), tap("Help"), visible("How to play"), shot("help"),
     ...(previewDiagnostics ? [scroll({ text: "Preview diagnostics" }), tap("Preview diagnostics"), scroll({ id: "diagnostics-preview" }),
-      command("assertVisible", { id: "diagnostics-preview" }), shot("diagnostics-preview"), tap("Cancel preview")] : []), tap("Done"),
+      command("assertVisible", { id: "diagnostics-preview" }), shot("diagnostics-preview"), scroll({ text: "Cancel preview" }), tap("Cancel preview"),
+      command("assertNotVisible", "Cancel preview"), command("assertNotVisible", { id: "diagnostics-preview" }), visible("Preview diagnostics"), shot("diagnostics-cancelled")] : []), tap("Done"),
     scroll({ text: "Play Again" }), tap("Play Again"), scroll({ text: "Start Game" }), shot("play-again")]);
 }
 export function emptyRelaunchFlow(bundleId) {

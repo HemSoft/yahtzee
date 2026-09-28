@@ -126,6 +126,33 @@ describe("durable native storage boundary, without a native-runtime claim", () =
     expect(await f.store.load()).toBe(true);
   });
 
+  test("appearance enums reject coerced values and preserve the damaged document", async () => {
+    for (const appearance of [["system"], [["dark"]], ["light"], null, {}, true, 0]) {
+      const raw = JSON.stringify({ ...emptySave(), preferences: { ...emptySave().preferences, appearance } });
+      expect(() => decodeSave(raw)).toThrow("Local save is damaged");
+      const f = fixture({ [SAVE_KEY]: raw });
+      expect(await f.store.load()).toBe(false);
+      expect(f.store.getSnapshot().data).toBeNull();
+      expect(f.values.get(SAVE_KEY)).toBe(raw);
+      expect(f.state.attempts).toHaveLength(0);
+    }
+  });
+
+  test("game-status enums reject coerced values before exposing an unusable active game", async () => {
+    const valid = fixture(); await valid.store.load(); await valid.store.start(options);
+    const saved = valid.store.getSnapshot().data!;
+    for (const status of [["playing"], [["playing"]], ["finished"], null, {}, true, 0]) {
+      const raw = JSON.stringify({ ...saved, active: { ...saved.active!, game: { ...saved.active!.game, status } } });
+      expect(() => decodeSave(raw)).toThrow("Local save is damaged");
+      const f = fixture({ [SAVE_KEY]: raw });
+      expect(await f.store.load()).toBe(false);
+      expect(f.store.getSnapshot().data).toBeNull();
+      expect(await f.store.move({ kind: "roll" })).toBe(false);
+      expect(f.values.get(SAVE_KEY)).toBe(raw);
+      expect(f.state.attempts).toHaveLength(0);
+    }
+  });
+
   test("a failed first save or explicit reset can be retried without losing unapproved data", async () => {
     const f = fixture({ "yahtzee-theme": "dark" });
     f.state.fail = "before";

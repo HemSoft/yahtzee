@@ -44,7 +44,7 @@ export function validPreferences(value: unknown): value is Preferences {
   const names = value.recentNames;
   return (value.name === "" || text(value.name, 32)) && Array.isArray(names) && names.length <= 5
     && names.every((name) => text(name, 32)) && unique(names)
-    && ["system", "light", "dark"].includes(String(value.appearance))
+    && typeof value.appearance === "string" && ["system", "light", "dark"].includes(value.appearance)
     && mode(value.diceCount) && integer(value.aiOpponents, 0, 3);
 }
 function scorecard(value: unknown, diceCount: number, complete: boolean): boolean {
@@ -69,7 +69,7 @@ function gameDice(value: Record<string, unknown>, diceCount: number): boolean {
 function wireGame(value: unknown): boolean {
   if (!object(value) || !mode(value.diceCount)) return false;
   const rounds = getCategories(value.diceCount).length;
-  if (!integer(value.currentRound, 1, rounds) || !["playing", "finished"].includes(String(value.status))) return false;
+  if (!integer(value.currentRound, 1, rounds) || typeof value.status !== "string" || !["playing", "finished"].includes(value.status)) return false;
   if (!gamePlayers(value.players, value.diceCount, value.currentRound, value.status === "finished")) return false;
   const players = value.players as unknown[];
   return text(value.id) && value.maxRolls === 3 && value.totalRounds === rounds && integer(value.rollsLeft, 0, value.status === "finished" ? 3 : 2)

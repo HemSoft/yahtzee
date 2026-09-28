@@ -41,10 +41,20 @@ test("generated flows use valid JSON-in-YAML commands and real semantic controls
   assert.equal(resumed[0].value.clearState, undefined);
   assert(resumed.some((step) => step.value?.text === "Resume Game"));
   const completed = parse(completeEndFlow("com.hemsoft.yahtzee"));
+  assert.deepEqual(completed[0], { command: "launchApp", value: { stopApp: false, clearState: false, permissions: { all: "deny" } } });
   assert(completed.some((step) => step.command === "assertVisible" && step.value === "Game Over!"));
   const preview = parse(completeEndFlow("com.hemsoft.yahtzee", true));
   assert(preview.some((step) => step.command === "assertVisible" && step.value?.id === "diagnostics-preview"));
   assert(preview.some((step) => step.value?.text === "Cancel preview"));
+});
+test("diagnostic cancellation scrolls to its action and requires the preview to disappear", () => {
+  const steps = parse(completeEndFlow("com.hemsoft.yahtzee", true));
+  const cancel = steps.findIndex((step) => step.command === "tapOn" && step.value?.text === "Cancel preview");
+  assert(cancel > 0);
+  assert.deepEqual(steps[cancel - 1], { command: "scrollUntilVisible", value: { element: { text: "Cancel preview" }, direction: "DOWN", timeout: 60000, visibilityPercentage: 100 } });
+  assert.deepEqual(steps[cancel + 1], { command: "assertNotVisible", value: "Cancel preview" });
+  assert.deepEqual(steps[cancel + 2], { command: "assertNotVisible", value: { id: "diagnostics-preview" } });
+  assert.deepEqual(steps[cancel + 3], { command: "assertVisible", value: "Preview diagnostics" });
 });
 test("native name entry submits the keyboard instead of issuing dismissal swipes", () => {
   const steps = parse(startFlow("com.hemsoft.yahtzee", scenarios[0]));

@@ -59,6 +59,7 @@ test("scoring repairs overshoot, taps once inside bounds, and requires applicati
       }
     }, capture: async () => {}, record: (item) => decisions.push(item),
   });
+  assert.deepEqual(calls[0], [{ launchApp: { stopApp: false, clearState: false, permissions: { all: "deny" } } }]);
   assert.equal(taps, 1); assert(calls.some((commands) => commands[0].swipe));
   assert.equal(decisions.at(-1).action, "acknowledged");
 });
