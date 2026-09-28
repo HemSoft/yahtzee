@@ -54,10 +54,14 @@ export function scorePosition(screen, id, categories) {
   if (target) direction = target.rect.top < viewport.top + 8 ? "up" : "down";
   else if (visible.length === 0 || index > Math.max(...visible)) direction = "down";
   else { assert(index < Math.min(...visible), "Missing target among visible score rows."); direction = "up"; }
+  return viewportSwipe(viewport, target?.rect ?? null, id, direction);
+}
+
+function viewportSwipe(viewport, target, id, direction) {
   const distance = Math.round(viewport.height * 0.18);
   const x = Math.round((viewport.left + viewport.right) / 2), middle = (viewport.top + viewport.bottom) / 2;
   const delta = direction === "down" ? distance : -distance;
-  return { action: "swipe", id, viewport, target: target?.rect ?? null, direction,
+  return { action: "swipe", id, viewport, target, direction,
     start: `${x},${Math.round(middle + delta / 2)}`, end: `${x},${Math.round(middle - delta / 2)}`, duration: 1000 };
 }
 
@@ -65,4 +69,35 @@ export function assertRecorded(screen, id) {
   const node = uniqueElement(screenElements(screen), `score-${id}`);
   assert.match(node.a11y ?? "", /points recorded/, `Native score ${id} was not acknowledged.`);
   assert.equal(node.enabled, false, "Recorded score must no longer accept input.");
+}
+
+export function diePosition(screen) {
+  const elements = screenElements(screen);
+  const root = uniqueElement(elements, "play-viewport");
+  const viewportNode = uniqueElement(elements, "dice-viewport", false) ?? uniqueElement(elements, "score-viewport");
+  const viewport = viewportNode.rect, target = uniqueElement(elements, "die-0");
+  assert(viewportNode.parents.includes(root) && within(viewport, root.rect, 0), "Dice viewport is outside the play area.");
+  assert(viewport.width >= 80 && viewport.height >= 100, "Dice viewport is too small to exercise.");
+  assert(target.parents.includes(viewportNode), "Die is outside its scroll view.");
+  assert(target.enabled === true || target.enabled === false, "Invalid die enabled state.");
+  if (!target.enabled) return { action: "wait", viewport, target: target.rect };
+  assert.equal(target.val, "checkbox, unchecked, Not held", "Refusing to toggle an already-held or unknown die state.");
+  assert(target.rect.width <= viewport.width && target.rect.height <= viewport.height - 16, "Die cannot fit in its viewport.");
+  if (within(target.rect, viewport)) return { action: "tap", viewport, target: target.rect };
+  return viewportSwipe(viewport, target.rect, "die-0", target.rect.top < viewport.top + 8 ? "up" : "down");
+}
+
+export function rollPosition(screen) {
+  const elements = screenElements(screen), root = uniqueElement(elements, "play-viewport"), target = uniqueElement(elements, "reroll-action");
+  assert(target.parents.includes(root) && within(target.rect, root.rect), "Reroll is outside the play area.");
+  assert.equal(target.a11y, "Re-roll (2)", "Unexpected reroll state before the single tap.");
+  assert(target.enabled === true || target.enabled === false, "Invalid reroll enabled state.");
+  return { action: target.enabled ? "tap" : "wait", viewport: root.rect, target: target.rect };
+}
+
+export function assertHeld(screen) {
+  const node = uniqueElement(screenElements(screen), "die-0");
+  // RN's iOS checkbox exposes its state in value; Maestro's generic checked
+  // boolean remains false. Both forms were inspected in actual native evidence.
+  assert.equal(node.val, "checkbox, checked, Held", "Native die hold was not acknowledged.");
 }

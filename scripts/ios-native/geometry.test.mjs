@@ -16,6 +16,16 @@ test("the actual scoring caller uses the viewport-aware driver in both layouts",
   assert.match(runner, /await nativeScoring\(/);
   assert.doesNotMatch(runner, /completeFlow\(/);
 });
+test("dice and reroll interactions expose their own bounds and use the checked driver", () => {
+  const play = readFileSync(new URL("../../apps/mobile/src/screens/Play.tsx", import.meta.url), "utf8");
+  assert.match(play, /testID="dice-viewport"/);
+  assert.equal((play.match(/testID="play-viewport"/g) ?? []).length, 2);
+  assert.match(play, /testID="reroll-action"/);
+  const runner = readFileSync(new URL("./run.mjs", import.meta.url), "utf8");
+  assert.match(runner, /await nativeDice\(/);
+  const flows = readFileSync(new URL("./flows.mjs", import.meta.url), "utf8");
+  assert.doesNotMatch(flows, /tapOn.*id: "die-0"/);
+});
 test("captured footer and toolbar overshoots do not count as reachable scores", () => {
   // Captured row bounds from 027459 and 22d76f2; viewport is a representative phone fixture.
   const footer = scorePosition(screen([row("ones", 750)]), "ones", ["ones"]);

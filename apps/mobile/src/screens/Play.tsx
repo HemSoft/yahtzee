@@ -31,19 +31,19 @@ export function Play({ onPause }: { onPause: () => void }) {
   const expanded = width >= 820 && fontScale <= 1.4;
   const locked = view.busy || view.canRetry;
   const roll = <View style={[styles.roll, { backgroundColor: colors.page }]}>
-    <Action label={`Re-roll (${game.rollsLeft})`} primary disabled={locked || game.rollsLeft === 0} onPress={() => { void store.move({ kind: "roll" }); }} />
+    <Action testID="reroll-action" label={`Re-roll (${game.rollsLeft})`} primary disabled={locked || game.rollsLeft === 0} onPress={() => { void store.move({ kind: "roll" }); }} />
   </View>;
   const controls = <>
     <Action label="Pause Game" onPress={onPause} disabled={view.busy} />
     <Deck />
   </>;
-  if (expanded) return <View style={styles.expanded}>
+  if (expanded) return <View testID="play-viewport" style={styles.expanded}>
     <View style={styles.left}>
-      <ScrollView contentContainerStyle={styles.content}>{controls}</ScrollView>{roll}
+      <ScrollView testID="dice-viewport" contentContainerStyle={styles.content}>{controls}</ScrollView>{roll}
     </View>
     <ScrollView testID="score-viewport" style={styles.card} contentContainerStyle={styles.content}><NativeScorecard /></ScrollView>
   </View>;
-  return <View style={styles.screen}>
+  return <View testID="play-viewport" style={styles.screen}>
     <ScrollView testID="score-viewport" contentContainerStyle={styles.content}>{controls}<NativeScorecard /></ScrollView>
     {roll}
   </View>;

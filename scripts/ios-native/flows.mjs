@@ -12,8 +12,7 @@ export function startFlow(bundleId, scenario) {
     scroll({ text: "Your name" }), tap("Your name"), command("eraseText"), command("inputText", "Local tester"), command("pressKey", "enter"),
     scroll({ text: "AI opponents" }), tap("AI opponents"), tap(scenario.ai ? "3 AI" : "Solo"),
     scroll({ text: "Dice count" }), tap("Dice count"), tap(`${scenario.dice} dice`),
-    scroll({ text: "Start Game" }), tap("Start Game"),
-    scroll({ id: "die-0" }), command("tapOn", { id: "die-0" }), tap("Re-roll \\(2\\)"), visible("Re-roll \\(1\\)"), shot("held-and-rerolled")]);
+    scroll({ text: "Start Game" }), tap("Start Game"), visible("Re-roll \\(2\\)"), shot("started-game")]);
 }
 export function resumeFlow(bundleId) {
   return header(bundleId, [command("launchApp", { permissions: { all: "deny" } }),

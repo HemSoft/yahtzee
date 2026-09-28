@@ -8,6 +8,7 @@ import { getScorecardCategories } from "../../packages/game-engine/src/presentat
 import { decodeSave } from "../../apps/mobile/src/local/save.ts";
 import { startFlow, resumeFlow, completeStartFlow, completeEndFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
 import { nativeScoring } from "./scoring.mjs";
+import { nativeDice } from "./dice.mjs";
 import { buildSimulator } from "./build.mjs";
 import { loadBuiltSimulator } from "./artifact.mjs";
 import { retainDriverLogs } from "./driverLogs.mjs";
@@ -130,6 +131,10 @@ async function exercise(app, bundleId) {
     receipt.phase = `start-${scenario.id}`; checkpoint();
     if (index === 0) recording = spawn("xcrun", ["simctl", "io", device, "recordVideo", "--codec=h264", join(directory, "native-resume.mp4")], { env, stdio: "ignore" });
     flow(device, directory, "start", startFlow(bundleId, scenario));
+    receipt.phase = `hold-${scenario.id}`; checkpoint();
+    await nativeDice({ device, bundleId, directory, env,
+      capture: (name) => sim("io", device, "screenshot", join(directory, `${name}.png`)),
+      readSave: (stage) => saved(device, bundleId, directory, stage).data });
     const before = saved(device, bundleId, directory, "before-relaunch");
     assert.equal(before.data.active.game.diceCount, scenario.dice); assert.equal(before.data.active.game.players.length, scenario.ai + 1);
     assert.deepEqual(before.data.active.game.held, [0]); assert.equal(before.data.active.game.rollsLeft, 1);

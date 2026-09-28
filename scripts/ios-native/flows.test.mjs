@@ -34,8 +34,8 @@ test("generated flows use valid JSON-in-YAML commands and real semantic controls
     const steps = parse(startFlow("com.hemsoft.yahtzee", scenario));
     assert.deepEqual(steps[0].value, { clearState: true, permissions: { all: "deny" } });
     assert(steps.some((step) => step.command === "tapOn" && step.value?.text === `${scenario.dice} dice`));
-    assert(steps.some((step) => step.command === "tapOn" && step.value?.id === "die-0"));
-    assert(steps.some((step) => step.command === "assertVisible" && new RegExp(step.value).test("Re-roll (1)")));
+    assert(!steps.some((step) => step.command === "tapOn" && step.value?.id === "die-0"));
+    assert(steps.some((step) => step.command === "assertVisible" && new RegExp(step.value).test("Re-roll (2)")));
   }
   const resumed = parse(resumeFlow("com.hemsoft.yahtzee"));
   assert.equal(resumed[0].value.clearState, undefined);
