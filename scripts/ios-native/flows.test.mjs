@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios } from "./flows.mjs";
+import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
 
 function parse(flow) {
   const [header, body] = flow.trim().split("\n---\n");
@@ -18,30 +18,51 @@ test("native matrix covers every mode with solo and three AI, both devices/theme
   assert.deepEqual(new Set(scenarios.map((item) => item.appearance)), new Set(["light", "dark"]));
   assert(scenarios.some((item) => item.device.startsWith("iPad") && item.orientation === "LANDSCAPE_LEFT"));
 });
+test("bounded native groups cover every scenario exactly once and never mix device families", () => {
+  const grouped = GROUPS.flatMap(scenariosForGroup);
+  assert.deepEqual(grouped.map((item) => item.id).sort(), scenarios.map((item) => item.id).sort());
+  assert.equal(new Set(grouped.map((item) => item.id)).size, scenarios.length);
+  for (const group of GROUPS) {
+    const items = scenariosForGroup(group);
+    assert.equal(new Set(items.map((item) => item.device)).size, 1);
+    assert.equal(items.filter((item) => !item.largeText).length, 2);
+  }
+  assert.throws(() => scenariosForGroup("unknown"));
+});
 test("generated flows use valid JSON-in-YAML commands and real semantic controls", () => {
   for (const scenario of scenarios) {
     const steps = parse(startFlow("com.hemsoft.yahtzee", scenario));
     assert.deepEqual(steps[0].value, { clearState: true, permissions: { all: "deny" } });
-    assert(steps.some((step) => step.command === "tapOn" && step.value === `${scenario.dice} dice`));
+    assert(steps.some((step) => step.command === "tapOn" && step.value?.text === `${scenario.dice} dice`));
     assert(steps.some((step) => step.command === "tapOn" && step.value?.id === "die-0"));
     assert(steps.some((step) => step.command === "assertVisible" && new RegExp(step.value).test("Re-roll (1)")));
   }
   const resumed = parse(resumeFlow("com.hemsoft.yahtzee"));
   assert.equal(resumed[0].value.clearState, undefined);
-  assert(resumed.some((step) => step.value === "Resume Game"));
+  assert(resumed.some((step) => step.value?.text === "Resume Game"));
   const completed = parse(completeFlow("com.hemsoft.yahtzee", ["ones", "chance"]));
   assert.equal(completed.filter((step) => step.command === "tapOn" && step.value?.id?.startsWith("score-")).length, 2);
   assert(completed.some((step) => step.command === "assertVisible" && step.value === "Game Over!"));
   const preview = parse(completeFlow("com.hemsoft.yahtzee", ["ones"], true));
   assert(preview.some((step) => step.command === "assertVisible" && step.value?.id === "diagnostics-preview"));
-  assert(preview.some((step) => step.value === "Cancel preview"));
+  assert(preview.some((step) => step.value?.text === "Cancel preview"));
+});
+test("scoring waits for an enabled centered target and acknowledged record before moving on", () => {
+  const steps = parse(completeFlow("com.hemsoft.yahtzee", ["full-house", "small-straight", "chance"]));
+  for (const id of ["full-house", "small-straight"]) {
+    const index = steps.findIndex((step) => step.command === "tapOn" && step.value?.id === `score-${id}`);
+    assert.equal(steps[index].value.enabled, true);
+    assert.equal(steps[index - 1].value.centerElement, true);
+    assert.equal(steps[index + 1].command, "extendedWaitUntil");
+    assert.deepEqual(steps[index + 1].value.visible, { id: `score-${id}`, text: ".* points recorded.*" });
+  }
 });
 test("corruption flow never clears state and reset includes cancellation first", () => {
   for (const reset of [false, true]) {
     const steps = parse(corruptFlow("com.hemsoft.yahtzee", reset));
     assert.equal(steps[0].value.clearState, undefined);
     assert(steps.some((step) => step.value === "Your saved data has not been reset."));
-    assert.equal(steps.some((step) => step.value === "Cancel"), reset);
-    if (reset) assert(steps.findIndex((step) => step.value === "Cancel") < steps.findIndex((step) => step.value?.index === 1));
+    assert.equal(steps.some((step) => step.value?.text === "Cancel"), reset);
+    if (reset) assert(steps.findIndex((step) => step.value?.text === "Cancel") < steps.findIndex((step) => step.value?.index === 1));
   }
 });

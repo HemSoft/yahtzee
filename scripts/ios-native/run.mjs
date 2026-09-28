@@ -1,18 +1,26 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { tmpdir } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
 import { getScorecardCategories } from "../../packages/game-engine/src/presentation.ts";
 import { decodeSave } from "../../apps/mobile/src/local/save.ts";
-import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios } from "./flows.mjs";
-import { inspectNativePrivacy } from "./privacy.mjs";
+import { startFlow, resumeFlow, completeFlow, corruptFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
+import { buildSimulator } from "./build.mjs";
+import { loadBuiltSimulator } from "./artifact.mjs";
 
 assert.equal(process.platform, "darwin", "Native qualification requires macOS, Xcode and iOS simulators.");
 assert(["arm64", "x64"].includes(process.arch), "Unsupported simulator host architecture.");
 const architecture = process.arch === "arm64" ? "arm64" : "x86_64";
+const args = process.argv.slice(2);
+assert(args.every((arg) => ["--build-only", "--refresh-pods", ...GROUPS.map((group) => `--test-group=${group}`)].includes(arg)), "Unknown native qualification argument.");
+const groupArgs = args.filter((arg) => arg.startsWith("--test-group=")); assert(groupArgs.length <= 1);
+const group = groupArgs[0]?.slice("--test-group=".length);
+const refreshPodLock = args.includes("--refresh-pods");
+const buildOnly = args.includes("--build-only") || refreshPodLock;
+assert(!(group && buildOnly), "Build and test-only modes cannot be combined.");
+const selectedScenarios = group ? scenariosForGroup(group) : scenarios;
 const root = resolve(import.meta.dirname, "../..");
 const output = join(root, "reports/native");
 assert(!existsSync(output), "Use a fresh checkout. Existing native evidence was not overwritten.");
@@ -21,34 +29,34 @@ const env = { ...process.env, DEVELOPER_DIR: "/Applications/Xcode_26.6.app/Conte
   MAESTRO_CLI_NO_ANALYTICS: "true", MAESTRO_DISABLE_UPDATE_CHECK: "true", MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: "true", MAESTRO_DRIVER_STARTUP_TIMEOUT: "120000" };
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const json = (path, value) => writeFileSync(path, JSON.stringify(value, null, 2) + "\n");
-function run(executable, args, { cwd = root, capture = false, timeout = 1800000, log = "commands.log" } = {}) {
-  console.log(`$ ${executable} ${args.join(" ")}`);
+function run(executable, commandArgs, { cwd = root, capture = false, timeout = 1800000, log = "commands.log" } = {}) {
+  console.log(`$ ${executable} ${commandArgs.join(" ")}`);
   const fd = openSync(join(output, log), "a");
   let result;
-  try { result = spawnSync(executable, args, { cwd, env, encoding: "utf8", timeout, maxBuffer: 16 * 1024 * 1024, stdio: ["ignore", capture ? "pipe" : fd, fd] }); }
+  try { result = spawnSync(executable, commandArgs, { cwd, env, encoding: "utf8", timeout, killSignal: "SIGKILL", maxBuffer: 16 * 1024 * 1024, stdio: ["ignore", capture ? "pipe" : fd, fd] }); }
   finally { closeSync(fd); }
   if (capture && result.stdout) appendFileSync(join(output, log), result.stdout);
   if (result.error) throw result.error;
   assert.equal(result.status, 0, `${executable} failed with ${result.status}; see ${log}`);
   return result.stdout?.trim() ?? "";
 }
-const sim = (...args) => run("xcrun", ["simctl", ...args], { capture: true, timeout: args[0] === "bootstatus" ? 600000 : 180000 });
-const plist = (file, key) => run("/usr/libexec/PlistBuddy", ["-c", `Print :${key}`, file], { capture: true });
-const receipt = { schemaVersion: 1, kind: "unsigned-ios-simulator", status: "running", source: run("git", ["rev-parse", "HEAD"], { capture: true }),
+const sim = (...commandArgs) => run("xcrun", ["simctl", ...commandArgs], { capture: true, timeout: commandArgs[0] === "bootstatus" ? 600000 : 180000 });
+const receipt = { schemaVersion: 1, kind: buildOnly ? "unsigned-ios-simulator-build" : "unsigned-ios-simulator-tests", status: "running", source: run("git", ["rev-parse", "HEAD"], { capture: true }),
   startedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null,
-  runnerImage: process.env.ImageVersion ?? null, architecture, scenarios: [], limits: ["Not a signed device archive", "Not TestFlight or physical-device evidence", "No airplane-mode or VoiceOver acceptance claim", "Public identity and release approvals remain unset"] };
-json(join(output, "manifest.json"), receipt);
-const appRoot = join(root, "apps/mobile");
+  runnerImage: process.env.ImageVersion ?? null, architecture, group: group ?? null, scenarios: [],
+  limits: ["Not a signed device archive", "Not TestFlight or physical-device evidence", "No airplane-mode or VoiceOver acceptance claim", "Public identity and release approvals remain unset", "Hidden Maestro debug logs are not uploaded"] };
+const checkpoint = () => json(join(output, "manifest.json"), receipt);
+checkpoint();
 const ownedDevices = [];
 let recording = null;
 async function stopRecording() {
   if (!recording) return;
   const child = recording; recording = null;
-  if (child.exitCode !== null) return;
+  if (child.exitCode !== null) { assert.equal(child.exitCode, 0, "Simulator recording exited with an error."); return; }
   const stopped = new Promise((done) => child.once("close", done));
   const controller = new AbortController();
   child.kill("SIGINT");
-  try { await Promise.race([stopped, delay(15000, undefined, { signal: controller.signal }).then(() => { child.kill("SIGTERM"); throw new Error("Simulator recording did not stop."); })]); }
+  try { await Promise.race([stopped, delay(15000, undefined, { signal: controller.signal }).then(() => { child.kill("SIGKILL"); throw new Error("Simulator recording did not stop."); })]); }
   finally { controller.abort(); }
 }
 function flow(device, directory, name, content) {
@@ -68,97 +76,15 @@ function saved(device, bundleId, directory, stage) {
 }
 function artifactFiles(directory, prefix = "") {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.name.startsWith(".")) return [];
     const relative = prefix + entry.name; const path = join(directory, entry.name);
     if (entry.isDirectory()) return artifactFiles(path, relative + "/");
     if (!entry.isFile() || relative === "manifest.json") return [];
     return [{ path: relative, bytes: statSync(path).size, sha256: hash(readFileSync(path)) }];
   });
 }
-try {
-  assert.equal(run("git", ["status", "--porcelain"], { capture: true }), "", "Use a clean source checkout.");
-  assert(!existsSync(join(appRoot, "ios")), "Use a fresh checkout. Existing native project files were not removed.");
-  receipt.toolchain = {
-    xcode: run("xcodebuild", ["-version"], { capture: true }), sdk: run("xcrun", ["--sdk", "iphonesimulator", "--show-sdk-version"], { capture: true }),
-    node: run("node", ["--version"], { capture: true }), bun: run("bun", ["--version"], { capture: true }),
-    cocoapods: run("pod", ["--version"], { capture: true }), ruby: run("ruby", ["--version"], { capture: true }), maestro: run("maestro", ["--version"], { capture: true }),
-  };
-  assert.match(receipt.toolchain.xcode, /^Xcode 26\.6\nBuild version 17F113$/);
-  assert.equal(receipt.toolchain.sdk, "26.5"); assert.equal(receipt.toolchain.node, "v24.12.0");
-  assert.equal(receipt.toolchain.bun, "1.4.2"); assert.equal(receipt.toolchain.cocoapods, "1.17.0");
-  assert.match(receipt.toolchain.maestro, /2\.10\.0/);
-  receipt.bunLockSha256 = hash(readFileSync(join(root, "bun.lock")));
-  run("node", ["node_modules/expo/bin/cli", "prebuild", "--platform", "ios", "--no-install"], { cwd: appRoot, log: "prebuild.log" });
-  const ios = join(appRoot, "ios"); const sourceLock = join(appRoot, "native/Podfile.lock");
-  receipt.bootstrapPodLock = !existsSync(sourceLock);
-  const refreshPodLock = process.argv.includes("--refresh-pods");
-  receipt.podInstallMode = refreshPodLock ? "refresh-only" : receipt.bootstrapPodLock ? "bootstrap" : "deployment";
-  if (!receipt.bootstrapPodLock) copyFileSync(sourceLock, join(ios, "Podfile.lock"));
-  run("pod", ["install", ...(receipt.bootstrapPodLock || refreshPodLock ? [] : ["--deployment"])], { cwd: ios, log: "pods.log" });
-  copyFileSync(join(ios, "Podfile.lock"), join(output, "Podfile.lock"));
-  receipt.podLockNeedsReview = receipt.bootstrapPodLock || !readFileSync(sourceLock).equals(readFileSync(join(ios, "Podfile.lock")));
-  copyFileSync(join(ios, "Podfile.properties.json"), join(output, "Podfile.properties.json"));
-  assert(!refreshPodLock && !receipt.podLockNeedsReview, "Dependency-only run: review reports/native/Podfile.lock, commit changes to apps/mobile/native, then run normal qualification.");
-  const workspaces = readdirSync(ios).filter((name) => name.endsWith(".xcworkspace")); assert.equal(workspaces.length, 1);
-  const scheme = workspaces[0].slice(0, -".xcworkspace".length);
-  const derived = join(tmpdir(), `dice-derived-${process.pid}`);
-  run("xcodebuild", ["-workspace", join(ios, workspaces[0]), "-scheme", scheme, "-configuration", "Release", "-sdk", "iphonesimulator",
-    "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", derived, `ARCHS=${architecture}`, "ONLY_ACTIVE_ARCH=YES", "CODE_SIGNING_ALLOWED=NO", "build"], { log: "build.log", timeout: 2400000 });
-  const products = join(derived, "Build/Products/Release-iphonesimulator");
-  const apps = readdirSync(products).filter((name) => name.endsWith(".app")); assert.equal(apps.length, 1);
-  const app = join(products, apps[0]); const info = join(app, "Info.plist");
-  const config = JSON.parse(readFileSync(join(appRoot, "app.json"), "utf8")).expo;
-  const bundleId = plist(info, "CFBundleIdentifier"); assert.equal(bundleId, config.ios.bundleIdentifier);
-  assert.equal(plist(info, "CFBundleShortVersionString"), config.version); assert.equal(plist(info, "CFBundleVersion"), config.ios.buildNumber);
-  assert.equal(plist(info, "MinimumOSVersion"), "17.0"); assert(existsSync(join(app, "main.jsbundle")), "Release app must contain its own JS bundle.");
-  receipt.app = { bundleId, version: config.version, build: config.ios.buildNumber, minimumOS: "17.0", jsBundleSha256: hash(readFileSync(join(app, "main.jsbundle"))) };
-  run("tar", ["-czf", join(output, "unsigned-simulator.app.tar.gz"), "-C", products, apps[0]], { log: "package.log" });
-  copyFileSync(info, join(output, "built-Info.plist"));
-  receipt.privacy = inspectNativePrivacy(app, appRoot, output);
-  assert.deepEqual(receipt.privacy.errors, [], "Native SDK privacy resources or aggregate declarations are incomplete.");
-  json(join(output, "manifest.json"), receipt);
-  assert.equal(run("git", ["status", "--porcelain"], { capture: true }), "", "Prebuild changed tracked source. Review it before qualification.");
-  const runtime = "com.apple.CoreSimulator.SimRuntime.iOS-26-5";
-  const types = JSON.parse(sim("list", "devicetypes", "--json")).devicetypes;
-  const devices = new Map();
-  for (const name of new Set(scenarios.map((scenario) => scenario.device))) {
-    const type = types.find((item) => item.name === name); assert(type, `Missing simulator type ${name}`);
-    const device = sim("create", `Dice-${process.pid}-${name}`, type.identifier, runtime); ownedDevices.push(device); devices.set(name, device);
-  }
-  let booted = null;
-  for (const [index, scenario] of scenarios.entries()) {
-    const device = devices.get(scenario.device);
-    if (booted !== device) {
-      if (booted) sim("shutdown", booted);
-      sim("boot", device); sim("bootstatus", device, "-b"); booted = device;
-      sim("spawn", device, "defaults", "write", "NSGlobalDomain", "AppleLanguages", "-array", "en");
-      sim("spawn", device, "defaults", "write", "NSGlobalDomain", "AppleLocale", "-string", "en_US");
-      sim("install", device, app);
-    }
-    sim("ui", device, "appearance", scenario.appearance);
-    sim("ui", device, "content_size", scenario.largeText ? "accessibility-extra-extra-extra-large" : "large");
-    sim("status_bar", device, "override", "--time", "9:41", "--batteryState", "charged", "--batteryLevel", "100");
-    const directory = join(output, scenario.id); mkdirSync(directory, { recursive: true });
-    const result = { ...scenario, udid: device, runtime, locale: "en-US", status: "running" }; receipt.scenarios.push(result);
-    if (index === 0) recording = spawn("xcrun", ["simctl", "io", device, "recordVideo", "--codec=h264", join(directory, "native-resume.mp4")], { env, stdio: "ignore" });
-    flow(device, directory, "start", startFlow(bundleId, scenario));
-    const before = saved(device, bundleId, directory, "before-relaunch");
-    assert.equal(before.data.active.game.diceCount, scenario.dice); assert.equal(before.data.active.game.players.length, scenario.ai + 1);
-    assert.deepEqual(before.data.active.game.held, [0]); assert.equal(before.data.active.game.rollsLeft, 1);
-    sim("terminate", device, bundleId);
-    flow(device, directory, "resume", resumeFlow(bundleId));
-    const after = saved(device, bundleId, directory, "after-relaunch"); assert.equal(after.bytes, before.bytes);
-    await stopRecording();
-    if (!scenario.largeText) {
-      flow(device, directory, "complete", completeFlow(bundleId, getScorecardCategories(scenario.dice).map((category) => category.id), index === 0 || index === 4));
-      const completed = saved(device, bundleId, directory, "completed");
-      assert.equal(completed.data.active, null); assert.equal(completed.data.history.entries.length, 1);
-      assert.equal(completed.data.highScores.entries.length, scenario.ai + 1);
-    }
-    result.status = "passed"; result.resumeDocumentSha256 = hash(before.bytes);
-    json(join(output, "manifest.json"), receipt);
-  }
-  // Exercise malformed document preservation through the actual native adapter and reset alert.
-  const device = booted; const directory = join(output, "corrupt-save"); mkdirSync(directory);
+function corruption(device, bundleId) {
+  const directory = join(output, "corrupt-save"); mkdirSync(directory);
   const current = saved(device, bundleId, directory, "before-corruption"); sim("terminate", device, bundleId);
   run("sqlite3", [current.database, "UPDATE local_save SET value = 'damaged-save'"], { capture: true });
   flow(device, directory, "corrupt", corruptFlow(bundleId));
@@ -174,9 +100,78 @@ try {
   flow(device, directory, "reset-database", corruptFlow(bundleId, true));
   assert.equal(saved(device, bundleId, directory, "after-database-reset").data.history.entries.length, 0);
   receipt.nativeCorruptionAndReset = "passed";
-  receipt.status = "passed";
+}
+async function exercise(app, bundleId) {
+  const runtime = "com.apple.CoreSimulator.SimRuntime.iOS-26-5";
+  const types = JSON.parse(sim("list", "devicetypes", "--json")).devicetypes;
+  const devices = new Map();
+  for (const name of new Set(selectedScenarios.map((scenario) => scenario.device))) {
+    const type = types.find((item) => item.name === name); assert(type, `Missing simulator type ${name}`);
+    const device = sim("create", `Dice-${process.pid}-${name}`, type.identifier, runtime); ownedDevices.push(device); devices.set(name, device);
+  }
+  let booted = null;
+  for (const [index, scenario] of selectedScenarios.entries()) {
+    const device = devices.get(scenario.device);
+    receipt.phase = `prepare-${scenario.id}`; checkpoint();
+    if (booted !== device) {
+      if (booted) sim("shutdown", booted);
+      sim("boot", device); sim("bootstatus", device, "-b"); booted = device;
+      sim("spawn", device, "defaults", "write", "NSGlobalDomain", "AppleLanguages", "-array", "en");
+      sim("spawn", device, "defaults", "write", "NSGlobalDomain", "AppleLocale", "-string", "en_US");
+      sim("install", device, app);
+    }
+    sim("ui", device, "appearance", scenario.appearance);
+    sim("ui", device, "content_size", scenario.largeText ? "accessibility-extra-extra-extra-large" : "large");
+    sim("status_bar", device, "override", "--time", "9:41", "--batteryState", "charged", "--batteryLevel", "100");
+    const directory = join(output, scenario.id); mkdirSync(directory, { recursive: true });
+    const result = { ...scenario, udid: device, runtime, locale: "en-US", status: "running" }; receipt.scenarios.push(result);
+    receipt.phase = `start-${scenario.id}`; checkpoint();
+    if (index === 0) recording = spawn("xcrun", ["simctl", "io", device, "recordVideo", "--codec=h264", join(directory, "native-resume.mp4")], { env, stdio: "ignore" });
+    flow(device, directory, "start", startFlow(bundleId, scenario));
+    const before = saved(device, bundleId, directory, "before-relaunch");
+    assert.equal(before.data.active.game.diceCount, scenario.dice); assert.equal(before.data.active.game.players.length, scenario.ai + 1);
+    assert.deepEqual(before.data.active.game.held, [0]); assert.equal(before.data.active.game.rollsLeft, 1);
+    sim("terminate", device, bundleId);
+    receipt.phase = `resume-${scenario.id}`; checkpoint();
+    flow(device, directory, "resume", resumeFlow(bundleId));
+    const after = saved(device, bundleId, directory, "after-relaunch"); assert.equal(after.bytes, before.bytes);
+    await stopRecording();
+    if (!scenario.largeText) {
+      receipt.phase = `complete-${scenario.id}`; checkpoint();
+      const preview = ["phone-5-solo-light", "tablet-8-solo-light"].includes(scenario.id);
+      flow(device, directory, "complete", completeFlow(bundleId, getScorecardCategories(scenario.dice).map((category) => category.id), preview));
+      const completed = saved(device, bundleId, directory, "completed");
+      assert.equal(completed.data.active, null); assert.equal(completed.data.history.entries.length, 1);
+      assert.equal(completed.data.highScores.entries.length, scenario.ai + 1);
+    }
+    result.status = "passed"; result.resumeDocumentSha256 = hash(before.bytes); checkpoint();
+  }
+  if (!group || group === "tablet-10") { receipt.phase = "corruption-and-reset"; checkpoint(); corruption(booted, bundleId); }
+  assert.equal(receipt.scenarios.length, selectedScenarios.length);
+  assert(receipt.scenarios.every((scenario) => scenario.status === "passed"));
+}
+try {
+  assert.equal(run("git", ["status", "--porcelain"], { capture: true }), "", "Use a clean source checkout.");
+  receipt.toolchain = {
+    xcode: run("xcodebuild", ["-version"], { capture: true }), sdk: run("xcrun", ["--sdk", "iphonesimulator", "--show-sdk-version"], { capture: true }),
+    node: run("node", ["--version"], { capture: true }), bun: run("bun", ["--version"], { capture: true }),
+    cocoapods: run("pod", ["--version"], { capture: true }), ruby: run("ruby", ["--version"], { capture: true }),
+    maestro: buildOnly ? null : run("maestro", ["--version"], { capture: true }),
+  };
+  assert.match(receipt.toolchain.xcode, /^Xcode 26\.6\nBuild version 17F113$/);
+  assert.equal(receipt.toolchain.sdk, "26.5"); assert.equal(receipt.toolchain.node, "v24.12.0");
+  assert.equal(receipt.toolchain.bun, "1.4.2"); assert.equal(receipt.toolchain.cocoapods, "1.17.0");
+  if (!buildOnly) assert.match(receipt.toolchain.maestro, /2\.10\.0/);
+  receipt.bunLockSha256 = hash(readFileSync(join(root, "bun.lock")));
+  receipt.phase = group ? "verify-built-app" : "build"; checkpoint();
+  const context = { root, output, run, hash, receipt, architecture, refreshPodLock };
+  const { app, bundleId } = group ? loadBuiltSimulator(context) : buildSimulator(context);
+  checkpoint();
+  if (!buildOnly) await exercise(app, bundleId);
+  receipt.phase = "complete"; receipt.status = "passed";
 } catch (error) {
   receipt.status = "failed"; receipt.error = error instanceof Error ? error.message : String(error); process.exitCode = 1;
+  for (const scenario of receipt.scenarios) if (scenario.status === "running") scenario.status = "failed";
   console.error(receipt.error);
 } finally {
   try { await stopRecording(); } catch (error) { receipt.recordingError = String(error); receipt.status = "failed"; process.exitCode = 1; }
@@ -186,5 +181,5 @@ try {
     const removed = spawnSync("xcrun", ["simctl", "delete", device], { env, stdio: "ignore", timeout: 60000, killSignal: "SIGKILL" });
     if (removed.status !== 0) { (receipt.cleanupErrors ??= []).push(device); receipt.status = "failed"; process.exitCode = 1; }
   }
-  receipt.finishedAt = new Date().toISOString(); receipt.artifacts = artifactFiles(output); json(join(output, "manifest.json"), receipt);
+  receipt.finishedAt = new Date().toISOString(); receipt.artifacts = artifactFiles(output); checkpoint();
 }

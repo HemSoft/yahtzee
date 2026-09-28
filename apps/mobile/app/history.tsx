@@ -5,5 +5,5 @@ import { History } from "../src/screens/History";
 
 export default function HistoryRoute() {
   const { colors } = useLocalGame();
-  return <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1, backgroundColor: colors.page }}><History /></SafeAreaView>;
+  return <SafeAreaView edges={["top", "bottom", "left", "right"]} style={{ flex: 1, backgroundColor: colors.page }}><History /></SafeAreaView>;
 }

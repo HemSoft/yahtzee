@@ -1,6 +1,6 @@
 # Unsigned iOS simulator qualification
 
-The native job in [Application quality](../.github/workflows/quality.yml) uses a standard public GitHub-hosted macOS runner. It does not use Apple credentials, a paid device cloud, signing, upload, TestFlight or App Store submission. Its result is a simulator app, not an installable iPhone archive.
+The native jobs in [Application quality](../.github/workflows/quality.yml) use standard public GitHub-hosted macOS runners. It does not use Apple credentials, a paid device cloud, signing, upload, TestFlight or App Store submission. Its result is a simulator app, not an installable iPhone archive.
 
 ## Inputs
 
@@ -33,9 +33,13 @@ The runner inspects the actual app's privacy manifests, purpose strings, update 
 
 ## Native interaction matrix
 
-The job creates and later deletes only its own simulators. First boot has a bounded ten-minute allowance, and captured command output is retained even after timeout. It runs all four modes with solo and three AI opponents, plus a largest-Dynamic-Type start/resume case on both device families. Normal cases cover light/dark and portrait/landscape, complete scoring, native History/Help navigation, cold relaunch and Play Again.
+CI compiles once with `--build-only`, then downloads that same run's artifact into four test jobs: `phone-5`, `phone-6`, `tablet-8` and `tablet-10`. Each runs `--test-group=<group>` after verifying the build's source, workflow run, architecture, Bun lock, app identity and every retained file hash. Archive extraction rejects traversal, links and special files. A stale or refresh-only build cannot feed qualification. Every group remains required by the quality gate.
 
-Each start holds a die and rerolls. The runner reads the real app's SQLite document, terminates the process, resumes through the UI and compares the entire document byte-for-byte. Completion must produce one history record. Further cases deliberately damage the saved JSON and then the database file, verify preservation after failed loading, cancel reset, and complete an explicit reset through the native alert.
+Each group completes solo and three-AI games for its mode. Phone 6 and tablet 10 also cover largest text; tablet 10 covers corrupt-document/database recovery. Group tests prove the ten scenarios are assigned exactly once. This avoids repeating compilation and prevents the measured serial workload from exceeding a one-hour job.
+
+Each job creates and later deletes only its own simulators. First boot has a bounded ten-minute allowance, and captured command output is retained even after timeout. It runs all four modes with solo and three AI opponents, plus a largest-Dynamic-Type start/resume case on both device families. Normal cases cover light/dark and portrait/landscape, complete scoring, native History/Help navigation, cold relaunch and Play Again.
+
+Each start holds a die and rerolls. The runner reads the real app's SQLite document, terminates the process, resumes through the UI and compares the entire document byte-for-byte. Scoring waits for enabled controls and an acknowledged recorded score before the next category. Completion must produce one history record. Further cases deliberately damage the saved JSON and then the database file, verify preservation after failed loading, cancel reset, and complete an explicit reset through the native alert.
 
 Maestro uses accessibility text and test IDs, not screenshot-coordinate guesses. Screenshots cover setup, held/rerolled play, resume, results, history, help, diagnostic preview, Play Again and recovery. A simulator recording covers the first start/resume sequence. The status bar is standardized to 9:41 for captures. Test names are synthetic.
 
@@ -45,6 +49,6 @@ This is not airplane-mode, hardware durability, VoiceOver, Switch Control, iPad 
 
 `reports/native/manifest.json` records the exact checked-out source commit, toolchain, runner, device/runtime, scenarios, timestamps and SHA-256 hashes of retained artifacts. Pull requests check out their exact head for native captures. Logs and partial receipts survive failures; the required quality gate includes the native job. A screenshot file's existence alone is not visual review or release approval.
 
-The artifact includes the unsigned simulator app, native dependency lock, compiled Info.plist, privacy inspection, screenshots, recording, test reports and synthetic database snapshots. DerivedData and installed Pods are not uploaded. Retention is one day to keep storage bounded. Download current-head evidence before it expires, inspect it, and attach the selected images and recording to the PR's Validation section.
+The build artifact includes the unsigned simulator app, native dependency lock, compiled Info.plist and privacy inspection. Each test-group artifact includes screenshots, a recording, test reports, synthetic database snapshots and the verified build reference. Hidden Maestro debug logs are excluded by the uploader and by the published hash inventory. DerivedData and installed Pods are not uploaded. Retention is one day to keep storage bounded. Download current-head evidence before it expires, inspect it, and attach the selected images and recording to the PR's Validation section.
 
 References: [GitHub macOS 26 runner inventory](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md), [Maestro local CLI](https://docs.maestro.dev/maestro-cli/maestro-cli-commands-and-options.md), [Expo SQLite](https://docs.expo.dev/versions/v57.0.0/sdk/sqlite/).

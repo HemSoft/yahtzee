@@ -2276,7 +2276,7 @@ DEPENDENCIES:
   - "Expo (from `../../../node_modules/.bun/expo@57.0.24+ea9bb3aa1309ed75/node_modules/expo`)"
   - "ExpoAsset (from `../../../node_modules/.bun/expo-asset@57.0.18+d556132523c82a78/node_modules/expo-asset/ios`)"
   - "ExpoDomWebView (from `../../../node_modules/.bun/@expo+dom-webview@57.0.1+ea9bb3aa1309ed75/node_modules/@expo/dom-webview/ios`)"
-  - "ExpoFileSystem (from `../../../node_modules/.bun/expo-file-system@57.0.7+19c046550412b028/node_modules/expo-file-system/ios/ExpoFileSystem.podspec`)"
+  - "ExpoFileSystem (from `../../../node_modules/.bun/expo-file-system@57.0.7+19c046550412b028/node_modules/expo-file-system/ios`)"
   - "ExpoFont (from `../../../node_modules/.bun/expo-font@57.0.4+19c046550412b028/node_modules/expo-font/ios/ExpoFont.podspec`)"
   - "ExpoGlassEffect (from `../../../node_modules/.bun/expo-glass-effect@57.0.3+19c046550412b028/node_modules/expo-glass-effect/ios`)"
   - "ExpoKeepAwake (from `../../../node_modules/.bun/expo-keep-awake@57.0.2+eb4ac7e61371bf55/node_modules/expo-keep-awake/ios`)"
@@ -2386,7 +2386,7 @@ EXTERNAL SOURCES:
   ExpoDomWebView:
     :path: "../../../node_modules/.bun/@expo+dom-webview@57.0.1+ea9bb3aa1309ed75/node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
-    :podspec: "../../../node_modules/.bun/expo-file-system@57.0.7+19c046550412b028/node_modules/expo-file-system/ios/ExpoFileSystem.podspec"
+    :path: "../../../node_modules/.bun/expo-file-system@57.0.7+19c046550412b028/node_modules/expo-file-system/ios"
   ExpoFont:
     :podspec: "../../../node_modules/.bun/expo-font@57.0.4+19c046550412b028/node_modules/expo-font/ios/ExpoFont.podspec"
   ExpoGlassEffect:

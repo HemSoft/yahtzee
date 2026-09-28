@@ -1,13 +1,14 @@
 const command = (name, value) => `- ${name}${value === undefined ? "" : `: ${JSON.stringify(value)}`}`;
 const visible = (text) => command("assertVisible", text);
-const tap = (text) => command("tapOn", text);
-const scroll = (element) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100 });
+const tap = (text) => command("tapOn", { text, enabled: true });
+const scroll = (element) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100, centerElement: true });
 const shot = (name) => command("takeScreenshot", name);
 const header = (bundleId, commands) => `appId: ${JSON.stringify(bundleId)}\n---\n${commands.join("\n")}\n`;
 
 export function startFlow(bundleId, scenario) {
   return header(bundleId, [command("launchApp", { clearState: true, permissions: { all: "deny" } }),
-    command("setOrientation", scenario.orientation), visible("A little time for dice."), shot("setup"),
+    command("setOrientation", scenario.orientation), visible("A little time for dice."),
+    tap("Help"), visible("How to play"), tap("Done"), visible("A little time for dice."), shot("setup"),
     scroll({ text: "Your name" }), tap("Your name"), command("eraseText"), command("inputText", "Local tester"), command("hideKeyboard"),
     scroll({ text: "AI opponents" }), tap("AI opponents"), tap(scenario.ai ? "3 AI" : "Solo"),
     scroll({ text: "Dice count" }), tap("Dice count"), tap(`${scenario.dice} dice`),
@@ -20,7 +21,8 @@ export function resumeFlow(bundleId) {
 }
 export function completeFlow(bundleId, categories, previewDiagnostics = false) {
   return header(bundleId, [
-    ...categories.flatMap((id) => [scroll({ id: `score-${id}` }), command("tapOn", { id: `score-${id}` })]),
+    ...categories.flatMap((id, index) => [scroll({ id: `score-${id}`, enabled: true }), command("tapOn", { id: `score-${id}`, enabled: true }),
+      ...(index < categories.length - 1 ? [command("extendedWaitUntil", { visible: { id: `score-${id}`, text: ".* points recorded.*" }, timeout: 15000 })] : [])]),
     visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),
     command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Review saved result" }), tap("Review saved result"),
     visible("Game Over!"), tap("Help"), visible("How to play"), shot("help"),
@@ -33,6 +35,13 @@ export function corruptFlow(bundleId, reset = false) {
   if (reset) commands.push(tap("Help"), scroll({ text: "Delete all local data" }), tap("Delete all local data"), tap("Cancel"),
     tap("Delete all local data"), command("tapOn", { text: "Delete all local data", index: 1 }), tap("Done"), scroll({ text: "Start Game" }), shot("explicit-reset"));
   return header(bundleId, commands);
+}
+
+export const GROUPS = ["phone-5", "phone-6", "tablet-8", "tablet-10"];
+export function scenariosForGroup(group) {
+  if (!GROUPS.includes(group)) throw new Error(`Unknown native qualification group: ${group}`);
+  const large = group === "phone-6" ? "phone-largest-text" : group === "tablet-10" ? "tablet-largest-text" : null;
+  return scenarios.filter((scenario) => scenario.id.startsWith(`${group}-`) || scenario.id === large);
 }
 
 export const scenarios = [

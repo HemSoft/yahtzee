@@ -40,7 +40,7 @@ export function NativeGameScreen({ onHistory, onHelp }: { onHistory: () => void;
     if (await store.start({ name, diceCount: preferences.diceCount, aiOpponents: preferences.aiOpponents })) setPlaying(true);
   };
   const again = async () => { if (await store.discard()) setPlaying(false); };
-  return <SafeAreaView edges={["bottom", "left", "right"]} style={[styles.screen, { backgroundColor: colors.page }]}>
+  return <SafeAreaView edges={["top", "bottom", "left", "right"]} style={[styles.screen, { backgroundColor: colors.page }]}>
     <View style={{ flexDirection: "row", paddingHorizontal: 12 }}>
       <View style={{ flex: 1 }}><Action label="History" disabled={!view.data} onPress={onHistory} /></View>
       <View style={{ flex: 1 }}><Action label="Help" onPress={onHelp} /></View>
