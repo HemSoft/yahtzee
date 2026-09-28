@@ -7,7 +7,7 @@ import { relativeSource, readSource, copyBlockers, screenshotBlockers, sha256, a
 
 import { PNG } from "pngjs";
 
-const png = PNG.sync.write(new PNG({ width: 1, height: 1 }));
+const png = PNG.sync.write(new PNG({ width: 1, height: 1 }), { colorType: 2 });
 const record = { sourceCommit: "a".repeat(40), version: "1.0.0", buildNumber: "1" };
 const capture = { filename: "iphone.png", sourceCommit: record.sourceCommit, deviceFamily: "iphone", locale: "en-US", appearance: "light", width: 1, height: 1, sha256: sha256(png) };
 const manifest = { ...record, status: "accepted", captures: [capture] };
