@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import { diePosition, rollPosition, assertHeld } from "./geometry.mjs";
 import { holdAndReroll } from "./dice.mjs";
 
@@ -53,6 +54,21 @@ test("die and reroll geometry fails closed on unrelated, clipped, duplicate or m
   assert.throws(() => rollPosition(screen(180, false, 1)), /Unexpected reroll/);
   const hiddenRoll = screen(180); nodes(hiddenRoll)[2].b = "[82,360][382,408]";
   assert.throws(() => rollPosition(hiddenRoll), /outside the play area/);
+});
+
+test("native flattened play markers require the same immediate accessibility container", () => {
+  const native = JSON.parse(readFileSync(new URL("./fixtures/play-accessibility-siblings.json", import.meta.url), "utf8"));
+  assert.equal(diePosition(native).action, "tap");
+  assert.equal(rollPosition(native).action, "tap");
+  const detached = structuredClone(native);
+  const marker = detached.elements[0].c.splice(1, 1)[0];
+  detached.elements.push({ b: detached.elements[0].b, c: [marker] });
+  assert.throws(() => diePosition(detached), /outside the play area/);
+  assert.throws(() => rollPosition(detached), /outside the play area/);
+  const outsideScroll = structuredClone(native);
+  const pane = outsideScroll.elements[0].c[0], content = pane.c[0].c[0].c[0];
+  outsideScroll.elements[0].c.push(content.c.pop());
+  assert.throws(() => diePosition(outsideScroll), /outside its scroll view/);
 });
 
 function harness(options = {}) {

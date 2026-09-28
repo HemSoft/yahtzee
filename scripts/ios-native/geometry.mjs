@@ -71,12 +71,19 @@ export function assertRecorded(screen, id) {
   assert.equal(node.enabled, false, "Recorded score must no longer accept input.");
 }
 
+function inPlayHierarchy(node, root) {
+  if (node.parents.includes(root)) return true;
+  // iOS exposes this nonaccessible RN View's testID as a leaf sibling of its
+  // children. Accept that observed shape only inside the same direct container.
+  return !root.c?.length && root.parents.length > 0 && node.parents.at(-1) === root.parents.at(-1);
+}
+
 export function diePosition(screen) {
   const elements = screenElements(screen);
   const root = uniqueElement(elements, "play-viewport");
   const viewportNode = uniqueElement(elements, "dice-viewport", false) ?? uniqueElement(elements, "score-viewport");
   const viewport = viewportNode.rect, target = uniqueElement(elements, "die-0");
-  assert(viewportNode.parents.includes(root) && within(viewport, root.rect, 0), "Dice viewport is outside the play area.");
+  assert(inPlayHierarchy(viewportNode, root) && within(viewport, root.rect, 0), "Dice viewport is outside the play area.");
   assert(viewport.width >= 80 && viewport.height >= 100, "Dice viewport is too small to exercise.");
   assert(target.parents.includes(viewportNode), "Die is outside its scroll view.");
   assert(target.enabled === true || target.enabled === false, "Invalid die enabled state.");
@@ -89,7 +96,7 @@ export function diePosition(screen) {
 
 export function rollPosition(screen) {
   const elements = screenElements(screen), root = uniqueElement(elements, "play-viewport"), target = uniqueElement(elements, "reroll-action");
-  assert(target.parents.includes(root) && within(target.rect, root.rect), "Reroll is outside the play area.");
+  assert(inPlayHierarchy(target, root) && within(target.rect, root.rect), "Reroll is outside the play area.");
   assert.equal(target.a11y, "Re-roll (2)", "Unexpected reroll state before the single tap.");
   assert(target.enabled === true || target.enabled === false, "Invalid reroll enabled state.");
   return { action: target.enabled ? "tap" : "wait", viewport: root.rect, target: target.rect };
