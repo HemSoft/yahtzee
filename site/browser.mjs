@@ -21,6 +21,10 @@ const profiles = [
   { name: "phone-dark", width: 390, height: 844, colorScheme: "dark", textScale: 1 },
   { name: "narrow-large-text", width: 320, height: 700, colorScheme: "light", textScale: 2 },
 ];
+async function holdVideo(page, profile) {
+  // Presentation pacing only. Readiness and effects are checked separately.
+  if (profile.name === "desktop-light") await page.waitForTimeout(1000);
+}
 try {
   for (const profile of profiles) {
     const context = await browser.newContext({ viewport: { width: profile.width, height: profile.height }, colorScheme: profile.colorScheme, reducedMotion: "reduce", recordVideo: profile.name === "desktop-light" ? { dir: join(output, "video"), size: { width: 1440, height: 1000 } } : undefined });
@@ -32,7 +36,11 @@ try {
     page.on("pageerror", (error) => failures.push(String(error)));
     page.on("console", (message) => { if (message.type() === "error") failures.push(message.text()); });
     for (const file of Object.keys(pages)) {
-      await page.goto(running.url + file);
+      if (file === "index.html") await page.goto(running.url + file);
+      else {
+        await page.getByRole("navigation", { name: "Main navigation" }).locator(`a[href="${file}"]`).click();
+        await page.waitForURL(running.url + file);
+      }
       await page.evaluate(() => document.fonts.ready);
       await page.evaluate((scale) => { document.documentElement.style.fontSize = `${16 * scale}px`; }, profile.textScale);
       try {
@@ -52,10 +60,13 @@ try {
           assert.equal((await context.request.get(url.href.split("#")[0])).status(), 200, href);
           if (url.hash && url.pathname === new URL(page.url()).pathname) assert.equal(await page.locator(url.hash).count(), 1, href);
         }
+        await holdVideo(page, profile);
         await page.keyboard.press("Tab");
         assert.equal(await page.locator(":focus").textContent(), "Skip to content");
+        await holdVideo(page, profile);
         await page.keyboard.press("Enter");
         assert.equal(await page.locator(":focus").getAttribute("id"), "main");
+        await holdVideo(page, profile);
         if (file === "index.html" && profile.textScale === 2) {
           const table = page.getByRole("region", { name: "Game mode comparison, horizontally scrollable" });
           await table.focus();
@@ -68,6 +79,7 @@ try {
           const summary = page.getByText("A save was not confirmed", { exact: true });
           await summary.click();
           assert.equal(await summary.locator("..").getAttribute("open"), "");
+          await holdVideo(page, profile);
           await summary.click();
         }
       } catch (error) { failures.push(`${profile.name}/${file}: ${error.message}`); }
