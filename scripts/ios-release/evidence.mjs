@@ -53,6 +53,7 @@ export function captureBlockers(capture, record, readImage) {
     const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
     if (bytes.length > 64 * 1024 * 1024 || width > 8192 || height > 8192 || width * height > 32_000_000) throw new Error("PNG exceeds capture limits");
     const image = PNG.sync.read(bytes);
+    if (image.alpha) blockers.push("Capture PNG has an alpha channel or transparency");
     if (image.width !== capture.width || image.height !== capture.height) blockers.push("Capture dimensions do not match PNG");
     if (sha256(bytes) !== capture.sha256) blockers.push("Capture checksum mismatch");
   } catch { blockers.push("Capture file missing, invalid PNG, or outside artifact directory"); }
