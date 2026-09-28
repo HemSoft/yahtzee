@@ -6,7 +6,8 @@ import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { getScorecardCategories } from "../../packages/game-engine/src/presentation.ts";
 import { decodeSave } from "../../apps/mobile/src/local/save.ts";
-import { startFlow, resumeFlow, completeFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
+import { startFlow, resumeFlow, completeStartFlow, completeEndFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
+import { nativeScoring } from "./scoring.mjs";
 import { buildSimulator } from "./build.mjs";
 import { loadBuiltSimulator } from "./artifact.mjs";
 import { retainDriverLogs } from "./driverLogs.mjs";
@@ -139,7 +140,10 @@ async function exercise(app, bundleId) {
     if (!scenario.largeText) {
       receipt.phase = `complete-${scenario.id}`; checkpoint();
       const preview = ["phone-5-solo-light", "tablet-8-solo-light"].includes(scenario.id);
-      flow(device, directory, "complete", completeFlow(bundleId, getScorecardCategories(scenario.dice).map((category) => category.id), preview));
+      flow(device, directory, "complete-start", completeStartFlow(bundleId));
+      await nativeScoring({ device, bundleId, directory, categories: getScorecardCategories(scenario.dice).map((category) => category.id), env,
+        capture: (name) => sim("io", device, "screenshot", join(directory, `${name}.png`)) });
+      flow(device, directory, "complete", completeEndFlow(bundleId, preview));
       const completed = saved(device, bundleId, directory, "completed");
       assert.equal(completed.data.active, null); assert.equal(completed.data.history.entries.length, 1);
       assert.equal(completed.data.highScores.entries.length, scenario.ai + 1);

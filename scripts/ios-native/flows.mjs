@@ -1,7 +1,7 @@
 const command = (name, value) => `- ${name}${value === undefined ? "" : `: ${JSON.stringify(value)}`}`;
 const visible = (text) => command("assertVisible", text);
 const tap = (text) => command("tapOn", { text, enabled: true });
-const scroll = (element, centerElement = false) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100, centerElement });
+const scroll = (element) => command("scrollUntilVisible", { element, direction: "DOWN", timeout: 60000, visibilityPercentage: 100 });
 const shot = (name) => command("takeScreenshot", name);
 const header = (bundleId, commands) => `appId: ${JSON.stringify(bundleId)}\n---\n${commands.join("\n")}\n`;
 
@@ -19,13 +19,12 @@ export function resumeFlow(bundleId) {
   return header(bundleId, [command("launchApp", { permissions: { all: "deny" } }),
     scroll({ text: "Resume Game" }), tap("Resume Game"), visible("Re-roll \\(1\\)"), shot("resumed")]);
 }
-export function completeFlow(bundleId, categories, previewDiagnostics = false) {
+export function completeStartFlow(bundleId) {
   return header(bundleId, [command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Resume Game" }), tap("Resume Game"),
-    visible("Re-roll \\(1\\)"), command("waitForAnimationToEnd", { timeout: 5000 }), shot("ready-to-score"),
-    ...categories.flatMap((id, index) => [scroll({ id: `score-${id}`, enabled: true }, true), command("waitForAnimationToEnd", { timeout: 5000 }),
-      command("tapOn", { id: `score-${id}`, enabled: true, retryTapIfNoChange: true }),
-      ...(index < categories.length - 1 ? [command("extendedWaitUntil", { visible: { id: `score-${id}`, text: ".* points recorded.*" }, timeout: 15000 })] : [])]),
-    visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),
+    visible("Re-roll \\(1\\)"), command("waitForAnimationToEnd", { timeout: 5000 }), command("assertVisible", { id: "score-viewport" }), shot("ready-to-score")]);
+}
+export function completeEndFlow(bundleId, previewDiagnostics = false) {
+  return header(bundleId, [visible("Game Over!"), shot("results"), tap("History"), visible("Local history"), shot("history"),
     command("launchApp", { permissions: { all: "deny" } }), scroll({ text: "Review saved result" }), tap("Review saved result"),
     visible("Game Over!"), tap("Help"), visible("How to play"), shot("help"),
     ...(previewDiagnostics ? [scroll({ text: "Preview diagnostics" }), tap("Preview diagnostics"), scroll({ id: "diagnostics-preview" }),

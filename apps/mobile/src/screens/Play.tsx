@@ -41,10 +41,10 @@ export function Play({ onPause }: { onPause: () => void }) {
     <View style={styles.left}>
       <ScrollView contentContainerStyle={styles.content}>{controls}</ScrollView>{roll}
     </View>
-    <ScrollView style={styles.card} contentContainerStyle={styles.content}><NativeScorecard /></ScrollView>
+    <ScrollView testID="score-viewport" style={styles.card} contentContainerStyle={styles.content}><NativeScorecard /></ScrollView>
   </View>;
   return <View style={styles.screen}>
-    <ScrollView contentContainerStyle={styles.content}>{controls}<NativeScorecard /></ScrollView>
+    <ScrollView testID="score-viewport" contentContainerStyle={styles.content}>{controls}<NativeScorecard /></ScrollView>
     {roll}
   </View>;
 }

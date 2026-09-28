@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { startFlow, resumeFlow, completeFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
+import { startFlow, resumeFlow, completeStartFlow, completeEndFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
 
 function parse(flow) {
   const [header, body] = flow.trim().split("\n---\n");
@@ -40,10 +40,9 @@ test("generated flows use valid JSON-in-YAML commands and real semantic controls
   const resumed = parse(resumeFlow("com.hemsoft.yahtzee"));
   assert.equal(resumed[0].value.clearState, undefined);
   assert(resumed.some((step) => step.value?.text === "Resume Game"));
-  const completed = parse(completeFlow("com.hemsoft.yahtzee", ["ones", "chance"]));
-  assert.equal(completed.filter((step) => step.command === "tapOn" && step.value?.id?.startsWith("score-")).length, 2);
+  const completed = parse(completeEndFlow("com.hemsoft.yahtzee"));
   assert(completed.some((step) => step.command === "assertVisible" && step.value === "Game Over!"));
-  const preview = parse(completeFlow("com.hemsoft.yahtzee", ["ones"], true));
+  const preview = parse(completeEndFlow("com.hemsoft.yahtzee", true));
   assert(preview.some((step) => step.command === "assertVisible" && step.value?.id === "diagnostics-preview"));
   assert(preview.some((step) => step.value?.text === "Cancel preview"));
 });
@@ -52,20 +51,13 @@ test("native name entry submits the keyboard instead of issuing dismissal swipes
   assert(!steps.some((step) => step.command === "hideKeyboard"));
   assert(steps.some((step) => step.command === "pressKey" && step.value === "enter"));
 });
-test("scoring waits for an enabled settled target and acknowledged record before moving on", () => {
-  const steps = parse(completeFlow("com.hemsoft.yahtzee", ["full-house", "small-straight", "chance"]));
+test("scoring starts only after resume settles and exposes its actual viewport", () => {
+  const steps = parse(completeStartFlow("com.hemsoft.yahtzee"));
   const ready = steps.findIndex((step) => step.command === "assertVisible" && step.value === "Re-roll \\(1\\)");
-  const firstScoreScroll = steps.findIndex((step) => step.command === "scrollUntilVisible" && step.value?.element?.id === "score-full-house");
-  assert(ready >= 0 && ready < firstScoreScroll, "Wait for the resumed game before scrolling for scores");
-  for (const id of ["full-house", "small-straight"]) {
-    const index = steps.findIndex((step) => step.command === "tapOn" && step.value?.id === `score-${id}`);
-    assert.equal(steps[index].value.enabled, true);
-    assert.equal(steps[index].value.retryTapIfNoChange, true);
-    assert.equal(steps[index - 2].value.centerElement, true, "Scores must clear the fixed roll footer, not merely the screen bounds");
-    assert.equal(steps[index - 1].command, "waitForAnimationToEnd");
-    assert.equal(steps[index + 1].command, "extendedWaitUntil");
-    assert.deepEqual(steps[index + 1].value.visible, { id: `score-${id}`, text: ".* points recorded.*" });
-  }
+  assert(ready >= 0);
+  assert.equal(steps[ready + 1].command, "waitForAnimationToEnd");
+  assert.deepEqual(steps[ready + 2].value, { id: "score-viewport" });
+  assert(!steps.some((step) => step.value?.centerElement || step.value?.id?.startsWith("score-") && step.command === "tapOn"));
 });
 test("corruption flow never clears state and reset includes cancellation first", () => {
   const relaunch = parse(emptyRelaunchFlow("com.hemsoft.yahtzee"));
