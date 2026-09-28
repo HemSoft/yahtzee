@@ -1,0 +1,60 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import test from "node:test";
+import { buildSite } from "./build.mjs";
+import { pages } from "./pages.mjs";
+import { serveSite } from "./serve.mjs";
+
+test("preview is deterministic, self-contained and explicitly not authorized for publication", () => {
+  const temporary = mkdtempSync(join(tmpdir(), "dice-site-"));
+  try {
+    const first = buildSite(join(temporary, "first"));
+    assert.deepEqual(buildSite(join(temporary, "second")), first);
+    assert.equal(first.publicationAuthorized, false);
+    for (const artifact of first.artifacts) {
+      const bytes = readFileSync(join(temporary, "first", artifact.path));
+      assert.equal(bytes.length, artifact.bytes);
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), artifact.sha256);
+    }
+    assert.throws(() => buildSite(join(temporary, "first")), /not overwritten/);
+    assert.throws(() => buildSite(join(temporary, "public"), { publish: true }), /not authorized/);
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
+});
+
+test("all pages preserve draft status and avoid scripts, forms, embeds and invented downloads", () => {
+  assert.deepEqual(Object.keys(pages), ["index.html", "support.html", "privacy.html"]);
+  for (const html of Object.values(pages)) {
+    assert.match(html, /name="robots" content="noindex,nofollow"/);
+    assert.match(html, /Not available on the App Store/);
+    assert.match(html, /<html lang="en">/);
+    assert.equal((html.match(/<h1[ >]/g) ?? []).length, 1);
+    assert.doesNotMatch(html, /<script|<form|<iframe|apps\.apple\.com|mailto:|tel:|Local tester|Bot Alpha/i);
+    assert.match(html, /href="support\.html"/);
+    assert.match(html, /href="privacy\.html"/);
+  }
+  assert.match(pages["privacy.html"], /not an approved privacy notice/);
+  assert.match(pages["support.html"], /Retry reset continues the confirmed deletion/);
+});
+
+test("unauthenticated preview serves only approved files under a repository subpath", async () => {
+  const temporary = mkdtempSync(join(tmpdir(), "dice-site-http-"));
+  const output = join(temporary, "site"); buildSite(output);
+  const running = await serveSite(output, "/yahtzee/");
+  try {
+    for (const file of ["", ...Object.keys(pages), "style.css", "assets/manrope-variable.ttf"]) {
+      const response = await fetch(running.url + file);
+      assert.equal(response.status, 200);
+      assert.match(response.headers.get("content-security-policy"), /frame-ancestors 'none'/);
+      assert.equal(response.headers.get("set-cookie"), null);
+      await response.arrayBuffer();
+    }
+    for (const file of ["pages.mjs", "../package.json", "%2e%2e%2f.git/config", "assets/../../../package.json", "preview-manifest.json"]) {
+      assert.equal((await fetch(running.url + file)).status, 404);
+    }
+    assert.equal((await fetch(running.url, { method: "POST" })).status, 405);
+    assert.equal((await fetch(running.url + "index.html", { method: "HEAD" })).status, 200);
+  } finally { await running.close(); rmSync(temporary, { recursive: true, force: true }); }
+});
