@@ -48,6 +48,19 @@ test("App Store captures reject RGB transparency metadata even without transpare
   assert.equal(image.alpha, true); assert.equal(image.data[3], 255);
   assert(blockers(bytes).includes("Capture PNG has an alpha channel or transparency"));
 });
+test("duplicate PNG headers cannot replace the header checked before allocation", () => {
+  const rgb = encoded(2, 255);
+  const duplicate = Buffer.concat([rgb.subarray(0, 33), rgb.subarray(8, 33), rgb.subarray(33)]);
+  // pngjs accepts this invalid duplicate. Use a tiny fixture, not an allocation bomb.
+  assert.equal(PNG.sync.read(duplicate).width, 1);
+  assert(blockers(duplicate).some((message) => message.includes("invalid PNG")));
+});
+test("unknown ancillary chunks still require valid CRCs", () => {
+  const rgb = encoded(2, 255), metadata = chunk("tEXt", Buffer.from("fixture\0draft"));
+  metadata[metadata.length - 1] ^= 1;
+  const damaged = Buffer.concat([rgb.subarray(0, 33), metadata, rgb.subarray(33)]);
+  assert(blockers(damaged).some((message) => message.includes("invalid PNG")));
+});
 test("RGB captures without an alpha channel retain the existing byte checks", () => {
   const bytes = encoded(2, 255);
   assert.equal(PNG.sync.read(bytes).alpha, false);

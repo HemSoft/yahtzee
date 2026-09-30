@@ -1,7 +1,7 @@
 import { readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, resolve, relative, sep } from "node:path";
 import { createHash } from "node:crypto";
-import { PNG } from "pngjs";
+import { readCapturePng } from "./png.mjs";
 
 export const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
@@ -47,12 +47,7 @@ export function captureBlockers(capture, record, readImage) {
   if (!Number.isSafeInteger(capture.width) || !Number.isSafeInteger(capture.height) || capture.width <= 0 || capture.height <= 0) blockers.push("Capture dimensions invalid");
   try {
     const bytes = readImage(relativeSource(capture.filename));
-    const png = bytes.length >= 33 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) && bytes.toString("ascii", 12, 16) === "IHDR";
-    if (!png) throw new Error("Invalid PNG header");
-    // Bound decode allocation before trusting any dimensions in the artifact.
-    const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
-    if (bytes.length > 64 * 1024 * 1024 || width > 8192 || height > 8192 || width * height > 32_000_000) throw new Error("PNG exceeds capture limits");
-    const image = PNG.sync.read(bytes);
+    const { image } = readCapturePng(bytes);
     if (image.alpha) blockers.push("Capture PNG has an alpha channel or transparency");
     if (image.width !== capture.width || image.height !== capture.height) blockers.push("Capture dimensions do not match PNG");
     if (sha256(bytes) !== capture.sha256) blockers.push("Capture checksum mismatch");
