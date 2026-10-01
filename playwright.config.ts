@@ -5,7 +5,11 @@ export default defineConfig({
   timeout: 45_000, retries: 0,
   outputDir: "reports/clients/artifacts",
   reporter: [["list"], ["json", { outputFile: "reports/clients/results.json" }]],
-  projects: [{ name: "web" }, { name: "desktop" }, { name: "mobile-web-adapter" }],
+  projects: [
+    { name: "web", testMatch: ["**/journeys.spec.ts", "**/design.spec.ts"] },
+    { name: "desktop", testMatch: "**/journeys.spec.ts" },
+    { name: "mobile-web-adapter", testMatch: "**/native.spec.ts" },
+  ],
   use: { baseURL: "http://127.0.0.1:5187" },
   webServer: {
     command: process.env.TEST_COVERAGE === "1"

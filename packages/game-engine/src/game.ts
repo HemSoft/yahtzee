@@ -116,7 +116,7 @@ const MAX_SCORE_TABLE: Record<CategoryId, MaxScoreEntry> = {
   "maxi-yahtzee": 100,
 };
 
-function getMaxCategoryScore(catId: CategoryId, diceCount: number): number {
+export function getMaxCategoryScore(catId: CategoryId, diceCount: number): number {
   const entry = MAX_SCORE_TABLE[catId];
   return typeof entry === "function" ? entry(diceCount) : entry;
 }

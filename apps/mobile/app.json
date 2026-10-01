@@ -2,25 +2,39 @@
   "expo": {
     "name": "Yahtzee",
     "slug": "yahtzee",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "scheme": "yahtzee",
     "platforms": ["ios", "android"],
-    "orientation": "portrait",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#fafafa"
-    },
     "ios": {
-      "bundleIdentifier": "com.hemsoft.yahtzee"
+      "bundleIdentifier": "com.hemsoft.yahtzee",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "requireFullScreen": false,
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
+      }
     },
     "android": {
       "package": "com.hemsoft.yahtzee",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#fafafa"
+        "foregroundImage": "./assets/launch-mark.png",
+        "backgroundColor": "#1e453a"
       }
-    }
+    },
+    "plugins": [
+      "expo-router",
+      ["expo-build-properties", { "ios": { "deploymentTarget": "17.0" } }],
+      ["expo-splash-screen", {
+        "image": "./assets/launch-mark.png",
+        "imageWidth": 160,
+        "backgroundColor": "#f2f2f7",
+        "dark": { "image": "./assets/launch-mark.png", "backgroundColor": "#000000" }
+      }]
+    ]
   }
 }

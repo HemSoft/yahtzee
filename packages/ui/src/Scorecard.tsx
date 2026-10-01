@@ -1,26 +1,9 @@
 import React from "react";
 import { Icon } from "./Icons";
 import {
-  getCategories, getUpperBonusThreshold, getUpperBonusValue, calculateTotal, calculateMaxPossibleScore,
+  getScorecardCategories, getUpperBonusThreshold, getUpperBonusValue, calculateTotal, calculateMaxPossibleScore,
   type CategoryId, type PlayerState,
 } from "@yahtzee/game-engine";
-
-// Presentation order only: engine order also decides AI tie-breaking.
-const DISPLAY_AFTER: Partial<Record<CategoryId, CategoryId>> = {
-  "two-pairs": "three-pairs",
-  "four-of-a-kind": "five-of-a-kind",
-  "full-house": "castle",
-  "large-straight": "full-straight",
-};
-
-function getScorecardCategories(diceCount: number) {
-  const categories = getCategories(diceCount);
-  const moved = new Set(Object.values(DISPLAY_AFTER));
-  return categories.filter((category) => !moved.has(category.id)).flatMap((category) => {
-    const extra = categories.find((candidate) => candidate.id === DISPLAY_AFTER[category.id]);
-    return extra ? [category, extra] : [category];
-  });
-}
 
 interface ScorecardProps {
   players: PlayerState[];

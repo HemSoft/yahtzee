@@ -10,7 +10,7 @@ bun run quality:measure
 
 On Linux, install Playwright host dependencies and use `xvfb-run --auto-servernum bun run quality:measure`, as described in [client qualification](client-qualification.md). No deployment or credentials are needed.
 
-The command clears only its generated raw-counter directory, runs instrumented engine/backend tests, runs all six real-client journeys, and writes `reports/quality/report.md`, `report.json` and `functions.json`. The JSON report records the Git revision and dirty state. The function-only file omits volatile metadata so two runs at one revision can be compared directly. Missing unit/backend/client collections, empty collections and mismatched source locations fail the command.
+The command clears only its generated raw-counter directory, runs instrumented engine/backend tests, runs the online web/Electron journeys and the offline mobile-source adapter journeys, and writes `reports/quality/report.md`, `report.json` and `functions.json`. The JSON report records the Git revision and dirty state. The function-only file omits volatile metadata so two runs at one revision can be compared directly. Missing unit/backend/client collections, empty collections and mismatched source locations fail the command.
 
 The pinned tools are TypeScript 6.0.3, istanbul-lib-instrument 6.0.3 and istanbul-lib-coverage 3.2.2. Bun 1.4.2 runs the tests. Runtime plugins add counters only during qualification; application source and shipped bundles are unchanged. Bun test completion hooks persist unit counters because its runner does not invoke process-exit handlers. Client counters and backend counters are captured before fixture shutdown.
 
@@ -30,7 +30,7 @@ Coverage is a fraction from zero to one. Calculations retain full precision; dis
 
 ## Gate and initial review
 
-Scores from 15 through 30 require review. New functions above 30 fail. The three pre-existing exceptions in [the baseline](../quality-baseline.json) have exact measured limits and reasons. An exception cannot worsen, and an improved or removed exception must be lowered or removed. Routine measurement never rewrites the baseline. Do not add exceptions for new code or raise a budget to make a failure disappear; policy changes need explicit review with their measured effect.
+Scores from 15 through 30 require review. New functions above 30 fail. The [baseline](../quality-baseline.json) no longer needs legacy exceptions after the web, desktop and native screen extractions. An exception cannot worsen, and an improved or removed exception must be lowered or removed. Routine measurement never rewrites the baseline. Do not add exceptions for new code or raise a budget to make a failure disappear; policy changes need explicit review with their measured effect.
 
 Initial source baseline is commit `dc1978768479bd3c37555619d681d40f82fd479f`. None of these production functions changed in the measurement PR.
 
@@ -40,7 +40,7 @@ Initial source baseline is commit `dc1978768479bd3c37555619d681d40f82fd479f`. No
 | Web App | 34 | 51/54 | 34.19821673525377 | Same constraint as desktop |
 | Mobile Index | 40 | 61/65 | 40.37287209831589 | Preserve measured risk until screen extraction lowers it |
 
-The desktop/web redesign now shares separate setup, play, and results components. Both app entry components fall below the new-function gate, so their obsolete legacy exceptions were removed. The mobile exception remains unchanged. Current measurements are in `reports/quality/report.md`; the table above records the original baseline, not current desktop/web complexity.
+The desktop/web redesign shares setup, play and results components. The native offline interface has separate local-state, setup, play, scorecard, results, history and help modules. All entry components now fall below the new-function gate, so their obsolete legacy exceptions were removed. Current measurements are in `reports/quality/report.md`; the table above records the original baseline, not current complexity.
 
 Better coverage alone cannot put complexity 34 or 40 below CRAP 30. These are visible legacy limits, not claims that the components are low-risk.
 
