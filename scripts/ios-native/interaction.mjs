@@ -8,6 +8,11 @@ import { redactDriverLog } from "./driverLogs.mjs";
 export async function nativeInteraction({ device, bundleId, directory, prefix, env, capture, exercise, openSession = localMaestro }) {
   assert(["complete", "hold", "scenario"].includes(prefix), "Unknown native interaction phase.");
   let diagnostics = "", sequence = 0, timingUnavailable = false;
+  const timings = [];
+  function timingNotice() {
+    if (!timingUnavailable) diagnostics += "\nNative timing telemetry unavailable.\n";
+    timingUnavailable = true;
+  }
   const deadline = Date.now() + 600000;
   const childEnv = Object.fromEntries(Object.entries(env).filter(([key]) =>
     /^(PATH|HOME|USER|LOGNAME|SHELL|TMPDIR|TMP|TEMP|JAVA_HOME|DEVELOPER_DIR|LANG|LC_ALL|MAESTRO_CLI_NO_ANALYTICS|MAESTRO_DISABLE_UPDATE_CHECK|MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED|MAESTRO_DRIVER_STARTUP_TIMEOUT)$/.test(key)));
@@ -17,11 +22,8 @@ export async function nativeInteraction({ device, bundleId, directory, prefix, e
     const started = Date.now(); let outcome = "threw";
     try { const result = await client.call(name, args); outcome = "returned"; return result; }
     finally {
-      try { appendFileSync(join(directory, `${prefix}-tool-timing.jsonl`), JSON.stringify({ tool: name, flowSequence: sequence, started, elapsedMs: Date.now() - started, outcome }) + "\n"); }
-      catch {
-        if (!timingUnavailable) diagnostics += "\nNative timing telemetry unavailable.\n";
-        timingUnavailable = true;
-      }
+      if (timings.length < 2048) timings.push(JSON.stringify({ tool: name, flowSequence: sequence, started, elapsedMs: Date.now() - started, outcome }));
+      else timingNotice();
     }
   }
   async function inspect() {
@@ -56,6 +58,8 @@ export async function nativeInteraction({ device, bundleId, directory, prefix, e
       diagnostics += "\nLocal Maestro shutdown failed.\n";
     }
     finally {
+      try { writeFileSync(join(directory, `${prefix}-tool-timing.jsonl`), timings.join("\n") + (timings.length ? "\n" : "")); }
+      catch { timingNotice(); }
       try { writeFileSync(join(directory, `${prefix}-mcp.log`), redactDriverLog(diagnostics, env)); }
       catch (error) { diagnosticFailed = true; diagnosticError = error; }
     }
