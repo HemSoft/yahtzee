@@ -13,7 +13,10 @@ test("the actual scoring caller uses the viewport-aware driver in both layouts",
   const play = readFileSync(new URL("../../apps/mobile/src/screens/Play.tsx", import.meta.url), "utf8");
   assert.equal((play.match(/testID="score-viewport"/g) ?? []).length, 2);
   const runner = readFileSync(new URL("./run.mjs", import.meta.url), "utf8");
-  assert.match(runner, /await nativeScoring\(/);
+  assert.match(runner, /await nativeInteraction\(/);
+  assert.match(runner, /await exerciseScenario\(/);
+  const scenario = readFileSync(new URL("./scenario.mjs", import.meta.url), "utf8");
+  assert.match(scenario, /await scoreCategories\(/);
   assert.doesNotMatch(runner, /completeFlow\(/);
 });
 test("dice and reroll interactions expose their own bounds and use the checked driver", () => {
@@ -22,7 +25,9 @@ test("dice and reroll interactions expose their own bounds and use the checked d
   assert.equal((play.match(/testID="play-viewport"/g) ?? []).length, 2);
   assert.match(play, /testID="reroll-action"/);
   const runner = readFileSync(new URL("./run.mjs", import.meta.url), "utf8");
-  assert.match(runner, /await nativeDice\(/);
+  assert.match(runner, /await exerciseScenario\(/);
+  const scenario = readFileSync(new URL("./scenario.mjs", import.meta.url), "utf8");
+  assert.match(scenario, /await holdAndReroll\(/);
   const flows = readFileSync(new URL("./flows.mjs", import.meta.url), "utf8");
   assert.doesNotMatch(flows, /tapOn.*id: "die-0"/);
 });

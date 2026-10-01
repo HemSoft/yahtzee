@@ -80,7 +80,7 @@ export async function localMaestro({ cwd, env, onStderr, deadline, start = spawn
     const result = await client.request("tools/call", { name, arguments: args });
     if (result.isError) {
       onStderr(`\nLocal ${name} error: ${JSON.stringify(result.content).slice(0, 8192)}\n`);
-      throw new Error(`Local Maestro ${name} failed; see complete-mcp.log.`);
+      throw new Error(`Local Maestro ${name} failed; see the retained phase MCP log.`);
     }
     assert.equal(result.content?.length, 1, "Unexpected local tool response.");
     assert.equal(result.content[0].type, "text", "Expected local JSON text.");

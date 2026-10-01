@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { scorePosition, assertRecorded, screenElements } from "./geometry.mjs";
-import { nativeInteraction } from "./interaction.mjs";
 
 export async function scoreCategories({ categories, inspect, run, capture, record }) {
   assert(categories.length > 0 && categories.length <= 20 && new Set(categories).size === categories.length);
@@ -24,9 +23,4 @@ export async function scoreCategories({ categories, inspect, run, capture, recor
     else assertRecorded(after, id);
     record({ index, id, action: "acknowledged", last });
   }
-}
-
-/** Scoring keeps its own application acknowledgments within the shared bounded session. */
-export function nativeScoring({ categories, ...options }) {
-  return nativeInteraction({ ...options, prefix: "complete", exercise: (io) => scoreCategories({ categories, ...io }) });
 }

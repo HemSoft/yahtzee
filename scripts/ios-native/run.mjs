@@ -6,9 +6,9 @@ import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { getScorecardCategories } from "../../packages/game-engine/src/presentation.ts";
 import { decodeSave } from "../../apps/mobile/src/local/save.ts";
-import { startFlow, resumeFlow, completeStartFlow, completeEndFlow, corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
-import { nativeScoring } from "./scoring.mjs";
-import { nativeDice } from "./dice.mjs";
+import { corruptFlow, emptyRelaunchFlow, scenarios, GROUPS, scenariosForGroup } from "./flows.mjs";
+import { nativeInteraction } from "./interaction.mjs";
+import { exerciseScenario } from "./scenario.mjs";
 import { buildSimulator } from "./build.mjs";
 import { loadBuiltSimulator } from "./artifact.mjs";
 import { retainDriverLogs } from "./driverLogs.mjs";
@@ -130,31 +130,18 @@ async function exercise(app, bundleId) {
     const result = { ...scenario, udid: device, runtime, locale: "en-US", status: "running" }; receipt.scenarios.push(result);
     receipt.phase = `start-${scenario.id}`; checkpoint();
     if (index === 0) recording = spawn("xcrun", ["simctl", "io", device, "recordVideo", "--codec=h264", join(directory, "native-resume.mp4")], { env, stdio: "ignore" });
-    flow(device, directory, "start", startFlow(bundleId, scenario));
-    receipt.phase = `hold-${scenario.id}`; checkpoint();
-    await nativeDice({ device, bundleId, directory, env,
+    let resumedBytes;
+    await nativeInteraction({ device, bundleId, directory, prefix: "scenario", env,
       capture: (name) => sim("io", device, "screenshot", join(directory, `${name}.png`)),
-      readSave: (stage) => saved(device, bundleId, directory, stage).data });
-    const before = saved(device, bundleId, directory, "before-relaunch");
-    assert.equal(before.data.active.game.diceCount, scenario.dice); assert.equal(before.data.active.game.players.length, scenario.ai + 1);
-    assert.deepEqual(before.data.active.game.held, [0]); assert.equal(before.data.active.game.rollsLeft, 1);
-    sim("terminate", device, bundleId);
-    receipt.phase = `resume-${scenario.id}`; checkpoint();
-    flow(device, directory, "resume", resumeFlow(bundleId));
-    const after = saved(device, bundleId, directory, "after-relaunch"); assert.equal(after.bytes, before.bytes);
-    if (!scenario.largeText) {
-      receipt.phase = `complete-${scenario.id}`; checkpoint();
-      const preview = ["phone-5-solo-light", "tablet-8-solo-light"].includes(scenario.id);
-      flow(device, directory, "complete-start", completeStartFlow(bundleId));
-      await nativeScoring({ device, bundleId, directory, categories: getScorecardCategories(scenario.dice).map((category) => category.id), env,
-        capture: (name) => sim("io", device, "screenshot", join(directory, `${name}.png`)) });
-      flow(device, directory, "complete", completeEndFlow(bundleId, preview));
-      const completed = saved(device, bundleId, directory, "completed");
-      assert.equal(completed.data.active, null); assert.equal(completed.data.history.entries.length, 1);
-      assert.equal(completed.data.highScores.entries.length, scenario.ai + 1);
-    }
+      exercise: async (io) => {
+        resumedBytes = await exerciseScenario({ bundleId, scenario, io,
+          categories: getScorecardCategories(scenario.dice).map((category) => category.id),
+          readSave: (stage) => saved(device, bundleId, directory, stage),
+          terminate: () => sim("terminate", device, bundleId),
+          phase: (name) => { receipt.phase = `${name}-${scenario.id}`; checkpoint(); } });
+      } });
     await stopRecording();
-    result.status = "passed"; result.resumeDocumentSha256 = hash(before.bytes); checkpoint();
+    result.status = "passed"; result.resumeDocumentSha256 = hash(resumedBytes); checkpoint();
   }
   if (!group || group === "tablet-10") { receipt.phase = "corruption-and-reset"; checkpoint(); corruption(booted, bundleId); }
   assert.equal(receipt.scenarios.length, selectedScenarios.length);

@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { assertHeld, diePosition, rollPosition, screenElements, uniqueElement } from "./geometry.mjs";
-import { nativeInteraction } from "./interaction.mjs";
 
 async function reach(kind, position, { inspect, run, record }) {
   for (let attempt = 0; attempt < 30; attempt++) {
@@ -41,8 +40,4 @@ export async function holdAndReroll({ readSave, ...io }) {
   assert.deepEqual(rolled, expected, "Reroll must preserve all other saved state.");
   record({ kind: "reroll", action: "acknowledged", revision: rolled.active.revision });
   await capture("held-and-rerolled");
-}
-
-export function nativeDice({ readSave, ...options }) {
-  return nativeInteraction({ ...options, prefix: "hold", exercise: (io) => holdAndReroll({ readSave, ...io }) });
 }
