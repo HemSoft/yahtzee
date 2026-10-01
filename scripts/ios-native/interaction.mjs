@@ -7,12 +7,25 @@ import { redactDriverLog } from "./driverLogs.mjs";
 /** One bounded local driver session for the owned simulator. */
 export async function nativeInteraction({ device, bundleId, directory, prefix, env, capture, exercise, openSession = localMaestro }) {
   assert(["complete", "hold", "scenario"].includes(prefix), "Unknown native interaction phase.");
-  let diagnostics = "", sequence = 0;
+  let diagnostics = "", sequence = 0, timingUnavailable = false;
+  const timings = [];
+  function timingNotice() {
+    if (!timingUnavailable) diagnostics += "\nNative timing telemetry unavailable.\n";
+    timingUnavailable = true;
+  }
   const deadline = Date.now() + 600000;
   const childEnv = Object.fromEntries(Object.entries(env).filter(([key]) =>
     /^(PATH|HOME|USER|LOGNAME|SHELL|TMPDIR|TMP|TEMP|JAVA_HOME|DEVELOPER_DIR|LANG|LC_ALL|MAESTRO_CLI_NO_ANALYTICS|MAESTRO_DISABLE_UPDATE_CHECK|MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED|MAESTRO_DRIVER_STARTUP_TIMEOUT)$/.test(key)));
-  let client;
-  async function call(name, args) { assert(Date.now() < deadline, "Native interaction exceeded ten minutes."); return client.call(name, args); }
+  let client, shutdownFailed = false, shutdownError, diagnosticFailed = false, diagnosticError;
+  async function call(name, args) {
+    assert(Date.now() < deadline, "Native interaction exceeded ten minutes.");
+    const started = Date.now(); let outcome = "threw";
+    try { const result = await client.call(name, args); outcome = "returned"; return result; }
+    finally {
+      if (timings.length < 2048) timings.push(JSON.stringify({ tool: name, flowSequence: sequence, started, elapsedMs: Date.now() - started, outcome }));
+      else timingNotice();
+    }
+  }
   async function inspect() {
     const screen = await call("inspect_screen", { device_id: device });
     writeFileSync(join(directory, `${prefix}-screen-latest.json`), JSON.stringify(screen, null, 2) + "\n");
@@ -40,6 +53,17 @@ export async function nativeInteraction({ device, bundleId, directory, prefix, e
     throw error;
   } finally {
     try { await client?.close(); }
-    finally { writeFileSync(join(directory, `${prefix}-mcp.log`), redactDriverLog(diagnostics, env)); }
+    catch (error) {
+      shutdownFailed = true; shutdownError = error;
+      diagnostics += "\nLocal Maestro shutdown failed.\n";
+    }
+    finally {
+      try { writeFileSync(join(directory, `${prefix}-tool-timing.jsonl`), timings.join("\n") + (timings.length ? "\n" : "")); }
+      catch { timingNotice(); }
+      try { writeFileSync(join(directory, `${prefix}-mcp.log`), redactDriverLog(diagnostics, env)); }
+      catch (error) { diagnosticFailed = true; diagnosticError = error; }
+    }
   }
+  if (shutdownFailed) throw shutdownError;
+  if (diagnosticFailed) throw diagnosticError;
 }
